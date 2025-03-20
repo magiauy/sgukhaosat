@@ -1,0 +1,22 @@
+# Composer
+/vendor/
+/composer.lock
+
+# PhpStorm (JetBrains)
+/.idea/
+/*.iml
+
+# Node.js (nếu có)
+/node_modules/
+/package-lock.json
+/yarn.lock
+
+# Hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Cache & Logs
+/storage/*
+/logs/*
+/.env
+.env.local

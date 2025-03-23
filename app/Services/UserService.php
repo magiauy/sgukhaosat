@@ -3,7 +3,7 @@
 namespace Services;
 use Repositories\IBaseRepository;
 use Repositories\UserRepository;
-class UserService implements IBaseService
+class UserService implements IAuthService
 {
     private IBaseRepository $userRepository;
 
@@ -35,6 +35,26 @@ class UserService implements IBaseService
     public function getAll(): array
     {
         return $this->userRepository->getAll();
+    }
+
+    public function login($data)
+    {
+        return $this->userRepository->login($data);
+    }
+
+    public function register($data)
+    {
+        return $this->userRepository->register($data);
+    }
+
+    public function logout()
+    {
+        return $this->userRepository->logout();
+    }
+
+    public function me()
+    {
+        return $this->userRepository->me();
     }
 
 

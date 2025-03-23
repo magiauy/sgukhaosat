@@ -1,6 +1,5 @@
 <?php
 
-namespace Routes;
 use Core\Request;
 use Controllers\UserController;
 use Core\Response;
@@ -29,6 +28,9 @@ switch (true) {
         //email
     case $method === 'GET' && strpos($path, '/api/user') === 0 && isset($_GET['email']):
         $controller->getById($response, $request);
+        break;
+    case $method === 'POST' && $path === '/api/login':
+        $controller->login($response, $request);
         break;
     default:
         $response->sendMessage('Not found', 404);

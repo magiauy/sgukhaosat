@@ -63,4 +63,33 @@ class UserRepository implements IBaseRepository{
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    public function login($data){
+        $sql = "SELECT * FROM users WHERE email = :email";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['email' => $data['email']]);
+        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if($user && password_verify($data['password'],$user['password'])){
+            return $user;
+        }
+        return null;
+    }
+
+    public function register($data): \Error
+    {
+        return new \Error("Not implemented");
+    }
+
+    public function logout(): \Error
+    {
+        return new \Error("Not implemented");
+    }
+
+    public function me(): \Error
+    {
+        return new \Error("Not implemented");
+    }
+
+
+
 }

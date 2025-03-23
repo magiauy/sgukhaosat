@@ -4,12 +4,12 @@
 
         use Core\Request;
         use Core\Response;
-        use Services\IBaseService;
+        use Services\IAuthService;
         use Services\UserService;
 
-        class UserController implements IBaseController
+        class UserController implements IAuthController
         {
-            private IBaseService $userService;
+            private IAuthService $userService;
 
             public function __construct()
             {
@@ -104,4 +104,38 @@
                     $response->json(['error' => $e->getMessage()], 500);
                 }
             }
+
+            public function login(Response $response, Request $request){
+                try {
+                    $data = $request->getBody();
+                    $user = $this->userService->login($data);
+                    if ($user!=null) {
+                        $response->json([
+                            'message' => 'Đăng nhập thành công',
+                            'data' => $user
+                        ]);
+                    } else {
+                        $response->json(['error' => 'Đăng nhập thất bại', 'data' => $user
+
+                        ], 401);
+                    }
+                }catch (\Exception $e){
+                    $response->json(['error' => $e->getMessage()], 500);
+                }
+            }
+
+            public function register(Response $response, Request $request){
+                $response->json(['error' => 'Not implemented'], 501);
+            }
+
+            public function logout(Response $response, Request $request){
+                $response->json(['error' => 'Not implemented'], 501);
+            }
+
+            public function me(Response $response, Request $request){
+                $response->json(['error' => 'Not implemented'], 501);
+            }
+
+
+
         }

@@ -1,2 +1,17 @@
 {
+  "require": {
+    "ext-pdo": "*",
+    "vlucas/phpdotenv": "*",
+    "ext-http": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Core\\": "app/Core",
+      "Controllers\\": "app/Controllers/",
+      "Routes\\": "app/Routes/",
+      "Services\\" : "app/Services/",
+      "Repositories\\" : "app/Repositories/"
+    }
+  }
 }

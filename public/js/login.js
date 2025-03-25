@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
                 // localStorage.setItem("token", data.token);
-                showPopup("Đăng nhập thành công!", "success");
+                showPopup(data['message'], "success");
             } else {
                 showPopup("Email hoặc mật khẩu không chính xác!", "error");
             }

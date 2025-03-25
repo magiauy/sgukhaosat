@@ -1,7 +1,7 @@
 <?php
 
 namespace Repositories;
-class UserRepository implements IBaseRepository{
+class UserRepository implements IAuthRepository {
     private $pdo;
 
     public function __construct()
@@ -14,7 +14,7 @@ class UserRepository implements IBaseRepository{
         $sql = "INSERT INTO users (email, password, roleId,fullName,phone) VALUES ( :email, :password, :roleId, :fullName, :phone)";
         $stmt = $this->pdo->prepare($sql);
         $options = [
-            'cost' => 9,
+            'cost' => 10,
         ];
         $stmt->execute(
             [

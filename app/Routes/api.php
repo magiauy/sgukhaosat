@@ -32,6 +32,9 @@ switch (true) {
     case $method === 'POST' && $path === '/api/login':
         $controller->login($response, $request);
         break;
+    case $method === 'POST' && $path === '/api/me':
+        $controller->me($response, $request);
+            break;
     default:
         $response->sendMessage('Not found', 404);
         break;

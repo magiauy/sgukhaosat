@@ -114,6 +114,11 @@
                             'message' => 'Đăng nhập thành công',
                             'data' => $user
                         ]);
+                            session_start();
+                            $_SESSION['email'] = $user['email'];
+                            $_SESSION['roleId'] = $user['roleId'];
+                            $_SESSION['fullName'] = $user['fullName'];
+                            $_SESSION['phone'] = $user['phone'];
                     } else {
                         $response->json(['error' => 'Đăng nhập thất bại', 'data' => $user
 
@@ -125,15 +130,25 @@
             }
 
             public function register(Response $response, Request $request){
-                $response->json(['error' => 'Not implemented'], 501);
+                session_destroy();
             }
 
             public function logout(Response $response, Request $request){
                 $response->json(['error' => 'Not implemented'], 501);
             }
 
-            public function me(Response $response, Request $request){
-                $response->json(['error' => 'Not implemented'], 501);
+            public function me(Response $response, Request $request) {
+                session_start();
+                if (isset($_SESSION['email'])) {
+                    $response->json([
+                        'email' => $_SESSION['email'],
+                        'roleId' => $_SESSION['roleId'],
+                        'fullName' => $_SESSION['fullName'],
+                        'phone' => $_SESSION['phone']
+                    ]);
+                } else {
+                    $response->json(['error' => 'Not logged in'], 401);
+                }
             }
 
 

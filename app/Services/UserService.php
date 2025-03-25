@@ -42,17 +42,17 @@ class UserService implements IAuthService
         return $this->userRepository->login($data);
     }
 
-    public function register($data)
+    public function register($data): \Error
     {
         return $this->userRepository->register($data);
     }
 
-    public function logout()
+    public function logout(): \Error
     {
         return $this->userRepository->logout();
     }
 
-    public function me()
+    public function me(): \Error
     {
         return $this->userRepository->me();
     }

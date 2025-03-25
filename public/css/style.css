@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Salt&display=swap');
+
+.footer-custom {
+    background-color: #0066a1; /* Màu xanh nền */
+}
+
+.footer-custom h6 {
+    font-weight: bold;
+}
+
+.footer-custom a {
+    text-decoration: none;
+}
+
+.footer-custom a:hover {
+    text-decoration: underline;
+}
+
+/* Header */
+.navbar-custom {
+    background-color: #0066a1; /* Màu nền xanh */
+    padding: 0 20px;
+}
+
+body {
+    font-family: 'Salt', sans-serif;
+}
+.navbar-custom .nav-link {
+    color: white !important;
+    font-weight: bold;
+}
+
+.navbar-custom .nav-link:hover {
+    text-decoration: underline;
+}
+
+.login-btn {
+    border: 1px solid black;
+    background-color: white;
+    color: black;
+    font-weight: bold;
+}
+
+.login-btn:hover {
+    background-color: #ddd;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+}

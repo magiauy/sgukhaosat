@@ -1,0 +1,106 @@
+.total-account{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 20px;
+}
+
+.total-account div{
+    width: calc(90%/3);
+    padding: 30px 0px;
+    text-align: center;
+    background-color: #F4F7FF;
+    border-radius: 15px;
+}
+
+.total-account div:last-child{
+    border-right: none;
+}
+
+.total-account div p{
+    font-size: 1.5rem;
+}
+
+.filter{
+    width: 100%;
+    padding: 20px;
+}
+
+.filter ul{
+    font-size: 1.2rem;
+    width: 100%;
+    display: flex;
+    justify-content: right;
+}
+
+.filter ul li{
+    margin: 0px 10px;
+    padding: 10px 20px;
+    background-color: red;
+    list-style-type: none;
+    cursor: pointer;
+}
+
+.filter ul button{
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border: none;
+}
+
+.filter ul button:hover{
+    background-color: #c3c7d1;
+    transition: 0.3 ease-in-out;
+}
+
+.title-list-account{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.title-list-account .header-title-list-account{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;  
+}
+
+.header-title-list-account p{
+    font-size: 2rem;  
+}
+
+.header-title-list-account .option{
+    width: 70%;
+    display: flex;
+    justify-content: right;
+    gap: 50px;
+}
+
+.header-title-list-account input{
+    background-color: #d9d9d9;
+    border: none;
+    font-size: 1.5rem;
+    padding: 10px;
+    width: 500px;
+}
+
+.header-title-list-account input:focus{
+    outline: none;
+    border: none;
+}
+
+.total-account table, th, td{
+    text-align: left;
+    padding: 8px;
+}
+
+.total-account th {
+    text-align: center;
+    background-color: #f2f2f2; /* Màu nền nhẹ giúp nổi bật */
+}
+
+
+.total-account table{
+    width: 100%; /* Chiếm toàn bộ chiều rộng container */
+}

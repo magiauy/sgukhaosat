@@ -423,18 +423,15 @@ function handleClickSaveChanges(oldEmail){
             status
         }
 
-        console.log(data); 
         const result = await fetch(`http://localhost:8000/api/user?email=${oldEmail}`,{
             method: 'PUT',
             headers:{
                 "Content-Type": "application/json"
             },
-            body:{
-                data
-            }
-        })
-        const response = result.json();
+            body: JSON.stringify(data)
+        });
+        const response = await result.json();
         console.log(response);
-
+        
     }
 }

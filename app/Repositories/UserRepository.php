@@ -29,14 +29,17 @@ class UserRepository implements IAuthRepository {
     }
 
     public function update($id,$data): bool{
-        $sql = "UPDATE users SET  roleId = :roleId, fullName = :fullName, phone = :phone WHERE email = :email";
+        $sql = "UPDATE users SET  roleId = :roleId, phone = :phone, email = :newEmail, password = :password, department = :department, status = :status WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(
             [
                 'email' => $id,
                 'roleId' => $data['roleId'],
-                'fullName' => $data['fullName'],
-                'phone' => $data['phone']
+                'phone' => $data['phone'],
+                'newEmail' => $data['email'],
+                'status' => $data['status'],
+                'password' => $data['password'],
+                'department' => $data['department']
             ]
         );
         return $stmt->rowCount() === 1;
@@ -90,6 +93,14 @@ class UserRepository implements IAuthRepository {
         return new \Error("Not implemented");
     }
 
-
+    public function getListUsers(): array{
+        $sql = "SELECT *
+                FROM users, roles
+                WHERE users.roleID = roles.roleID;";
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute();
+        // print_r($statement->fetchAll(\PDO::FETCH_ASSOC));
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
 
 }

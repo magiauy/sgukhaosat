@@ -57,6 +57,9 @@ class UserService implements IAuthService
         return $this->userRepository->me();
     }
 
+    public function getListUsers(): array{
+        return $this->userRepository->getListUsers();
+    }
 
 
 

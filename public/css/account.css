@@ -1,13 +1,14 @@
+
 .total-account{
     display: flex;
     justify-content: space-between;
     width: 100%;
-    padding: 20px;
+    padding: 10px;
 }
 
 .total-account div{
     width: calc(90%/3);
-    padding: 30px 0px;
+    padding: 5px;
     text-align: center;
     background-color: #F4F7FF;
     border-radius: 15px;
@@ -23,7 +24,7 @@
 
 .filter{
     width: 100%;
-    padding: 20px;
+    padding: 10px;
 }
 
 .filter ul{
@@ -31,24 +32,26 @@
     width: 100%;
     display: flex;
     justify-content: right;
+    gap: 20px;
 }
 
 .filter ul li{
-    margin: 0px 10px;
-    padding: 10px 20px;
-    background-color: red;
+    padding: 10px;
+    background-color: #F4F7FF;
     list-style-type: none;
     cursor: pointer;
+    font-size: 0.8rem;
+    width: 8%;
 }
 
-.filter ul button{
-    padding: 10px 20px;
-    font-size: 1.2rem;
+.filter button{
+    padding: 10px 30px;
+    font-size: 0.8rem;
     cursor: pointer;
     border: none;
 }
 
-.filter ul button:hover{
+.filter button:hover{
     background-color: #c3c7d1;
     transition: 0.3 ease-in-out;
 }
@@ -63,7 +66,19 @@
     width: 100%;
     display: flex;
     justify-content: space-between;
-    padding: 20px;  
+    padding: 10px;  
+}
+
+.title-list-account button{
+    padding: 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: none;
+}
+
+.title-list-account button:hover{
+    background-color: #c3c7d1;
+    transition: 0.3 ease-in-out;
 }
 
 .header-title-list-account p{
@@ -80,8 +95,8 @@
 .header-title-list-account input{
     background-color: #d9d9d9;
     border: none;
-    font-size: 1.5rem;
-    padding: 10px;
+    font-size: 0.8rem;
+    padding: 5px;
     width: 500px;
 }
 
@@ -90,17 +105,28 @@
     border: none;
 }
 
-.total-account table, th, td{
+.title-list-account table, th, td{
     text-align: left;
     padding: 8px;
+    border: none;
 }
 
-.total-account th {
-    text-align: center;
-    background-color: #f2f2f2; /* Màu nền nhẹ giúp nổi bật */
+.title-list-account table{
+    width: 100%; 
+    padding: 10px;
 }
 
+.title-list-account th {
+    text-align: left;
+    background-color: #F4F7FF; 
+}
 
-.total-account table{
-    width: 100%; /* Chiếm toàn bộ chiều rộng container */
+.title-list-account table th:nth-child(9), .total-account table td:nth-child(9) {
+    width: 100px;
+}
+
+.title-list-account table svg{
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
 }

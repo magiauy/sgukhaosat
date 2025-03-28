@@ -1,21 +1,22 @@
-function submenuClick(){
-    document.querySelectorAll(".submenu").forEach((submenuItem) => {
-        submenuItem.onclick = (e) => {
+import { renderContentUser } from "./userAdmin.js";
+
+
+
+function handleClickOnSidebar(){
+    document.getElementById('toggleSidebar').onclick = () => {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+    }; 
+
+    document.querySelectorAll("#sidebar ul li a").forEach((item) => {
+        item.onclick = (e) => {
+            e.preventDefault();
             if(e.target.textContent.trim() === "Tài khoản"){
-                renderContentSubmenuAccount();
+                renderContentUser();
             }
         }
+       
     })
-
-    document.querySelector(".hidden-sidebar").onclick = () => {
-        document.querySelector(".sidebar").classList.toggle("active-hidden");
-    }
 }
 
-submenuClick();
+handleClickOnSidebar();
 
-function renderContentSubmenuAccount(){
-    document.querySelector(".submenu-content").innerHTML = `
-        
-    `
-}

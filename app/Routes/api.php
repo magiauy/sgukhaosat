@@ -35,6 +35,9 @@ switch (true) {
     case $method === 'POST' && $path === '/api/me':
         $controller->me($response, $request);
             break;
+    case $method === 'GET' && $path === '/api/getListUsers':
+        $controller->getListUsers($response, $request);
+        break;        
     default:
         $response->sendMessage('Not found', 404);
         break;

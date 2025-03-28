@@ -11,7 +11,7 @@ class UserRepository implements IAuthRepository {
 
     public function create($data): bool{
 
-        $sql = "INSERT INTO users (email, password, roleId,fullName,phone) VALUES ( :email, :password, :roleId, :fullName, :phone)";
+        $sql = "INSERT INTO users (email, password, roleId,fullName,phone,dateCreate,status) VALUES ( :email, :password, :roleId, :fullName, :phone , NOW(), 1)";
         $stmt = $this->pdo->prepare($sql);
         $options = [
             'cost' => 10,
@@ -29,18 +29,16 @@ class UserRepository implements IAuthRepository {
     }
 
     public function update($id, $data): bool { 
-        $sql = "UPDATE users SET email = :newEmail, roleID = :roleID, phone = :phone, 
+        $sql = "UPDATE users SET  roleID = :roleID, phone = :phone, 
                 password = :password, department = :department, status = :status 
-                WHERE email = :oldEmail";
+                WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'oldEmail' => $id,
             'roleID' => $data['roleID'],
             'phone' => $data['phone'],
-            'newEmail' => $data['email'],
+            'email' => $id,
             'status' => $data['status'],
             'password' => $data['password'],
-            'department' => $data['department']
         ]);
         return $stmt->rowCount() === 1;
     }

@@ -28,22 +28,23 @@ class UserRepository implements IAuthRepository {
         return $stmt->rowCount() === 1;
     }
 
-    public function update($id,$data): bool{
-        $sql = "UPDATE users SET  roleId = :roleId, phone = :phone, email = :newEmail, password = :password, department = :department, status = :status WHERE email = :email";
+    public function update($id, $data): bool { 
+        $sql = "UPDATE users SET email = :newEmail, roleID = :roleID, phone = :phone, 
+                password = :password, department = :department, status = :status 
+                WHERE email = :oldEmail";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(
-            [
-                'email' => $id,
-                'roleId' => $data['roleId'],
-                'phone' => $data['phone'],
-                'newEmail' => $data['email'],
-                'status' => $data['status'],
-                'password' => $data['password'],
-                'department' => $data['department']
-            ]
-        );
+        $stmt->execute([
+            'oldEmail' => $id,
+            'roleID' => $data['roleID'],
+            'phone' => $data['phone'],
+            'newEmail' => $data['email'],
+            'status' => $data['status'],
+            'password' => $data['password'],
+            'department' => $data['department']
+        ]);
         return $stmt->rowCount() === 1;
     }
+    
 
     public function delete($id): bool{
         $sql = "DELETE FROM users WHERE email = :email";

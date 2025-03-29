@@ -9,32 +9,43 @@ class UserRepository implements IAuthRepository {
         $this->pdo = Database::getInstance()->getConnection();
     }
 
+     // $sql = "INSERT INTO users (email, password, roleId,fullName,phone,dateCreate,status) VALUES ( :email, :password, :roleId, :fullName, :phone , NOW(), 1)";
+        // $stmt = $this->pdo->prepare($sql);
+        // $options = [
+        //     'cost' => 10,
+        // ];
+        // $stmt->execute(
+        //     [
+        //         'email' => $data['email'],
+        //         'password' => password_hash($data['password'],PASSWORD_BCRYPT,$options),
+        //         'roleId' => $data['roleId'],
+        //         'fullName' => $data['fullName'],
+        //         'phone' => $data['phone']
+        //     ]
+        // );
+        // return $stmt->rowCount() === 1;
+
     public function create($data): bool{
 
-        $sql = "INSERT INTO users (email, password, roleId,fullName,phone,dateCreate,status) VALUES ( :email, :password, :roleId, :fullName, :phone , NOW(), 1)";
+        $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?)"));
+        $sql = "INSERT INTO users (email, password, dateCreate, roleId) VALUES $placeholders";
         $stmt = $this->pdo->prepare($sql);
-        $options = [
-            'cost' => 10,
-        ];
-        $stmt->execute(
-            [
-                'email' => $data['email'],
-                'password' => password_hash($data['password'],PASSWORD_BCRYPT,$options),
-                'roleId' => $data['roleId'],
-                'fullName' => $data['fullName'],
-                'phone' => $data['phone']
-            ]
-        );
-        return $stmt->rowCount() === 1;
+
+        $params = [];
+        foreach ($data as $row) {
+            $params = array_merge($params, array_values($row));
+        }
+
+        return $stmt->execute($params);
     }
 
     public function update($id, $data): bool { 
-        $sql = "UPDATE users SET  roleID = :roleID, phone = :phone, 
+        $sql = "UPDATE users SET  roleId = :roleId, phone = :phone, 
                 password = :password, department = :department, status = :status 
                 WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'roleID' => $data['roleID'],
+            'roleId' => $data['roleId'],
             'phone' => $data['phone'],
             'email' => $id,
             'status' => $data['status'],
@@ -95,7 +106,7 @@ class UserRepository implements IAuthRepository {
     public function getListUsers(): array{
         $sql = "SELECT *
                 FROM users, roles
-                WHERE users.roleID = roles.roleID;";
+                WHERE users.roleId = roles.roleId;";
         $statement = $this->pdo->prepare($sql);
         $statement->execute();
         // print_r($statement->fetchAll(\PDO::FETCH_ASSOC));

@@ -3,7 +3,8 @@
     "ext-pdo": "*",
     "vlucas/phpdotenv": "*",
     "ext-http": "*",
-    "ext-json": "*"
+    "ext-json": "*",
+    "phpoffice/phpspreadsheet": "^4.1"
   },
   "autoload": {
     "psr-4": {

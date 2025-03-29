@@ -74,43 +74,53 @@ export async function  renderContentUser(){
 
 
             <!-- Quản lý tài khoản -->
-            <section class="mt-4">
-                <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded">
-                    <h5 class="m-0">Quản lý tài khoản</h5>
-                    <div class="d-flex">
-                        <input type="text" class="form-control me-2" placeholder="Tìm kiếm email">
-                        <button class="btn btn-success me-2">Thêm tài khoản</button>
-                        <button class="btn btn-danger delete-user-button">Xóa tài khoản</button>
-                    </div>
-                </div>
-                
-                <div class="table-responsive mt-3">
-                    <table class="table table-hover table-bordered bg-white shadow-sm rounded">
-                        <thead class="table-dark text-center">
-                            <tr>
-                                <th><input type="checkbox" class="choose-all-user"/></th>
-                                <th>Email</th>
-                                <th>Họ tên</th>
-                                <th>Khoa</th>
-                                <th>Vai trò</th>
-                                <th>Công việc</th>
-                                <th>Ngày tạo</th>
-                                <th>Tình trạng</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-center">
-                        
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+           <section class="mt-4">
+    <!-- Thanh công cụ chính -->
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded">
+        <h5 class="m-0">Quản lý tài khoản</h5>
+        <div class="d-flex align-items-center gap-2">
+            <input type="text" class="form-control" placeholder="Tìm kiếm email" style="max-width: 200px;">
+            <button class="btn btn-danger delete-user-button">Xóa tài khoản</button>
+        </div>
+    </div>
+
+    <!-- Form nhập tài khoản (TÁCH RIÊNG) -->
+    <form method="POST" enctype="multipart/form-data" class="mt-3">
+        <div class="d-flex justify-content-end bg-white p-3 shadow-sm rounded">
+            <input type="file" class="form-control me-2 import-user-input" accept=".xlsx, .xls" name="importFile" style="max-width: 300px;">
+            <button type="button" class="btn btn-primary import-user-button">Import tài khoản</button>
+        </div>
+    </form>
+
+    <!-- Bảng dữ liệu -->
+    <div class="table-responsive mt-3">
+        <table class="table table-hover table-bordered bg-white shadow-sm rounded">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th><input type="checkbox" class="choose-all-user"/></th>
+                    <th>Email</th>
+                    <th>Họ tên</th>
+                    <th>Vai trò</th>
+                    <th>Ngày tạo</th>
+                    <th>Tình trạng</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                <!-- Dữ liệu sẽ được thêm vào đây -->
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
         </div>
     `;
     
     
     renderListUsers(users.data);
     handleClickFilter();
+    handleImportUsers();
 
     //xử lí việc click button xóa tài khoản
     document.querySelector(".delete-user-button").onclick = () => {
@@ -146,9 +156,7 @@ async function renderListUsers(users){
                 <td><input type="checkbox" data-key="${user.email}" class="choose-user"/></td>
                 <td>${user.email}</td>
                 <td>${user.fullname}</td>
-                <td>${user.department}</td>
                 <td>${user.roleName}</td>
-                <td>${user.job}</td>
                 <td>${user.dateCreate}</td>
                 <td><span class="badge bg-success">${user.status}</span></td>
                 <td>
@@ -411,14 +419,14 @@ function handleClickSaveChanges(oldEmail){
         const email = document.querySelector("#email").value;
         const password = document.querySelector("#password").value;
         const phone = document.querySelector("#phone").value;
-        const roleID = document.querySelector("#roleName").value;
+        const roleId = document.querySelector("#roleName").value;
         const department = document.querySelector("#department").value;
         const status = document.querySelector("#status").options[document.querySelector("#status").selectedIndex].textContent;
         const data = {
             email,
             password,
             phone,
-            roleID,
+            roleId,
             department,
             status
         }
@@ -433,5 +441,54 @@ function handleClickSaveChanges(oldEmail){
         const response = await result.json();
         console.log(response);
         
+    }
+}
+
+//hàm xử lí ấn import file user
+function handleImportUsers(){
+    document.querySelector(".import-user-button").onclick = (e) => {
+        const inputFile = document.querySelector(".import-user-input");
+        const file = inputFile.files[0];
+        if(!file)  return;
+
+        const reader = new FileReader();
+        reader.onload = async function (e){
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+
+            const dataArr = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+            const now = new Date();
+            const dateTimeSQL = now.toISOString().slice(0, 19).replace("T", " ");
+
+            dataArr.forEach((row) => {
+                row.push(dateTimeSQL);
+                row.push("ad0001");
+            })
+            dataArr.shift();
+
+
+            const result = await fetch("http://localhost:8000/api/user", {
+                method: "POST",
+                headers:{
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(dataArr)
+            })
+            const response = await result.json();
+
+            console.log(response)
+            if(response.data){
+                renderListUsers();
+                alert("Thành công");
+               
+            }
+            else alert("Thất bại");
+            
+        }
+        reader.readAsArrayBuffer(file);    
     }
 }

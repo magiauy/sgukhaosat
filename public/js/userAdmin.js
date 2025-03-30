@@ -43,18 +43,18 @@ export async function  renderContentUser(){
                 <div class="row">
                     <div class="col-md-2">
                         <select class="form-select role-select">
-                            <option selected>Vai trò</option>
-                            <option value="1">Người tạo</option>
-                            <option value="2">Người tham gia</option>
-                            <option value="3">Admin</option>
+                            <option value="all" selected>Vai trò</option>
+                            <option value="createSurvey">Người tạo</option>
+                            <option value="participateSurvey">Người tham gia</option>
+                            <option value="admin">Admin</option>
                         </select>
                     </div>
 
                     <div class="col-md-2">
                         <select class="form-select status-select">
-                            <option selected>Tình trạng</option>
+                            <option value="all" selected>Tình trạng</option>
                             <option value="1">Đang hoạt động</option>
-                            <option value="2">Đã bị khóa</option>
+                            <option value="0">Đã bị khóa</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -187,7 +187,8 @@ async function renderListUsers(users){
 
 //hàm xử lí việc ấn xem thông tin
 function handleClickMore(data){
-  
+    
+    //khi ấn thông tin
     document.querySelectorAll(".detail-user").forEach((detailUser) => {
         detailUser.onclick = async function (e){
             e.preventDefault();
@@ -331,6 +332,7 @@ function handleClickMore(data){
         }
     })
 
+    //khi ấn xóa
     document.querySelectorAll(".delete-user").forEach((user) => {
         user.onclick = () => {
             const key = user.parentElement.parentElement.dataset.key;
@@ -342,42 +344,33 @@ function handleClickMore(data){
 //hàm xử lí việc ấn button lọc  
 function handleClickFilter(){
     document.querySelector(".filter-user").onclick = async function(){
-        const department = document.querySelector(".department-select").options[document.querySelector(".department-select").selectedIndex].textContent;
-        const role = document.querySelector(".role-select").options[document.querySelector(".role-select").selectedIndex].textContent;
-        const status = document.querySelector(".status-select").options[document.querySelector(".status-select").selectedIndex].textContent;
+        const roleId = document.querySelector(".role-select").value;
+        const status = document.querySelector(".status-select").value;
         const dateCreate = new Date(document.querySelector(".date-create").value).getTime();
         const now = new Date().getTime();
         
-        
-        const response = await fetch("http://localhost:8000/api/getListUsers");
-        const users = await response.json();
+        try {
+            const response = await fetch("http://localhost:8000/api/getListUsers");
+            const users = await response.json();
 
-        const listFiltered = users.data.filter((user) => {
-            const userDate = new Date(user.dateCreate).getTime();
-            return (
-                (user.department === department || department === "Khoa") 
-                && (user.roleName === role || role === "Vai trò")
-                && (user.status === status || status === "Tình trạng")
-                && ((userDate >= dateCreate && userDate <= now) || isNaN(dateCreate))
-            );
-        })
+            const listFiltered = users.data.filter((user) => {
+                const userDate = new Date(user.dateCreate).getTime();
 
-        renderListUsers(listFiltered);
+                return (
+                    (user.roleId === roleId || roleId === "all")
+                    && (user.status === parseInt(status) || status === "all")
+                    && ((userDate >= dateCreate && userDate <= now) || isNaN(dateCreate))
+                );
+            })
+            
+            renderListUsers(listFiltered);
+
+        } catch (error) {
+            console.log(error);   
+        }
     }
 
     document.querySelector(".delete-filter-user").onclick = async function () {
-        // const response = await fetch("http://localhost:8000/api/getListUsers");
-        // const users = await response.json();
-
-        // const department = document.querySelector(".department-select").options[document.querySelector(".department-select").selectedIndex].textContent;
-        // const role = document.querySelector(".role-select").options[document.querySelector(".role-select").selectedIndex].textContent;
-        // const status = document.querySelector(".status-select").options[document.querySelector(".status-select").selectedIndex].textContent;
-
-        // const listFiltered = users.data.filter(() => {
-        //     return true;
-        // })
-
-        // renderListUsers(listFiltered);
         renderContentUser();
     }
 }
@@ -395,7 +388,7 @@ async function handleDelete(arrUser){
         }).then(response => {
             return response.json();
         }).catch(error => {
-            console.error(error.message);
+            console.log(error.message);
             return { error: error.message };
         })
     }))

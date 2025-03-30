@@ -1,3 +1,4 @@
+//hàm render ra nội dung submenu tài khoản
 export async function  renderContentUser(){
     const response = await fetch("http://localhost:8000/api/getListUsers");
     const users = await response.json();
@@ -48,13 +49,7 @@ export async function  renderContentUser(){
                             <option value="3">Admin</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <select class="form-select department-select">
-                            <option selected>Khoa</option>
-                            <option value="CNTT">Công nghệ thông tin</option>
-                            <option value="QTKD">Quản trị kinh doanh</option>
-                        </select>
-                    </div>
+
                     <div class="col-md-2">
                         <select class="form-select status-select">
                             <option selected>Tình trạng</option>
@@ -79,7 +74,7 @@ export async function  renderContentUser(){
     <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded">
         <h5 class="m-0">Quản lý tài khoản</h5>
         <div class="d-flex align-items-center gap-2">
-            <input type="text" class="form-control" placeholder="Tìm kiếm email" style="max-width: 200px;">
+            <input id="search-email" type="text" class="form-control" placeholder="Tìm kiếm email" style="max-width: 200px;">
             <button class="btn btn-danger delete-user-button">Xóa tài khoản</button>
         </div>
     </div>
@@ -121,6 +116,7 @@ export async function  renderContentUser(){
     renderListUsers(users.data);
     handleClickFilter();
     handleImportUsers();
+    handleSearchEmail(users.data);
 
     //xử lí việc click button xóa tài khoản
     document.querySelector(".delete-user-button").onclick = () => {
@@ -137,6 +133,7 @@ export async function  renderContentUser(){
     };
 }
 
+//hàm render ra list user
 async function renderListUsers(users){
     if(!users){
         const response = await fetch("http://localhost:8000/api/getListUsers");
@@ -155,10 +152,10 @@ async function renderListUsers(users){
             <tr>
                 <td><input type="checkbox" data-key="${user.email}" class="choose-user"/></td>
                 <td>${user.email}</td>
-                <td>${user.fullname}</td>
+                <td>${user.fullName}</td>
                 <td>${user.roleName}</td>
                 <td>${user.dateCreate}</td>
-                <td><span class="badge bg-success">${user.status}</span></td>
+                <td><span class="badge bg-success">${user.status === 1 ? "Đang hoạt động" : "Đã bị khóa"}</span></td>
                 <td>
                     <div class="dropdown">
                         <button class="btn btn-light" type="button" data-bs-toggle="dropdown">
@@ -184,8 +181,11 @@ async function renderListUsers(users){
             inputCheckbox.checked = e.target.checked;
         })
     }
+
+ 
 }
 
+//hàm xử lí việc ấn xem thông tin
 function handleClickMore(data){
   
     document.querySelectorAll(".detail-user").forEach((detailUser) => {
@@ -215,9 +215,7 @@ function handleClickMore(data){
                                     <div class="col-md-4 text-center d-flex flex-column align-items-center justify-content-center">
                                         <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp" 
                                             alt="avatar" class="rounded-circle img-fluid" style="width: 150px;">
-                                        <h5 class="my-3">${user[0].fullname}</h5>
-                                        <p class="text-muted mb-1">${user[0].job}</p>
-                                        <p class="text-muted mb-4">${user[0].address}</p>
+                                        <h5 class="my-3">${user[0].fullName}</h5>
                                     </div>
                 
                                     <!-- Editable Fields -->
@@ -245,21 +243,13 @@ function handleClickMore(data){
                                             </div>
                 
                                             
-                
-                                            <div class="row mb-3">
-                                                <label class="col-sm-3 col-form-label">Khoa</label>
-                                                <div class="col-sm-9">
-                                                    <input id="department" type="text" class="form-control" value="${user[0].department}">
-                                                </div>
-                                            </div>
-
                                             <div class="row mb-3">
                                                 <label class="col-sm-3 col-form-label">Vai Trò</label>
                                                 <div class="col-sm-9">
                                                     <select id="roleName" class="form-control">
-                                                        <option value="cs0001" ${user[0].roleName === 'Người tạo' ? 'selected' : ''}>Người tạo</option>
-                                                        <option value="ad0001" ${user[0].roleName === 'Admin' ? 'selected' : ''}>Admin</option>
-                                                        <option value="ps0001" ${user[0].roleName === 'Người tham gia' ? 'selected' : ''}>Người tham gia</option>
+                                                        <option value="createSurvey" ${user[0].roleName === 'Người tạo' ? 'selected' : ''}>Người tạo</option>
+                                                        <option value="admin" ${user[0].roleName === 'Admin' ? 'selected' : ''}>Admin</option>
+                                                        <option value="participateSurvey" ${user[0].roleName === 'Người tham gia' ? 'selected' : ''}>Người tham gia</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -267,8 +257,8 @@ function handleClickMore(data){
                                                 <label class="col-sm-3 col-form-label">Tình trạng</label>
                                                 <div class="col-sm-9">
                                                     <select id="status" class="form-control">
-                                                        <option value="1" ${user[0].status === 'Đang hoạt động' ? 'selected' : ''}>Đang hoạt động</option>
-                                                        <option value="2" ${user[0].status === 'Đã bị khóa' ? 'selected' : ''}>Đã bị khóa</option>
+                                                        <option value="1" ${user[0].status === 1 ? 'selected' : ''}>Đang hoạt động</option>
+                                                        <option value="0" ${user[0].status === 0 ? 'selected' : ''}>Đã bị khóa</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -349,6 +339,7 @@ function handleClickMore(data){
     })
 }
 
+//hàm xử lí việc ấn button lọc  
 function handleClickFilter(){
     document.querySelector(".filter-user").onclick = async function(){
         const department = document.querySelector(".department-select").options[document.querySelector(".department-select").selectedIndex].textContent;
@@ -391,7 +382,6 @@ function handleClickFilter(){
     }
 }
 
-
 //hàm xử lý việc xóa user, arrUser là mảng các email
 async function handleDelete(arrUser){
     if(arrUser.length === 0) return;
@@ -408,9 +398,10 @@ async function handleDelete(arrUser){
             console.error(error.message);
             return { error: error.message };
         })
-    }));
+    }))
+    .then(responseArray => console.log(responseArray));
     
-    renderListUsers();
+    renderContentUser();
 }
 
 //hàm xử lý khi ấn nút chỉnh sửa và lưu thông tin
@@ -420,14 +411,12 @@ function handleClickSaveChanges(oldEmail){
         const password = document.querySelector("#password").value;
         const phone = document.querySelector("#phone").value;
         const roleId = document.querySelector("#roleName").value;
-        const department = document.querySelector("#department").value;
-        const status = document.querySelector("#status").options[document.querySelector("#status").selectedIndex].textContent;
+        const status = document.querySelector("#status").value;
         const data = {
             email,
             password,
             phone,
             roleId,
-            department,
             status
         }
 
@@ -439,8 +428,13 @@ function handleClickSaveChanges(oldEmail){
             body: JSON.stringify(data)
         });
         const response = await result.json();
-        console.log(response);
-        
+        const statusCode = result.status;
+
+        if (statusCode === 200) { 
+            alert("thành công");
+        } else {
+            alert("thất bại");
+        }
     }
 }
 
@@ -471,7 +465,7 @@ function handleImportUsers(){
                 user.dateCreate = dateTimeSQL;
             })
 
-            //gán roleId tương ứng với vai trò
+            //gán status, roleId tương ứng với vai trò
             const objectRoleId = {
                 "Người tham gia": "participateSurvey",
                 "Người tạo": "createSurvey",
@@ -479,6 +473,7 @@ function handleImportUsers(){
             }
             dataArr.forEach((user) => {
                 user.roleId = objectRoleId[user["vai trò"]];
+                user.status = "1"
                 delete user["vai trò"];
             })
 
@@ -514,5 +509,19 @@ function handleImportUsers(){
             else alert("Thất bại");
         }
         reader.readAsArrayBuffer(file);    
+    }
+}
+
+//hàm xử lí tìm kiếm email
+function handleSearchEmail(users){
+    document.querySelector("#search-email").onkeyup = () => {
+        const value = document.querySelector("#search-email").value.toLowerCase();
+        if(value === ""){
+            renderListUsers();
+            return;
+        }
+        let result = [];
+        result = users.filter(user => user.email.toLowerCase().includes(value));
+        renderListUsers(result);
     }
 }

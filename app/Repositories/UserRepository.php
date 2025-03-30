@@ -34,8 +34,8 @@ class UserRepository implements IAuthRepository {
     public function create($data): bool {
         $this->pdo->beginTransaction();
         try {
-            $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?)"));
-            $sql = "INSERT INTO users (email, password, dateCreate, roleId) VALUES $placeholders";
+            $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?, ?)"));
+            $sql = "INSERT INTO users (email, password, dateCreate, roleId, status) VALUES $placeholders";
             $stmt = $this->pdo->prepare($sql);
 
             $params = [];
@@ -61,7 +61,7 @@ class UserRepository implements IAuthRepository {
 
     public function update($id, $data): bool { 
         $sql = "UPDATE users SET  roleId = :roleId, phone = :phone, 
-                password = :password, department = :department, status = :status 
+                password = :password, status = :status 
                 WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([

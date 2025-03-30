@@ -5,14 +5,15 @@ body {
  #sidebar {
     width: 250px;
     min-height: 100vh;
-    background: #343a40;
+    background: #340C6F;
     transition: all 0.3s;
 }
 #sidebar .nav-link {
     color: white;
 }
 #sidebar .nav-link:hover {
-    background: #495057;
+    background: #fff;
+    color: black;
 }
 #sidebar.collapsed {
     width: 80px;

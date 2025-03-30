@@ -14,7 +14,7 @@ class UserService implements IAuthService
 
     public function create($data): bool
     {
-        $options = ['cost' => 10];
+        $options = ['cost' => 8];
 
         foreach ($data as &$row) {
             $row['password'] = password_hash($row['password'], PASSWORD_DEFAULT, $options);

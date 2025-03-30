@@ -446,31 +446,57 @@ function handleClickSaveChanges(oldEmail){
 
 //hàm xử lí ấn import file user
 function handleImportUsers(){
-    document.querySelector(".import-user-button").onclick = (e) => {
+    document.querySelector(".import-user-button").onclick = async function(e){
         const inputFile = document.querySelector(".import-user-input");
         const file = inputFile.files[0];
         if(!file)  return;
 
+        const result = await fetch("http://localhost:8000/api/user");
+        const response = await result.json();
+        const dataUser = response.data;
+
+        // console.log(dataUser);
         const reader = new FileReader();
         reader.onload = async function (e){
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: "array" });
-
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
+            const dataArr = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
 
-            const dataArr = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
+            //tạo thời gian ngay lúc import file user 
             const now = new Date();
             const dateTimeSQL = now.toISOString().slice(0, 19).replace("T", " ");
-
-            dataArr.forEach((row) => {
-                row.push(dateTimeSQL);
-                row.push("ad0001");
+            dataArr.forEach((user) => {
+                user.dateCreate = dateTimeSQL;
             })
-            dataArr.shift();
 
+            //gán roleId tương ứng với vai trò
+            const objectRoleId = {
+                "Người tham gia": "participateSurvey",
+                "Người tạo": "createSurvey",
+                "Admin": "admin"
+            }
+            dataArr.forEach((user) => {
+                user.roleId = objectRoleId[user["vai trò"]];
+                delete user["vai trò"];
+            })
 
+            //kiểm tra email nào bị trùng với database
+            let usersExisted = [];
+            dataArr.forEach((newUser) => {
+                const value = dataUser.find(oldUser => oldUser["email"] === newUser["email"]);
+                if(value !== undefined) usersExisted.push(value);
+            })
+            if(usersExisted.length > 0){
+                alert("Kiểm tra console log f12");
+                usersExisted.forEach((user) => {
+                    console.log(user["email"]); // xử lí email bị trùng ở đây
+                })
+                return;
+            };
+
+            // console.log(dataArr)
             const result = await fetch("http://localhost:8000/api/user", {
                 method: "POST",
                 headers:{
@@ -480,14 +506,12 @@ function handleImportUsers(){
             })
             const response = await result.json();
 
-            console.log(response)
             if(response.data){
                 renderListUsers();
                 alert("Thành công");
                
             }
             else alert("Thất bại");
-            
         }
         reader.readAsArrayBuffer(file);    
     }

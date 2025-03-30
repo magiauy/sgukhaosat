@@ -1,6 +1,9 @@
 <?php
 
 namespace Repositories;
+use Exception;
+use Throwable;
+
 class UserRepository implements IAuthRepository {
     private $pdo;
 
@@ -9,7 +12,7 @@ class UserRepository implements IAuthRepository {
         $this->pdo = Database::getInstance()->getConnection();
     }
 
-     // $sql = "INSERT INTO users (email, password, roleId,fullName,phone,dateCreate,status) VALUES ( :email, :password, :roleId, :fullName, :phone , NOW(), 1)";
+//      $sql = "INSERT INTO users (email, password, roleId,fullName,phone,dateCreate,status) VALUES ( :email, :password, :roleId, :fullName, :phone , NOW(), 1)";
         // $stmt = $this->pdo->prepare($sql);
         // $options = [
         //     'cost' => 10,
@@ -25,7 +28,10 @@ class UserRepository implements IAuthRepository {
         // );
         // return $stmt->rowCount() === 1;
 
-    public function create($data): bool{
+    /**
+     * @throws Throwable
+     */
+    public function create($data): bool {
         $this->pdo->beginTransaction();
         try {
             $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?)"));
@@ -34,15 +40,22 @@ class UserRepository implements IAuthRepository {
 
             $params = [];
             foreach ($data as $row) {
-                $params = array_merge($params, array_values($row));
+                if (!is_array($row)) {
+                    throw new Exception("Dữ liệu đầu vào không hợp lệ!");
+                }
+                array_push($params, ...array_values($row));
             }
-        
+
             $stmt->execute($params);
             $this->pdo->commit();
             return true;
-        } catch (\Throwable $th) {
+        } catch (\PDOException $e) {
             $this->pdo->rollBack();
-            throw $th;
+            // ✅ In lỗi đầy đủ ra log (giúp debug dễ hơn)
+            error_log("SQL Error: " . $e->getMessage());
+
+            // ✅ Throw lại lỗi để Controller xử lý
+            throw new \Exception("Database Error: " . $e->getMessage(), 500);
         }
     }
 

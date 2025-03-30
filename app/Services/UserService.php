@@ -14,6 +14,14 @@ class UserService implements IAuthService
 
     public function create($data): bool
     {
+        $options = ['cost' => 10];
+
+        foreach ($data as &$row) {
+            $row['password'] = password_hash($row['password'], PASSWORD_DEFAULT, $options);
+            $row['dateCreate'] = date('Y-m-d H:i:s'); // ✅ Set luôn ngày tạo
+        }
+        unset($row);
+
         return $this->userRepository->create($data);
     }
 

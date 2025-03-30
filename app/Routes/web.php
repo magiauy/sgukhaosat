@@ -14,6 +14,8 @@ switch (true) {
     case ($uri === 'admin'):
         require_once __DIR__ . '/../../public/indexAdmin.php';
         break;
+    case ($uri === 'admin/form'):
+        require_once __DIR__ . '/../../public/admin/form.php';
     default:
         require_once __DIR__ . '/../../public/views/404.php';
         break;

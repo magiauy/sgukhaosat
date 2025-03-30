@@ -77,6 +77,3 @@ function showPopup(message, type = "success") {
     // Tự động đóng sau 3 giây
     setTimeout(() => modal.hide(), 3000);
 }
-
-
-

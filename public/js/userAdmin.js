@@ -1,7 +1,13 @@
 export async function  renderContentUser(){
     const response = await fetch("http://localhost:8000/api/getListUsers");
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
     const users = await response.json();
 
+    if (!users.data) {
+        throw new Error("Invalid data format");
+    }
     let totalCreateSurvey = users.data.filter((user) => {
         return user.roleName === "Người tạo";
     }).length
@@ -371,7 +377,7 @@ function handleClickFilter(){
             );
         })
 
-        renderListUsers(listFiltered);
+        await renderListUsers(listFiltered);
     }
 
     document.querySelector(".delete-filter-user").onclick = async function () {
@@ -387,7 +393,7 @@ function handleClickFilter(){
         // })
 
         // renderListUsers(listFiltered);
-        renderContentUser();
+        await renderContentUser();
     }
 }
 
@@ -410,7 +416,7 @@ async function handleDelete(arrUser){
         })
     }));
     
-    renderListUsers();
+    await renderListUsers();
 }
 
 //hàm xử lý khi ấn nút chỉnh sửa và lưu thông tin
@@ -494,9 +500,9 @@ function handleImportUsers(){
                     console.log(user["email"]); // xử lí email bị trùng ở đây
                 })
                 return;
-            };
+            }
 
-            // console.log(dataArr)
+            console.log(dataArr)
             const result = await fetch("http://localhost:8000/api/user", {
                 method: "POST",
                 headers:{
@@ -507,11 +513,14 @@ function handleImportUsers(){
             const response = await result.json();
 
             if(response.data){
-                renderListUsers();
+                await renderListUsers();
                 alert("Thành công");
                
             }
-            else alert("Thất bại");
+            else {
+                alert("Thất bại");
+                console.log(response);
+            }
         }
         reader.readAsArrayBuffer(file);    
     }

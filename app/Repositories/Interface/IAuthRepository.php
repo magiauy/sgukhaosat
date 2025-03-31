@@ -1,6 +1,6 @@
 <?php
 
-namespace Repositories;
+namespace Repositories\Interface;
 
 interface IAuthRepository extends IBaseRepository
 {

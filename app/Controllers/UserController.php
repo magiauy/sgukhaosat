@@ -2,9 +2,10 @@
 
         namespace Controllers;
 
+        use Controllers\Interface\IAuthController;
         use Core\Request;
         use Core\Response;
-        use Services\IAuthService;
+        use Services\Interface\IAuthService;
         use Services\UserService;
 
         class UserController implements IAuthController

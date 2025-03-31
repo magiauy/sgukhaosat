@@ -3,6 +3,7 @@
 namespace Services;
 use Repositories\Interface\IBaseRepository;
 use Repositories\UserRepository;
+use Services\Interface\IAuthService;
 
 class UserService implements IAuthService
 {

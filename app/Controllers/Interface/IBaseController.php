@@ -1,6 +1,6 @@
 <?php
 
-namespace Controllers;
+namespace Controllers\Interface;
 
 use Core\Request;
 use Core\Response;

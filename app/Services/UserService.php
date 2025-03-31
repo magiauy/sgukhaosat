@@ -1,8 +1,9 @@
 <?php
 
 namespace Services;
-use Repositories\IBaseRepository;
+use Repositories\Interface\IBaseRepository;
 use Repositories\UserRepository;
+
 class UserService implements IAuthService
 {
     private IBaseRepository $userRepository;
@@ -16,10 +17,16 @@ class UserService implements IAuthService
     {
         $options = ['cost' => 8];
 
+        if (!is_array(reset($data))) {
+            $data = [$data];
+        }
+
         foreach ($data as &$row) {
             $row['password'] = password_hash($row['password'], PASSWORD_DEFAULT, $options);
-            $row['dateCreate'] = date('Y-m-d H:i:s'); // ✅ Set luôn ngày tạo
+            $row['dateCreate'] = $row['dateCreate'] ?? date('Y-m-d H:i:s'); // Gán ngày tạo nếu chưa có
+            $row['status'] = $row['status'] ?? 1; // Gán trạng thái mặc định là 1 nếu chưa có
         }
+
         unset($row);
 
         return $this->userRepository->create($data);

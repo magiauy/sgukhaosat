@@ -2,10 +2,11 @@
 
 namespace Repositories;
 use Exception;
+use Repositories\Interface\IAuthRepository;
 use Throwable;
 
 class UserRepository implements IAuthRepository {
-    private $pdo;
+    private \PDO $pdo;
 
     public function __construct()
     {
@@ -34,20 +35,24 @@ class UserRepository implements IAuthRepository {
     public function create($data): bool {
         $this->pdo->beginTransaction();
         try {
-            $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?, ?)"));
-            $sql = "INSERT INTO users (email, password, dateCreate, roleId, status) VALUES $placeholders";
-            $stmt = $this->pdo->prepare($sql);
+                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?, ?)"));
+                $sql = "INSERT INTO users (email, password, dateCreate, roleId, status) VALUES $placeholders";
+                $stmt = $this->pdo->prepare($sql);
+                $expectedOrder = ['email', 'password', 'dateCreate', 'roleId', 'status'];
 
             $params = [];
             foreach ($data as $row) {
                 if (!is_array($row)) {
                     throw new Exception("Dữ liệu đầu vào không hợp lệ!");
                 }
-                array_push($params, ...array_values($row));
-            }
+                $row = array_merge(array_fill_keys($expectedOrder, null), $row);
+
+                // Ánh xạ giá trị theo đúng thứ tự
+                $params = array_merge($params, array_map(fn($key) => $row[$key], $expectedOrder));            }
 
             $stmt->execute($params);
             $this->pdo->commit();
+
             return true;
         } catch (\PDOException $e) {
             $this->pdo->rollBack();

@@ -21,12 +21,19 @@ class UserService implements IAuthService
 
     public function create($data): bool
     {
+        //kiểm tra dữ liệu rỗng
+        foreach($data as $user){
+            if(empty($user['email']) || empty($user['password'])){
+                echo json_encode(["error" => true, "message" => "dữ liệu rỗng"]);
+                return false;
+            }
+        }
         $options = ['cost' => 8];
 
         if (!is_array(reset($data))) {
             $data = [$data];
         }
-
+        
         foreach ($data as &$row) {
             $row['password'] = password_hash($row['password'], PASSWORD_DEFAULT, $options);
             $row['dateCreate'] = $row['dateCreate'] ?? date('Y-m-d H:i:s'); // Gán ngày tạo nếu chưa có
@@ -107,11 +114,8 @@ class UserService implements IAuthService
         return $this->userRepository->me();
     }
 
-    public function getListUsers(): array{
-        return $this->userRepository->getListUsers();
-    }
-
-
-
+    // public function getListUsers(): array{
+    //     return $this->userRepository->getListUsers();
+    // }
 
 }

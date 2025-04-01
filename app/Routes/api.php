@@ -5,12 +5,14 @@ use Core\Request;
 use Controllers\UserController;
 use Core\Response;
 use Middlewares\JwtMiddleware;
+use Controllers\RoleController;
 
 $request = new Request();
 $response = new Response();
 
 $controller = new UserController();
 $formController = new FormController();
+$roleController = new RoleController();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['REQUEST_URI'];
@@ -47,7 +49,26 @@ switch (true) {
         break;
     case $method === 'GET' && $path === '/api/getListUsers':
         $controller->getListUsers($response, $request);
+        break; 
+
+    //role
+    case $method === 'POST' && $path === '/api/role':
+        $roleController->create($response, $request);
         break;
+    case $method === 'PUT' && str_starts_with($path, '/api/role') && isset($_GET['roleId']):
+        $roleController->update($response, $request);
+        break;
+    case $method === 'DELETE' && str_starts_with($path, '/api/role') && isset($_GET['roleId']):
+        $roleController->delete($response, $request);
+        break;      
+    case $method === 'GET' && str_starts_with($path, '/api/role') && isset($_GET['roleId']):
+        $roleController->getById($response, $request);
+        break;
+    case $method === 'GET' && $path === '/api/role':
+        $roleController->getAll($response, $request);
+        break;
+
+    //admin
     case $method === 'POST' && $path === '/api/admin/form':
         $formController->create($response, $request);
         break;

@@ -2,6 +2,7 @@
 
 namespace Services;
 
+use Repositories\Database;
 use Repositories\Interface\IBaseRepositoryTransaction;
 use Repositories\Role_PermRepository;
 use Repositories\RoleRepository;
@@ -18,43 +19,32 @@ class RoleService implements IBaseService
         $this->rolePermRepository = new Role_PermRepository();
     }
 
-    function create($data)
+    function create($data): bool
     {
-        // TODO: Implement create() method.
+        $pdo = Database::getInstance()->getConnection();
+        return $this->roleRepository->create($data, $pdo);        
     }
 
-    function update($id, $data)
+    function update($id, $data): bool
     {
-        // TODO: Implement update() method.
+        $pdo = Database::getInstance()->getConnection();
+        return $this->roleRepository->update($id, $data, $pdo);   
     }
 
-    function delete($id)
+    function delete($id): bool
     {
-        // TODO: Implement delete() method.
+        $pdo = Database::getInstance()->getConnection();
+        return $this->roleRepository->delete($id, $pdo);   
     }
 
     function getById($id)
     {
-        try {
-            $role = $this->roleRepository->getById($id);
-            if ($role) {
-                $permissions = $this->rolePermRepository->getById($id);
-                return [
-                    'role' => $role,
-                    'permissions' => $permissions
-                ];
-            } else {
-                throw new \Exception('Role not found');
-            }
-        }catch (\Exception $exception){
-            return [
-                'error' => $exception->getMessage()
-            ];
-        }
+        // $pdo = Database::getInstance()->getConnection();
+        return $this->roleRepository->getById($id); 
     }
 
-    function getAll()
+    function getAll(): array
     {
-        // TODO: Implement getAll() method.
+        return $this->roleRepository->getAll();
     }
 }

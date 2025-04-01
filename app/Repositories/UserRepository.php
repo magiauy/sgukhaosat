@@ -35,10 +35,10 @@ class UserRepository implements IAuthRepository {
     public function create($data): bool {
         $this->pdo->beginTransaction();
         try {
-                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?, ?)"));
-                $sql = "INSERT INTO users (email, password, dateCreate, roleId, status) VALUES $placeholders";
+                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?)"));
+                $sql = "INSERT INTO users (email, password, dateCreate, status) VALUES $placeholders";
                 $stmt = $this->pdo->prepare($sql);
-                $expectedOrder = ['email', 'password', 'dateCreate', 'roleId', 'status'];
+                $expectedOrder = ['email', 'password', 'dateCreate', 'status'];
 
             $params = [];
             foreach ($data as $row) {
@@ -48,7 +48,8 @@ class UserRepository implements IAuthRepository {
                 $row = array_merge(array_fill_keys($expectedOrder, null), $row);
 
                 // Ánh xạ giá trị theo đúng thứ tự
-                $params = array_merge($params, array_map(fn($key) => $row[$key], $expectedOrder));            }
+                $params = array_merge($params, array_map(fn($key) => $row[$key], $expectedOrder));
+            }
 
             $stmt->execute($params);
             $this->pdo->commit();
@@ -137,14 +138,14 @@ class UserRepository implements IAuthRepository {
         return new \Error("Not implemented");
     }
 
-    public function getListUsers(): array{
-        $sql = "SELECT *
-                FROM users, roles
-                WHERE users.roleId = roles.roleId;";
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute();
-        // print_r($statement->fetchAll(\PDO::FETCH_ASSOC));
-        return $statement->fetchAll(\PDO::FETCH_ASSOC);
-    }
+    // public function getListUsers(): array{
+    //     $sql = "SELECT *
+    //             FROM users, roles
+    //             WHERE users.roleId = roles.roleId;";
+    //     $statement = $this->pdo->prepare($sql);
+    //     $statement->execute();
+    //     // print_r($statement->fetchAll(\PDO::FETCH_ASSOC));
+    //     return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    // }
 
 }

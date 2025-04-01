@@ -1,6 +1,22 @@
+//hàm gán roleName khi fetch users từ api
+function addRoleNameForUsers(users){
+    //gán thêm roleName, khi fetch chỉ có roleId
+    const objectRoleName = {
+        "admin": "Admin",
+        "createSurvey": "Người tạo",
+        "participateSurvey": "Người tham gia"
+    }
+
+    users.forEach((user) => {
+        user.roleName = objectRoleName[user.roleId];
+    })
+    return users;
+}
+
 //hàm render ra nội dung submenu tài khoản
 export async function  renderContentUser(){
-    const response = await fetch(`${config.apiUrl}/getListUsers`);
+    const response = await fetch(`${config.apiUrl}/user`);
+
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -9,6 +25,11 @@ export async function  renderContentUser(){
     if (!users.data) {
         throw new Error("Invalid data format");
     }
+
+   
+    users.data = addRoleNameForUsers(users.data);
+
+    console.log(users.data)
     let totalCreateSurvey = users.data.filter((user) => {
         return user.roleName === "Người tạo";
     }).length
@@ -49,18 +70,18 @@ export async function  renderContentUser(){
                 <div class="row">
                     <div class="col-md-2">
                         <select class="form-select role-select">
-                            <option selected>Vai trò</option>
-                            <option value="1">Người tạo</option>
-                            <option value="2">Người tham gia</option>
-                            <option value="3">Admin</option>
+                            <option value="all" selected>Vai trò</option>
+                            <option value="createSurvey">Người tạo</option>
+                            <option value="participateSurvey">Người tham gia</option>
+                            <option value="admin">Admin</option>
                         </select>
                     </div>
 
                     <div class="col-md-2">
                         <select class="form-select status-select">
-                            <option selected>Tình trạng</option>
+                            <option value="all" selected>Tình trạng</option>
                             <option value="1">Đang hoạt động</option>
-                            <option value="2">Đã bị khóa</option>
+                            <option value="0">Đã bị khóa</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -76,43 +97,44 @@ export async function  renderContentUser(){
 
             <!-- Quản lý tài khoản -->
            <section class="mt-4">
-    <!-- Thanh công cụ chính -->
-    <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded">
-        <h5 class="m-0">Quản lý tài khoản</h5>
-        <div class="d-flex align-items-center gap-2">
-            <input id="search-email" type="text" class="form-control" placeholder="Tìm kiếm email" style="max-width: 200px;">
-            <button class="btn btn-danger delete-user-button">Xóa tài khoản</button>
-        </div>
-    </div>
+                <!-- Thanh công cụ chính -->
+                <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded">
+                    <h5 class="m-0">Quản lý tài khoản</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <input id="search-email" type="text" class="form-control" placeholder="Tìm kiếm email" style="max-width: 200px;">
+                        <button class="btn btn-danger delete-user-button">Xóa tài khoản</button>
+                        <button class="btn btn-primary add-user-button">Thêm tài khoản</button>
+                    </div>
+                </div>
 
-    <!-- Form nhập tài khoản (TÁCH RIÊNG) -->
-    <form method="POST" enctype="multipart/form-data" class="mt-3">
-        <div class="d-flex justify-content-end bg-white p-3 shadow-sm rounded">
-            <input type="file" class="form-control me-2 import-user-input" accept=".xlsx, .xls" name="importFile" style="max-width: 300px;">
-            <button type="button" class="btn btn-primary import-user-button">Import tài khoản</button>
-        </div>
-    </form>
+                <!-- Form nhập tài khoản (TÁCH RIÊNG) -->
+                <form method="POST" enctype="multipart/form-data" class="mt-3">
+                    <div class="d-flex justify-content-end bg-white p-3 shadow-sm rounded">
+                        <input type="file" class="form-control me-2 import-user-input" accept=".xlsx, .xls" name="importFile" style="max-width: 300px;">
+                        <button type="button" class="btn btn-primary import-user-button">Import tài khoản</button>
+                    </div>
+                </form>
 
-    <!-- Bảng dữ liệu -->
-    <div class="table-responsive mt-3">
-        <table class="table table-hover table-bordered bg-white shadow-sm rounded">
-            <thead class="table-dark text-center">
-                <tr>
-                    <th><input type="checkbox" class="choose-all-user"/></th>
-                    <th>Email</th>
-                    <th>Họ tên</th>
-                    <th>Vai trò</th>
-                    <th>Ngày tạo</th>
-                    <th>Tình trạng</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody class="text-center">
-                <!-- Dữ liệu sẽ được thêm vào đây -->
-            </tbody>
-        </table>
-    </div>
-</section>
+                <!-- Bảng dữ liệu -->
+                <div class="table-responsive mt-3">
+                    <table class="table table-hover table-bordered bg-white shadow-sm rounded">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th><input type="checkbox" class="choose-all-user"/></th>
+                                <th>Email</th>
+                                <th>Họ tên</th>
+                                <th>Vai trò</th>
+                                <th>Ngày tạo</th>
+                                <th>Tình trạng</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <!-- Dữ liệu sẽ được thêm vào đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
 
         </div>
@@ -123,28 +145,22 @@ export async function  renderContentUser(){
     handleClickFilter();
     handleImportUsers();
     handleSearchEmail(users.data);
-
-    //xử lí việc click button xóa tài khoản
-    document.querySelector(".delete-user-button").onclick = () => {
-        let arr = [];
-        document.querySelectorAll(".container-account table input").forEach((item) => {
-            if(item.checked){
-                if(item.dataset.key){
-                    arr.push(item);
-                }
-            }
-        });
-        const arrKey = arr.map(item => item.dataset.key);
-        handleDelete(arrKey);
-    };
+    handleAddUserButton();
+    handleDeleteUserButton();
 }
+
 
 //hàm render ra list user
 async function renderListUsers(users){
     if(!users){
-        const response = await fetch(`${config.apiUrl}/getListUsers`);
-        users = await response.json();
-        users = users.data;
+        try {
+            const response = await fetch(`${config.apiUrl}/user`);
+            users = await response.json();
+            users = addRoleNameForUsers(users.data);
+        } catch (error) {
+            console.log(error);
+            return;
+        }
     }
 
     if(users.length === 0){
@@ -182,7 +198,7 @@ async function renderListUsers(users){
     handleClickMore(users);
 
     document.querySelector(".choose-all-user").onchange = (e) => {
-        console.log(document.querySelectorAll(".container-account table input"))
+        // console.log(document.querySelectorAll(".container-account table input"))
         document.querySelectorAll(".container-account table input").forEach((inputCheckbox) => {
             inputCheckbox.checked = e.target.checked;
         })
@@ -192,8 +208,8 @@ async function renderListUsers(users){
 }
 
 //hàm xử lí việc ấn xem thông tin
-function handleClickMore(data){
-
+function handleClickMore(data){    
+    //khi ấn thông tin
     document.querySelectorAll(".detail-user").forEach((detailUser) => {
         detailUser.onclick = async function (e){
             e.preventDefault();
@@ -337,6 +353,7 @@ function handleClickMore(data){
         }
     })
 
+    //khi ấn xóa
     document.querySelectorAll(".delete-user").forEach((user) => {
         user.onclick = () => {
             const key = user.parentElement.parentElement.dataset.key;
@@ -348,43 +365,84 @@ function handleClickMore(data){
 //hàm xử lí việc ấn button lọc
 function handleClickFilter(){
     document.querySelector(".filter-user").onclick = async function(){
-        const department = document.querySelector(".department-select").options[document.querySelector(".department-select").selectedIndex].textContent;
-        const role = document.querySelector(".role-select").options[document.querySelector(".role-select").selectedIndex].textContent;
-        const status = document.querySelector(".status-select").options[document.querySelector(".status-select").selectedIndex].textContent;
+        const roleId = document.querySelector(".role-select").value;
+        const status = document.querySelector(".status-select").value;
         const dateCreate = new Date(document.querySelector(".date-create").value).getTime();
         const now = new Date().getTime();
+        
+        try {
+            const response = await fetch(`${config.apiUrl}/user`);
+            const users = await response.json();
+    
+            const listFiltered = users.data.filter((user) => {
+                const userDate = new Date(user.dateCreate).getTime();
+                return (
+                    (user.roleId === roleId || roleId === "all")
+                    && (user.status === parseInt(status) || status === "all")
+                    && ((userDate >= dateCreate && userDate <= now) || isNaN(dateCreate))
+                );
+            })
 
-
-        const response = await fetch(`${config.apiUrl}/getListUsers`);
-        const users = await response.json();
-
-        const listFiltered = users.data.filter((user) => {
-            const userDate = new Date(user.dateCreate).getTime();
-            return (
-                (user.department === department || department === "Khoa")
-                && (user.roleName === role || role === "Vai trò")
-                && (user.status === status || status === "Tình trạng")
-                && ((userDate >= dateCreate && userDate <= now) || isNaN(dateCreate))
-            );
-        })
-
-        await renderListUsers(listFiltered);
+            await renderListUsers(listFiltered);
+        } catch (error) {
+            console.log(error);   
+        }
     }
 
+    //khi ấn xóa lọc
     document.querySelector(".delete-filter-user").onclick = async function () {
-        // const response = await fetch(`${config.apiUrl}/getListUsers`);
-        // const users = await response.json();
-
-        // const department = document.querySelector(".department-select").options[document.querySelector(".department-select").selectedIndex].textContent;
-        // const role = document.querySelector(".role-select").options[document.querySelector(".role-select").selectedIndex].textContent;
-        // const status = document.querySelector(".status-select").options[document.querySelector(".status-select").selectedIndex].textContent;
-
-        // const listFiltered = users.data.filter(() => {
-        //     return true;
-        // })
-
-        // renderListUsers(listFiltered);
         await renderContentUser();
+    }
+}
+
+//hàm xử lý việc click thêm tài khoản thủ công
+function handleAddUserButton(){
+    document.querySelector(".add-user-button").onclick = () => {
+        document.querySelector("#content").innerHTML = `
+            <form>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email-add" placeholder="Nhập email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mật khẩu</label>
+                    <input type="password" class="form-control" id="password-add" placeholder="Nhập mật khẩu" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 add-user">Thêm tài khoản</button>
+            </form>
+        `
+        document.querySelector(".add-user").onclick = async function(e){
+            e.preventDefault();
+            const email = document.querySelector("#email-add").value;
+            const password = document.querySelector("#password-add").value;
+
+            if(email === "" || password === "") return;
+
+            const data = {
+                email,
+                password
+            }
+            
+            try {
+                const result = await fetch(`${config.apiUrl}/user`, {
+                    method: 'POST',
+                    headers:{
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const response = await result.json();
+                const status = result.status;
+                if(status === 201){
+                    console.log('thành công');
+                }
+                else{
+                    console.log("thất bại: " + response.message);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
     }
 }
 
@@ -401,13 +459,30 @@ async function handleDelete(arrUser){
         }).then(response => {
             return response.json();
         }).catch(error => {
-            console.error(error.message);
+            console.log(error.message);
             return { error: error.message };
         })
     }))
     .then(responseArray => console.log(responseArray));
     
     await renderListUsers();
+}
+
+//hàm xử lí việc xóa tài khoản
+function handleDeleteUserButton(){
+    //xử lí việc click button xóa tài khoản
+    document.querySelector(".delete-user-button").onclick = () => {
+        let arr = [];
+        document.querySelectorAll(".container-account table input").forEach((item) => {
+            if(item.checked){
+                if(item.dataset.key){
+                    arr.push(item);
+                }
+            }
+        });
+        const arrKey = arr.map(item => item.dataset.key);
+        handleDelete(arrKey);
+    };
 }
 
 //hàm xử lý khi ấn nút chỉnh sửa và lưu thông tin
@@ -464,24 +539,17 @@ function handleImportUsers(){
             const worksheet = workbook.Sheets[sheetName];
             const dataArr = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
 
-            //tạo thời gian ngay lúc import file user 
-            const now = new Date();
-            const dateTimeSQL = now.toISOString().slice(0, 19).replace("T", " ");
-            dataArr.forEach((user) => {
-                user.dateCreate = dateTimeSQL;
-            })
-
             //gán status, roleId tương ứng với vai trò
-            const objectRoleId = {
-                "Người tham gia": "participateSurvey",
-                "Người tạo": "createSurvey",
-                "Admin": "admin"
-            }
-            dataArr.forEach((user) => {
-                user.roleId = objectRoleId[user["vai trò"]];
-                user.status = "1"
-                delete user["vai trò"];
-            })
+            // const objectRoleId = {
+            //     "Người tham gia": "participateSurvey",
+            //     "Người tạo": "createSurvey",
+            //     "Admin": "admin"
+            // }
+            // dataArr.forEach((user) => {
+            //     user.roleId = objectRoleId[user["vai trò"]];
+            //     user.status = "1"
+            //     delete user["vai trò"];
+            // })
 
             //kiểm tra email nào bị trùng với database
             let usersExisted = [];
@@ -498,7 +566,7 @@ function handleImportUsers(){
             }
 
             console.log(dataArr)
-            const result = await fetch(`${config.apiUrl}/api/user`, {
+            const result = await fetch(`${config.apiUrl}/user`, {
                 method: "POST",
                 headers:{
                     "Content-Type": "application/json"
@@ -507,7 +575,7 @@ function handleImportUsers(){
             })
             const response = await result.json();
 
-            if(response.data){
+            if(result.status === 201){
                 await renderListUsers();
                 alert("Thành công");
                
@@ -517,7 +585,7 @@ function handleImportUsers(){
                 console.log(response);
             }
         }
-        reader.readAsArrayBuffer(file);    
+        reader.readAsArrayBuffer(file);
     }
 }
 

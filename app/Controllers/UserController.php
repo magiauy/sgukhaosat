@@ -6,6 +6,7 @@
         use Core\Request;
         use Core\Response;
         use Core\jwt_helper;
+        // use Middlewares\JwtMiddleware;
         use Services\Interface\IAuthService;
         use Services\Interface\IBaseService;
         use Services\RoleService;
@@ -23,8 +24,8 @@
             {
                 $this->userService = new UserService();
                 $this->roleService = new RoleService();
-                $this->jwt = new jwt_helper();
-                $this->secret = require __DIR__ . '/../../config/JwtConfig.php';
+                // $this->jwt = new jwt_helper();
+                // $this->secret = require __DIR__ . '/../../config/JwtConfig.php';
             }
 
             public function create(Response $response, Request $request)
@@ -151,15 +152,5 @@
                 ]);
 
             }
-
-            public function getListUsers(Response $response, Request $request){
-                try {
-                    $list = $this->userService->getListUsers();
-                    $response->json(['data' => $list]);
-                } catch (\Exception $e) {
-                    $response->json(['error' => $e->getMessage()], 500);
-                }
-            }
-
 
         }

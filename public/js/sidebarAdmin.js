@@ -1,4 +1,5 @@
 import { renderContentUser } from "./userAdmin.js";
+import { renderContentRole } from "./roleAdmin.js";
 
 
 async function checkAccess() {
@@ -40,6 +41,9 @@ function handleClickOnSidebar(){
             e.preventDefault();
             if(e.target.textContent.trim() === "Tài khoản"){
                 renderContentUser();
+            }
+            else if(e.target.textContent.trim() === "Phân quyền"){
+                renderContentRole();
             }
         }
        

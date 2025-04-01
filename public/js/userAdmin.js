@@ -1,6 +1,6 @@
 //hàm render ra nội dung submenu tài khoản
 export async function  renderContentUser(){
-    const response = await fetch(`{config.apiUrl}/getListUsers`);
+    const response = await fetch(`${config.apiUrl}/getListUsers`);
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -142,7 +142,7 @@ export async function  renderContentUser(){
 //hàm render ra list user
 async function renderListUsers(users){
     if(!users){
-        const response = await fetch(`{config.apiUrl}/getListUsers`);
+        const response = await fetch(`${config.apiUrl}/getListUsers`);
         users = await response.json();
         users = users.data;
     }
@@ -355,7 +355,7 @@ function handleClickFilter(){
         const now = new Date().getTime();
 
 
-        const response = await fetch(`{config.apiUrl}/getListUsers`);
+        const response = await fetch(`${config.apiUrl}/getListUsers`);
         const users = await response.json();
 
         const listFiltered = users.data.filter((user) => {
@@ -372,7 +372,7 @@ function handleClickFilter(){
     }
 
     document.querySelector(".delete-filter-user").onclick = async function () {
-        // const response = await fetch(`{config.apiUrl}/getListUsers`);
+        // const response = await fetch(`${config.apiUrl}/getListUsers`);
         // const users = await response.json();
 
         // const department = document.querySelector(".department-select").options[document.querySelector(".department-select").selectedIndex].textContent;
@@ -393,7 +393,7 @@ async function handleDelete(arrUser){
     if(arrUser.length === 0) return;
 
     await Promise.all(arrUser.map((email) => {
-        return fetch(`{config.apiUrl}/user?email=${email}`, {
+        return fetch(`${config.apiUrl}/user?email=${email}`, {
             method: 'DELETE',
             headers:{
                 'Content-type': 'application/json'
@@ -426,7 +426,7 @@ function handleClickSaveChanges(oldEmail){
             status
         }
 
-        const result = await fetch(`{config.apiUrl}/user?email=${oldEmail}`,{
+        const result = await fetch(`${config.apiUrl}/user?email=${oldEmail}`,{
             method: 'PUT',
             headers:{
                 "Content-Type": "application/json"
@@ -451,7 +451,7 @@ function handleImportUsers(){
         const file = inputFile.files[0];
         if(!file)  return;
 
-        const result = await fetch(`{config.apiUrl}/user`);
+        const result = await fetch(`${config.apiUrl}/user`);
         const response = await result.json();
         const dataUser = response.data;
 
@@ -498,7 +498,7 @@ function handleImportUsers(){
             }
 
             console.log(dataArr)
-            const result = await fetch(`{config.apiUrl}/api/user`, {
+            const result = await fetch(`${config.apiUrl}/api/user`, {
                 method: "POST",
                 headers:{
                     "Content-Type": "application/json"

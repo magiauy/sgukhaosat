@@ -4,6 +4,7 @@ namespace Services;
 use Repositories\Database;
 use Repositories\Interface\IBaseRepository;
 use Repositories\Interface\IBaseRepositoryTransaction;
+use Repositories\Interface\IQuestionRepository;
 use Repositories\QuestionRepository;
 use Services\Interface\IBaseService;
 use Repositories\FormRepository;
@@ -11,7 +12,7 @@ use Repositories\FormRepository;
 class FormService implements IBaseService
 {
     private IBaseRepositoryTransaction $formRepository;
-    private IBaseRepositoryTransaction $questionRepository;
+    private IQuestionRepository $questionRepository;
     function __construct()
     {
         $this->formRepository = new FormRepository();
@@ -29,17 +30,27 @@ class FormService implements IBaseService
         $questions = $data['questions'];
         try {
             $pdo->beginTransaction();
-            if ($this->formRepository->create($form, $pdo)){
-                throw new \Exception("Lỗi khi thêm form", 500);
+            $formCreated = $this->formRepository->create($form, $pdo);
+            // Kiểm tra xem có thất bại không (trả về false, null, 0, '')
+            if (!$formCreated) {
+                // Ném ra Exception để nhảy vào catch và rollback
+                throw new \Exception("Lỗi khi thêm form."); // Có thể thêm chi tiết lỗi nếu repository trả về
             }
-            if (!$this->questionRepository->create($questions, $pdo)) {
-                throw new \Exception("Lỗi khi thêm câu hỏi", 500);
+
+            $questionsCreated = $this->questionRepository->create($questions, $pdo);
+            // Kiểm tra xem có thất bại không
+            if (!$questionsCreated) {
+                // Ném ra Exception để nhảy vào catch và rollback
+                throw new \Exception("Lỗi khi thêm câu hỏi."); // Có thể thêm chi tiết lỗi
             }
+            // Nếu cả hai đều thành công, commit transaction
             $pdo->commit();
             return true;
         } catch (\Exception $e) {
-            $pdo->rollBack();
-            throw new \Exception("Lỗi khi thêm dữ liệu: " . $e->getMessage(), 500);
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw new \Exception("Lỗi khi thực hiện thao tác: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }
     }
 
@@ -55,7 +66,18 @@ class FormService implements IBaseService
 
     function getById($id)
     {
-        // TODO: Implement getById() method.
+        $form = $this->formRepository->getById($id);
+        if (!$form) {
+            throw new \Exception("Không tìm thấy form với ID: $id", 404);
+        }
+        $questions = $this->questionRepository->getByFormId($id);
+        if (!$questions) {
+            throw new \Exception("Không tìm thấy câu hỏi cho form với ID: $id", 404);
+        }
+        return [
+            'form' => $form,
+            'questions' => $questions
+        ];
     }
 
     function getAll()

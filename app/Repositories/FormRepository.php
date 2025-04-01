@@ -34,6 +34,7 @@ class FormRepository implements IBaseRepositoryTransaction{
                 ':File' => $data['File'],
                 ':Status' => $data['Status']
             ]);
+            return $stmt->rowCount() > 0; // Trả về true nếu có dòng nào được thêm vào
 
     }
 

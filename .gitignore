@@ -20,3 +20,4 @@ Thumbs.db
 /logs/*
 /.env
 .env.local
+.env

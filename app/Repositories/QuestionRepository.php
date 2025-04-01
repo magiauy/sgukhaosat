@@ -37,39 +37,43 @@ class QuestionRepository implements IQuestionRepository
 //    }
     public function create($data, \PDO $pdo): bool
     {
-        if (empty($data)) {
-            throw new \Exception("Không có dữ liệu để thêm!", 400);
-        }
+        try {
+            if (empty($data)) {
+                throw new \Exception("Không có dữ liệu để thêm!", 400);
+            }
 
-        $mainSql = "INSERT INTO question (QContent, QParent, QTypeID, FID, QIndex) VALUES (:QContent, :QParent, :QTypeID, :FID, :QIndex)";
-        $stmt = $pdo->prepare($mainSql);
+            $mainSql = "INSERT INTO question (QContent, QParent, QTypeID, FID, QIndex) VALUES (:QContent, :QParent, :QTypeID, :FID, :QIndex)";
+            $stmt = $pdo->prepare($mainSql);
+            foreach ($data as $question) {
+                $params = [
+                    ':QContent' => $question['QContent'] ?? null,
+                    ':QParent' => $question['QParent'] ?? null,
+                    ':QTypeID' => $question['QTypeID'] ?? null,
+                    ':FID' => $question['FID'] ?? null,
+                    ':QIndex' => $question['QIndex'] ?? null
+                ];
 
-        foreach ($data as $question) {
-            $params = [
-                ':QContent' => $question['QContent'] ?? null,
-                ':QParent' => $question['QParent'] ?? null,
-                ':QTypeID' => $question['QTypeID'] ?? null,
-                ':FID' => $question['FID'] ?? null,
-                ':QIndex' => $question['QIndex'] ?? null
-            ];
+                $stmt->execute($params);
+                $parentId = $pdo->lastInsertId();
 
-            $stmt->execute($params);
-            $parentId = $pdo->lastInsertId();
-
-            // Handle children if they exist
-            if (!empty($question['children'])) {
-                foreach ($question['children'] as $child) {
-                    $child['QParent'] = $parentId;
-                    $child['FID'] = $question['FID'];
-                    $stmt->execute([
-                        ':QContent' => $child['QContent'] ?? null,
-                        ':QParent' => $child['QParent'] ?? null,
-                        ':QTypeID' => $child['QTypeID'] ?? null,
-                        ':FID' => $child['FID'] ?? null,
-                        ':QIndex' => $child['QIndex'] ?? null
-                    ]);
+                // Handle children if they exist
+                if (!empty($question['children'])) {
+                    foreach ($question['children'] as $child) {
+                        $child['QParent'] = $parentId;
+                        $child['FID'] = $question['FID'];
+                        $stmt->execute([
+                            ':QContent' => $child['QContent'] ?? null,
+                            ':QParent' => $child['QParent'] ?? null,
+                            ':QTypeID' => $child['QTypeID'] ?? null,
+                            ':FID' => $child['FID'] ?? null,
+                            ':QIndex' => $child['QIndex'] ?? null
+                        ]);
+                    }
                 }
             }
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), 400);
+//            return false;
         }
         return true;
     }

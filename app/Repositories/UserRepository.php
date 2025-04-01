@@ -103,15 +103,24 @@ class UserRepository implements IAuthRepository {
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    /**
+     * @throws Exception
+     */
     public function login($data){
-        $sql = "SELECT * FROM users WHERE email = :email";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['email' => $data['email']]);
-        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if($user && password_verify($data['password'],$user['password'])){
+        try {
+            $sql = "SELECT * FROM users WHERE email = :email";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(['email' => $data['email']]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if (!$user || !password_verify($data['password'], $user['password'])) {
+                // Throw with 401 status code for invalid credentials
+                throw new Exception("Sai tài khoản hoặc mật khẩu", 401);
+            }
+            unset($user['password']);
             return $user;
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), $e->getCode() ?: 500);
         }
-        return null;
     }
 
     public function register($data): \Error

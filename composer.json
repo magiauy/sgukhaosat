@@ -4,7 +4,8 @@
     "vlucas/phpdotenv": "*",
     "ext-http": "*",
     "ext-json": "*",
-    "phpoffice/phpspreadsheet": "^2.1"
+    "phpoffice/phpspreadsheet": "^2.1",
+    "firebase/php-jwt": "^6.11"
   },
   "autoload": {
     "psr-4": {
@@ -12,7 +13,8 @@
       "Controllers\\": "app/Controllers/",
       "Routes\\": "app/Routes/",
       "Services\\" : "app/Services/",
-      "Repositories\\" : "app/Repositories/"
+      "Repositories\\" : "app/Repositories/",
+      "Middlewares\\" : "app/Middlewares/"
     }
   }
 }

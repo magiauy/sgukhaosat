@@ -16,6 +16,11 @@ class Request
         return $this->body;
     }
 
+    public function getHeader(string $key, $default = null)
+    {
+        return $_SERVER[$key] ?? $default;
+    }
+
     public function getParam(string $key, $default = null)
     {
         return $_GET[$key] ?? $default;

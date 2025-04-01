@@ -54,11 +54,32 @@ class FormController implements IBaseController{
 
     function getById(Response $response, Request $request)
     {
-        // TODO: Implement getById() method.
+        $id = $request->getParam('id');
+        try {
+            $form = $this->formService->getById($id);
+            if ($form) {
+                $response->json([
+                    'status' => true,
+                    'message' => 'Form retrieved successfully',
+                    'data' => $form
+                ]);
+            } else {
+                $response->json([
+                    'status' => false,
+                    'message' => 'Form not found'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => 'Failed to retrieve form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     function getAll(Response $response, Request $request)
     {
-        // TODO: Implement getAll() method.
+
     }
 }

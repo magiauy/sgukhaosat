@@ -32,6 +32,11 @@
             </li>
             <li class="nav-item">
                 <a href="#" class="nav-link">
+                    <i class="bi bi-bar-chart"></i> <span class="nav-text">Phân quyền</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
                     <i class="bi bi-gear"></i> <span class="nav-text">Cài đặt</span>
                 </a>
             </li>

@@ -97,43 +97,44 @@ export async function  renderContentUser(){
 
             <!-- Quản lý tài khoản -->
            <section class="mt-4">
-    <!-- Thanh công cụ chính -->
-    <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded">
-        <h5 class="m-0">Quản lý tài khoản</h5>
-        <div class="d-flex align-items-center gap-2">
-            <input id="search-email" type="text" class="form-control" placeholder="Tìm kiếm email" style="max-width: 200px;">
-            <button class="btn btn-danger delete-user-button">Xóa tài khoản</button>
-        </div>
-    </div>
+                <!-- Thanh công cụ chính -->
+                <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded">
+                    <h5 class="m-0">Quản lý tài khoản</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <input id="search-email" type="text" class="form-control" placeholder="Tìm kiếm email" style="max-width: 200px;">
+                        <button class="btn btn-danger delete-user-button">Xóa tài khoản</button>
+                        <button class="btn btn-primary add-user-button">Thêm tài khoản</button>
+                    </div>
+                </div>
 
-    <!-- Form nhập tài khoản (TÁCH RIÊNG) -->
-    <form method="POST" enctype="multipart/form-data" class="mt-3">
-        <div class="d-flex justify-content-end bg-white p-3 shadow-sm rounded">
-            <input type="file" class="form-control me-2 import-user-input" accept=".xlsx, .xls" name="importFile" style="max-width: 300px;">
-            <button type="button" class="btn btn-primary import-user-button">Import tài khoản</button>
-        </div>
-    </form>
+                <!-- Form nhập tài khoản (TÁCH RIÊNG) -->
+                <form method="POST" enctype="multipart/form-data" class="mt-3">
+                    <div class="d-flex justify-content-end bg-white p-3 shadow-sm rounded">
+                        <input type="file" class="form-control me-2 import-user-input" accept=".xlsx, .xls" name="importFile" style="max-width: 300px;">
+                        <button type="button" class="btn btn-primary import-user-button">Import tài khoản</button>
+                    </div>
+                </form>
 
-    <!-- Bảng dữ liệu -->
-    <div class="table-responsive mt-3">
-        <table class="table table-hover table-bordered bg-white shadow-sm rounded">
-            <thead class="table-dark text-center">
-                <tr>
-                    <th><input type="checkbox" class="choose-all-user"/></th>
-                    <th>Email</th>
-                    <th>Họ tên</th>
-                    <th>Vai trò</th>
-                    <th>Ngày tạo</th>
-                    <th>Tình trạng</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody class="text-center">
-                <!-- Dữ liệu sẽ được thêm vào đây -->
-            </tbody>
-        </table>
-    </div>
-</section>
+                <!-- Bảng dữ liệu -->
+                <div class="table-responsive mt-3">
+                    <table class="table table-hover table-bordered bg-white shadow-sm rounded">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th><input type="checkbox" class="choose-all-user"/></th>
+                                <th>Email</th>
+                                <th>Họ tên</th>
+                                <th>Vai trò</th>
+                                <th>Ngày tạo</th>
+                                <th>Tình trạng</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <!-- Dữ liệu sẽ được thêm vào đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
 
         </div>
@@ -144,21 +145,8 @@ export async function  renderContentUser(){
     handleClickFilter();
     handleImportUsers();
     handleSearchEmail(users.data);
-
-
-    //xử lí việc click button xóa tài khoản
-    document.querySelector(".delete-user-button").onclick = () => {
-        let arr = [];
-        document.querySelectorAll(".container-account table input").forEach((item) => {
-            if(item.checked){
-                if(item.dataset.key){
-                    arr.push(item);
-                }
-            }
-        });
-        const arrKey = arr.map(item => item.dataset.key);
-        handleDelete(arrKey);
-    };
+    handleAddUserButton();
+    handleDeleteUserButton();
 }
 
 
@@ -407,6 +395,57 @@ function handleClickFilter(){
     }
 }
 
+//hàm xử lý việc click thêm tài khoản thủ công
+function handleAddUserButton(){
+    document.querySelector(".add-user-button").onclick = () => {
+        document.querySelector("#content").innerHTML = `
+            <form>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email-add" placeholder="Nhập email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mật khẩu</label>
+                    <input type="password" class="form-control" id="password-add" placeholder="Nhập mật khẩu" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 add-user">Thêm tài khoản</button>
+            </form>
+        `
+        document.querySelector(".add-user").onclick = async function(e){
+            e.preventDefault();
+            const email = document.querySelector("#email-add").value;
+            const password = document.querySelector("#password-add").value;
+
+            if(email === "" || password === "") return;
+
+            const data = {
+                email,
+                password
+            }
+            
+            try {
+                const result = await fetch(`${config.apiUrl}/user`, {
+                    method: 'POST',
+                    headers:{
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const response = await result.json();
+                const status = result.status;
+                if(status === 201){
+                    console.log('thành công');
+                }
+                else{
+                    console.log("thất bại: " + response.message);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    }
+}
+
 //hàm xử lý việc xóa user, arrUser là mảng các email
 async function handleDelete(arrUser){
     if(arrUser.length === 0) return;
@@ -427,6 +466,23 @@ async function handleDelete(arrUser){
     .then(responseArray => console.log(responseArray));
     
     await renderListUsers();
+}
+
+//hàm xử lí việc xóa tài khoản
+function handleDeleteUserButton(){
+    //xử lí việc click button xóa tài khoản
+    document.querySelector(".delete-user-button").onclick = () => {
+        let arr = [];
+        document.querySelectorAll(".container-account table input").forEach((item) => {
+            if(item.checked){
+                if(item.dataset.key){
+                    arr.push(item);
+                }
+            }
+        });
+        const arrKey = arr.map(item => item.dataset.key);
+        handleDelete(arrKey);
+    };
 }
 
 //hàm xử lý khi ấn nút chỉnh sửa và lưu thông tin

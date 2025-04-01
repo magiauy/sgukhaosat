@@ -1,6 +1,6 @@
 //hàm render ra nội dung submenu tài khoản
 export async function  renderContentUser(){
-    const response = await fetch("http://localhost:8000/api/getListUsers");
+    const response = await fetch(`{config.apiUrl}/getListUsers`);
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -117,8 +117,8 @@ export async function  renderContentUser(){
 
         </div>
     `;
-    
-    
+
+
     renderListUsers(users.data);
     handleClickFilter();
     handleImportUsers();
@@ -131,7 +131,7 @@ export async function  renderContentUser(){
             if(item.checked){
                 if(item.dataset.key){
                     arr.push(item);
-                }  
+                }
             }
         });
         const arrKey = arr.map(item => item.dataset.key);
@@ -142,7 +142,7 @@ export async function  renderContentUser(){
 //hàm render ra list user
 async function renderListUsers(users){
     if(!users){
-        const response = await fetch("http://localhost:8000/api/getListUsers");
+        const response = await fetch(`{config.apiUrl}/getListUsers`);
         users = await response.json();
         users = users.data;
     }
@@ -188,21 +188,21 @@ async function renderListUsers(users){
         })
     }
 
- 
+
 }
 
 //hàm xử lí việc ấn xem thông tin
 function handleClickMore(data){
-  
+
     document.querySelectorAll(".detail-user").forEach((detailUser) => {
         detailUser.onclick = async function (e){
             e.preventDefault();
             const email = e.target.parentElement.parentElement.dataset.key;
-    
+
             const user = data.filter((account) => {
                 return account.email === email;
             })
-    
+
             document.querySelector("#content").innerHTML = `
                 <div class="container mt-4">
                     <!-- Nút Quay lại -->
@@ -327,7 +327,7 @@ function handleClickMore(data){
                 </div>
     
             `
-    
+
             document.querySelector(".back-account").onclick = (e) => {
                 e.preventDefault();
                 renderContentUser();
@@ -345,7 +345,7 @@ function handleClickMore(data){
     })
 }
 
-//hàm xử lí việc ấn button lọc  
+//hàm xử lí việc ấn button lọc
 function handleClickFilter(){
     document.querySelector(".filter-user").onclick = async function(){
         const department = document.querySelector(".department-select").options[document.querySelector(".department-select").selectedIndex].textContent;
@@ -353,15 +353,15 @@ function handleClickFilter(){
         const status = document.querySelector(".status-select").options[document.querySelector(".status-select").selectedIndex].textContent;
         const dateCreate = new Date(document.querySelector(".date-create").value).getTime();
         const now = new Date().getTime();
-        
-        
-        const response = await fetch("http://localhost:8000/api/getListUsers");
+
+
+        const response = await fetch(`{config.apiUrl}/getListUsers`);
         const users = await response.json();
 
         const listFiltered = users.data.filter((user) => {
             const userDate = new Date(user.dateCreate).getTime();
             return (
-                (user.department === department || department === "Khoa") 
+                (user.department === department || department === "Khoa")
                 && (user.roleName === role || role === "Vai trò")
                 && (user.status === status || status === "Tình trạng")
                 && ((userDate >= dateCreate && userDate <= now) || isNaN(dateCreate))
@@ -372,7 +372,7 @@ function handleClickFilter(){
     }
 
     document.querySelector(".delete-filter-user").onclick = async function () {
-        // const response = await fetch("http://localhost:8000/api/getListUsers");
+        // const response = await fetch(`{config.apiUrl}/getListUsers`);
         // const users = await response.json();
 
         // const department = document.querySelector(".department-select").options[document.querySelector(".department-select").selectedIndex].textContent;
@@ -393,7 +393,7 @@ async function handleDelete(arrUser){
     if(arrUser.length === 0) return;
 
     await Promise.all(arrUser.map((email) => {
-        return fetch(`http://localhost:8000/api/user?email=${email}`, {
+        return fetch(`{config.apiUrl}/user?email=${email}`, {
             method: 'DELETE',
             headers:{
                 'Content-type': 'application/json'
@@ -426,7 +426,7 @@ function handleClickSaveChanges(oldEmail){
             status
         }
 
-        const result = await fetch(`http://localhost:8000/api/user?email=${oldEmail}`,{
+        const result = await fetch(`{config.apiUrl}/user?email=${oldEmail}`,{
             method: 'PUT',
             headers:{
                 "Content-Type": "application/json"
@@ -451,7 +451,7 @@ function handleImportUsers(){
         const file = inputFile.files[0];
         if(!file)  return;
 
-        const result = await fetch("http://localhost:8000/api/user");
+        const result = await fetch(`{config.apiUrl}/user`);
         const response = await result.json();
         const dataUser = response.data;
 
@@ -498,7 +498,7 @@ function handleImportUsers(){
             }
 
             console.log(dataArr)
-            const result = await fetch("http://localhost:8000/api/user", {
+            const result = await fetch(`{config.apiUrl}/api/user`, {
                 method: "POST",
                 headers:{
                     "Content-Type": "application/json"

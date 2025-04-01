@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/public/css/style.css">
     <script src="/public/js/config.js"></script>
     <script src="/public/js/script.js"></script>
+
 </head>
 <body>
 

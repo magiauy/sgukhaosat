@@ -40,7 +40,22 @@ class RoleService implements IBaseService
     function getById($id)
     {
         // $pdo = Database::getInstance()->getConnection();
-        return $this->roleRepository->getById($id); 
+        try {
+            $role = $this->roleRepository->getById($id);
+            if ($role) {
+                $permissions = $this->rolePermRepository->getById($id);
+                return [
+                    'role' => $role,
+                    'permissions' => $permissions
+                ];
+            } else {
+                throw new \Exception('Role not found');
+            }
+        }catch (\Exception $exception){
+            return [
+                'error' => $exception->getMessage()
+            ];
+        }
     }
 
     function getAll(): array

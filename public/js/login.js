@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
-
+            console.log(`${config.apiUrl}`)
             const response = await fetch(`${config.apiUrl}/login`, {
                 method: "POST",
                 headers: {

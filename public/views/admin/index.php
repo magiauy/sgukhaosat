@@ -54,36 +54,6 @@ $token = $jwtHelper->createPageJWT($page_perm,$secret);
             </li>
         </ul>
     </nav>
-
-<!-- Sidebar -->
-<nav id="sidebar" class="d-flex flex-column p-3">
-    <button class="btn btn-outline-light mb-3" id="toggleSidebar">
-        <i class="bi bi-list"></i>
-    </button>
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a href="#" class="nav-link">
-                <i class="bi bi-house-door"></i> <span class="nav-text">Thống kê</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link">
-                <i class="bi bi-people"></i> <span class="nav-text">Tài khoản</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link">
-                <i class="bi bi-bar-chart"></i> <span class="nav-text">Khảo sát</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link">
-                <i class="bi bi-gear"></i> <span class="nav-text">Cài đặt</span>
-            </a>
-        </li>
-    </ul>
-</nav>
-
 <!-- Content -->
 <div id="content">
     <h1>Dashboard</h1>

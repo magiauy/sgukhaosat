@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
-            const response = await fetch("http://localhost:8000/api/login", {
+            const response = await fetch(`${config.apiUrl}/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -28,6 +28,11 @@ document.addEventListener("DOMContentLoaded", function () {
             if (response.ok) {
                 // localStorage.setItem("token", data.token);
                 showPopup(data['message'], "success");
+                sessionStorage.setItem('token', data['data']['token']);
+                // Chuyển hướng đến trang chính
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 2000);
             } else {
                 showPopup("Email hoặc mật khẩu không chính xác!", "error");
             }
@@ -76,4 +81,5 @@ function showPopup(message, type = "success") {
 
     // Tự động đóng sau 3 giây
     setTimeout(() => modal.hide(), 3000);
+
 }

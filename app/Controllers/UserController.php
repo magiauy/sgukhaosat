@@ -144,17 +144,12 @@
             }
 
             public function me(Response $response, Request $request) {
-                session_start();
-                if (isset($_SESSION['email'])) {
-                    $response->json([
-                        'email' => $_SESSION['email'],
-                        'roleId' => $_SESSION['roleId'],
-                        'fullName' => $_SESSION['fullName'],
-                        'phone' => $_SESSION['phone']
-                    ]);
-                } else {
-                    $response->json(['error' => 'Not logged in'], 401);
-                }
+                $data = $request->getBody();
+                $response->json([
+                    'message' => 'User information',
+                    'data' => $data
+                ]);
+
             }
 
             public function getListUsers(Response $response, Request $request){

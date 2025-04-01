@@ -18,9 +18,9 @@ class Request
 
     public function getHeader(string $key, $default = null)
     {
-        return $_SERVER[$key] ?? $default;
+        $headers = getallheaders();
+        return $headers[$key] ?? $default;
     }
-
     public function getParam(string $key, $default = null)
     {
         return $_GET[$key] ?? $default;
@@ -30,4 +30,10 @@ class Request
     {
         return $_POST[$key] ?? $default;
     }
+
+    public function setBody(array $body): void
+    {
+        $this->body = $body;
+    }
+
 }

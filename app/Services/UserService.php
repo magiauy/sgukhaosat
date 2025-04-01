@@ -68,9 +68,19 @@ class UserService implements IAuthService
             if ($user['user']) {
                 $jwtHelper = new jwt_helper();
                 $secret = require __DIR__ . '/../../config/JwtConfig.php';
-                $user['token'] = $jwtHelper->createJWT($user['user'], $secret, 900);
                 $roleData = $this->roleService->getById($user['user']['roleId']);
-                return array_merge($user, $roleData);
+                if ($roleData) {
+                    $user['role'] = $roleData['role'];
+                    $user['permissions'] = $roleData['permissions'];
+                } else {
+                    throw new Exception("Không tìm thấy quyền truy cập", 401);
+                }
+
+                $user['token'] = $jwtHelper->createJWT($user, $secret, 900);
+                unset($user['user']);
+                unset($user['role']);
+                unset($user['permissions']);
+                return $user;
             }
         } catch (Exception $e) {
             if ($e->getCode() == 401) {

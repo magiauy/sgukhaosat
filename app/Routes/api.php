@@ -4,6 +4,7 @@ use Controllers\FormController;
 use Core\Request;
 use Controllers\UserController;
 use Core\Response;
+use Middlewares\JwtMiddleware;
 
 $request = new Request();
 $response = new Response();
@@ -17,6 +18,9 @@ $path = $_SERVER['REQUEST_URI'];
 //Auth API
 
 switch (true) {
+    case $method === 'POST' &&$path === '/api/verify-access':
+        JwtMiddleware::verifyAccess($request, $response);
+        break;
     case $method === 'POST' && $path === '/api/user':
         $controller->create($response, $request);
         break;
@@ -29,7 +33,7 @@ switch (true) {
     case $method === 'GET' && $path === '/api/user':
         $controller->getAll($response, $request);
         break;
-        //email
+    //email
     case $method === 'GET' && str_starts_with($path, '/api/user') && isset($_GET['email']):
         $controller->getById($response, $request);
         break;
@@ -37,8 +41,10 @@ switch (true) {
         $controller->login($response, $request);
         break;
     case $method === 'POST' && $path === '/api/me':
-        $controller->me($response, $request);
-            break;
+        JwtMiddleware::authenticate($request, $response, null, function ($request, $response) use ($controller) {
+            $controller->me($response, $request);
+        });
+        break;
     case $method === 'GET' && $path === '/api/getListUsers':
         $controller->getListUsers($response, $request);
         break;
@@ -49,15 +55,15 @@ switch (true) {
         $parts = explode('/', trim($path, '/'));
 
         if (count($parts) === 4 && is_numeric($parts[3])) {
-            $_GET['id'] = (int) $parts[3]; // Gán ID vào $_GET
-            $formController->getById($response, $request);
+            $_GET['id'] = (int)$parts[3]; // Gán ID vào $_GET
+            JwtMiddleware::authenticate($request, $response, "FORM_VIEW", function ($request, $response) use ($formController) {
+                $formController->getById($response, $request);
+            });
         } else {
             http_response_code(400);
             echo json_encode(["error" => "Invalid request"]);
         }
         break;
-
-
     default:
         $response->json('Not found', 404);
         break;

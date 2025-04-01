@@ -3,7 +3,7 @@ include __DIR__ . '/../../views/layouts/header.php';
 ?>
 
 
-<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+<div class="d-flex justify-content-center align-items-center bg-light main-content">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-4">
@@ -25,6 +25,8 @@ include __DIR__ . '/../../views/layouts/header.php';
         </div>
     </div>
 </div>
+<script src="/public/js/config.js"></script>
+<script src="/public/js/login.js"></script>
 
 <?php
 include __DIR__ . '/../../views/layouts/footer.php';

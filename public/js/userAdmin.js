@@ -1,8 +1,34 @@
+//hàm gán roleName khi fetch users từ api
+function addRoleNameForUsers(users){
+    //gán thêm roleName, khi fetch chỉ có roleId
+    const objectRoleName = {
+        "admin": "Admin",
+        "createSurvey": "Người tạo",
+        "participateSurvey": "Người tham gia"
+    }
+
+    users.forEach((user) => {
+        user.roleName = objectRoleName[user.roleId];
+    })
+    return users;
+}
+
 //hàm render ra nội dung submenu tài khoản
 export async function  renderContentUser(){
-    const response = await fetch("http://localhost:8000/api/getListUsers");
+    const response = await fetch("http://localhost:8000/api/user");
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
     const users = await response.json();
 
+    if (!users.data) {
+        throw new Error("Invalid data format");
+    }
+
+   
+    users.data = addRoleNameForUsers(users.data);
+
+    console.log(users.data)
     let totalCreateSurvey = users.data.filter((user) => {
         return user.roleName === "Người tạo";
     }).length
@@ -118,6 +144,7 @@ export async function  renderContentUser(){
     handleImportUsers();
     handleSearchEmail(users.data);
 
+
     //xử lí việc click button xóa tài khoản
     document.querySelector(".delete-user-button").onclick = () => {
         let arr = [];
@@ -133,12 +160,18 @@ export async function  renderContentUser(){
     };
 }
 
+
 //hàm render ra list user
 async function renderListUsers(users){
     if(!users){
-        const response = await fetch("http://localhost:8000/api/getListUsers");
-        users = await response.json();
-        users = users.data;
+        try {
+            const response = await fetch("http://localhost:8000/api/user");
+            users = await response.json();
+            users = addRoleNameForUsers(users.data);
+        } catch (error) {
+            console.log(error);
+            return;
+        }
     }
 
     if(users.length === 0){
@@ -176,7 +209,7 @@ async function renderListUsers(users){
     handleClickMore(users);
 
     document.querySelector(".choose-all-user").onchange = (e) => {
-        console.log(document.querySelectorAll(".container-account table input"))
+        // console.log(document.querySelectorAll(".container-account table input"))
         document.querySelectorAll(".container-account table input").forEach((inputCheckbox) => {
             inputCheckbox.checked = e.target.checked;
         })
@@ -350,28 +383,27 @@ function handleClickFilter(){
         const now = new Date().getTime();
         
         try {
-            const response = await fetch("http://localhost:8000/api/getListUsers");
+            const response = await fetch("http://localhost:8000/api/user");
             const users = await response.json();
-
+    
             const listFiltered = users.data.filter((user) => {
                 const userDate = new Date(user.dateCreate).getTime();
-
                 return (
                     (user.roleId === roleId || roleId === "all")
                     && (user.status === parseInt(status) || status === "all")
                     && ((userDate >= dateCreate && userDate <= now) || isNaN(dateCreate))
                 );
             })
-            
-            renderListUsers(listFiltered);
 
+            renderListUsers(listFiltered);
         } catch (error) {
             console.log(error);   
         }
     }
 
+    //khi ấn xóa lọc
     document.querySelector(".delete-filter-user").onclick = async function () {
-        renderContentUser();
+        await renderContentUser();
     }
 }
 
@@ -394,7 +426,7 @@ async function handleDelete(arrUser){
     }))
     .then(responseArray => console.log(responseArray));
     
-    renderContentUser();
+    await renderListUsers();
 }
 
 //hàm xử lý khi ấn nút chỉnh sửa và lưu thông tin
@@ -452,23 +484,23 @@ function handleImportUsers(){
             const dataArr = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
 
             //tạo thời gian ngay lúc import file user 
-            const now = new Date();
-            const dateTimeSQL = now.toISOString().slice(0, 19).replace("T", " ");
-            dataArr.forEach((user) => {
-                user.dateCreate = dateTimeSQL;
-            })
+            // const now = new Date();
+            // const dateTimeSQL = now.toISOString().slice(0, 19).replace("T", " ");
+            // dataArr.forEach((user) => {
+            //     user.dateCreate = dateTimeSQL;
+            // })
 
             //gán status, roleId tương ứng với vai trò
-            const objectRoleId = {
-                "Người tham gia": "participateSurvey",
-                "Người tạo": "createSurvey",
-                "Admin": "admin"
-            }
-            dataArr.forEach((user) => {
-                user.roleId = objectRoleId[user["vai trò"]];
-                user.status = "1"
-                delete user["vai trò"];
-            })
+            // const objectRoleId = {
+            //     "Người tham gia": "participateSurvey",
+            //     "Người tạo": "createSurvey",
+            //     "Admin": "admin"
+            // }
+            // dataArr.forEach((user) => {
+            //     user.roleId = objectRoleId[user["vai trò"]];
+            //     user.status = "1"
+            //     delete user["vai trò"];
+            // })
 
             //kiểm tra email nào bị trùng với database
             let usersExisted = [];
@@ -482,9 +514,9 @@ function handleImportUsers(){
                     console.log(user["email"]); // xử lí email bị trùng ở đây
                 })
                 return;
-            };
+            }
 
-            // console.log(dataArr)
+            console.log(dataArr)
             const result = await fetch("http://localhost:8000/api/user", {
                 method: "POST",
                 headers:{
@@ -494,14 +526,17 @@ function handleImportUsers(){
             })
             const response = await result.json();
 
-            if(response.data){
-                renderListUsers();
+            if(result.status === 201){
+                await renderListUsers();
                 alert("Thành công");
                
             }
-            else alert("Thất bại");
+            else {
+                alert("Thất bại");
+                console.log(response);
+            }
         }
-        reader.readAsArrayBuffer(file);    
+        reader.readAsArrayBuffer(file);
     }
 }
 

@@ -14,6 +14,23 @@ class UserService implements IAuthService
 
     public function create($data): bool
     {
+        $options = ['cost' => 8];
+        //tạo object dành cho roleId
+        $objectRoleId = [
+            "Người tham gia" => "participateSurvey",
+            "Người tạo" => "createSurvey",
+            "Admin" => "admin"
+        ];
+
+        foreach ($data as &$row) {
+            $row['password'] = password_hash($row['password'], PASSWORD_DEFAULT, $options);
+            $row['dateCreate'] = date('Y-m-d H:i:s'); // ✅ Set luôn ngày tạo
+            $row['roleId'] = $objectRoleId[$row['vai trò']];
+            $row['status'] = 1;
+            unset($row['vai trò']);
+        }
+        unset($row);
+
         return $this->userRepository->create($data);
     }
 
@@ -57,11 +74,8 @@ class UserService implements IAuthService
         return $this->userRepository->me();
     }
 
-    public function getListUsers(): array{
-        return $this->userRepository->getListUsers();
-    }
-
-
-
+    // public function getListUsers(): array{
+    //     return $this->userRepository->getListUsers();
+    // }
 
 }

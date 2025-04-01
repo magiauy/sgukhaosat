@@ -4,7 +4,7 @@
     "vlucas/phpdotenv": "*",
     "ext-http": "*",
     "ext-json": "*",
-    "phpoffice/phpspreadsheet": "^4.1"
+    "phpoffice/phpspreadsheet": "^2.1"
   },
   "autoload": {
     "psr-4": {

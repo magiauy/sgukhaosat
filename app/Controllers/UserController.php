@@ -151,14 +151,14 @@
                 }
             }
 
-            public function getListUsers(Response $response, Request $request){
-                try {
-                    $list = $this->userService->getListUsers();
-                    $response->json(['data' => $list]);
-                } catch (\Exception $e) {
-                    $response->json(['error' => $e->getMessage()], 500);
-                }
-            }
+            // public function getListUsers(Response $response, Request $request){
+            //     try {
+            //         $list = $this->userService->getListUsers();
+            //         $response->json(['data' => $list]);
+            //     } catch (\Exception $e) {
+            //         $response->json(['error' => $e->getMessage()], 500);
+            //     }
+            // }
 
 
         }

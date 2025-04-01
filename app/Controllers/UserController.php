@@ -5,16 +5,26 @@
         use Controllers\Interface\IAuthController;
         use Core\Request;
         use Core\Response;
+        use Core\jwt_helper;
         use Services\Interface\IAuthService;
+        use Services\Interface\IBaseService;
+        use Services\RoleService;
         use Services\UserService;
+
 
         class UserController implements IAuthController
         {
             private IAuthService $userService;
+            private IBaseService $roleService;
+            private jwt_helper $jwt;
+            private $secret;
 
             public function __construct()
             {
                 $this->userService = new UserService();
+                $this->roleService = new RoleService();
+                $this->jwt = new jwt_helper();
+                $this->secret = require __DIR__ . '/../../config/JwtConfig.php';
             }
 
             public function create(Response $response, Request $request)
@@ -106,29 +116,24 @@
                 }
             }
 
-            public function login(Response $response, Request $request){
+            public function login(Response $response, Request $request) {
                 try {
                     $data = $request->getBody();
                     $user = $this->userService->login($data);
-                    if ($user!=null) {
-                        $response->json([
-                            'message' => 'Đăng nhập thành công',
-                            'data' => $user
-                        ]);
-                            session_start();
-                            $_SESSION['email'] = $user['email'];
-                            $_SESSION['roleId'] = $user['roleId'];
-                            $_SESSION['fullName'] = $user['fullName'];
-                            $_SESSION['phone'] = $user['phone'];
-                    } else {
-                        $response->json(['error' => 'Đăng nhập thất bại', 'data' => $user
 
-                        ], 401);
-                    }
-                }catch (\Exception $e){
-                    $response->json(['error' => $e->getMessage()], 500);
+                    $response->json([
+                        'message' => 'Đăng nhập thành công',
+                        'data' => $user
+                    ]);
+
+                } catch (\Exception $e) {
+                    // Trả về lỗi HTTP từ exception và thông báo lỗi chi tiết
+                    $response->json([
+                        'error' => $e->getMessage()
+                    ], $e->getCode());
                 }
             }
+
 
             public function register(Response $response, Request $request){
                 session_destroy();

@@ -12,10 +12,11 @@ switch (true) {
         require_once __DIR__ . '/../../public/views/pages/login.php';
         break;
     case ($uri === 'admin'):
-        require_once __DIR__ . '/../../public/indexAdmin.php';
+        require_once __DIR__ . '/../../public/views/admin/index.php';
         break;
     case ($uri === 'admin/form'):
-        require_once __DIR__ . '/../../public/admin/form.php';
+        require_once __DIR__ . '/../../public/views/admin/form.php';
+        break;
     default:
         require_once __DIR__ . '/../../public/views/404.php';
         break;

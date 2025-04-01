@@ -1,9 +1,10 @@
 <?php
 
-namespace Controllers;
+namespace Controllers\Interface;
 
 use Core\Request;
 use Core\Response;
+
 interface IAuthController extends IBaseController
 {
     public function login(Response $response, Request $request);

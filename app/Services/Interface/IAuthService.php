@@ -1,6 +1,6 @@
 <?php
 
-namespace Services;
+namespace Services\Interface;
 
 interface IAuthService extends IBaseService
 {

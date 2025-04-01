@@ -1,0 +1,38 @@
+[
+  {
+    "QID": 1,
+    "QParent": null,
+    "FID": 10,
+    "Nội dung": "Nội dung câu hỏi 1",
+    "QIndex": "1",
+    "QTypeID": "SUBTITLE",
+    "children": [
+      {
+        "QID": 2,
+        "QParent": 1,
+        "FID": 10,
+        "QIndex": "1.1",
+        "QTypeID": "SUBTITLE",
+        "Nội dung": "Câu hỏi 1.1",
+        "children": [
+          {
+            "QID": 4,
+            "QParent": 2,
+            "FID": 10,
+            "QIndex": "1.1.1",
+            "QTypeID": "SUBTITLE",
+            "Nội dung": "Câu hỏi 1.1.1",
+            "children": []
+          }
+        ]
+      },
+      {
+        "QID": 3,
+        "QParent": 1,
+        "FID": 10,
+        "Nội dung": "Câu hỏi 1.2",
+        "children": []
+      }
+    ]
+  }
+]

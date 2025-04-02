@@ -49,6 +49,21 @@ $token = $jwtHelper->createPageJWT($page_perm,$secret);
             </li>
             <li class="nav-item">
                 <a href="#" class="nav-link">
+                <i class="bi bi-book"></i> <span class="nav-text">Quản lý ngành</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-calendar-week"></i> <span class="nav-text">Chu kỳ</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-collection"></i> <span class="nav-text">Loại khảo sát</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
                     <i class="bi bi-gear"></i> <span class="nav-text">Cài đặt</span>
                 </a>
             </li>

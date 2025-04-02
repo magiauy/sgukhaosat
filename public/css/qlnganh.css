@@ -1,0 +1,53 @@
+body {
+    display: flex;
+    min-height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+#content {
+    flex: 1;
+    padding: 20px;
+}
+.card-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.card-stats .card {
+    flex: 1;
+    margin-right: 10px;
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.card-stats .card:last-child {
+    margin-right: 0;
+}
+.table th, .table td {
+    vertical-align: middle;
+}
+.filter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.filter-section .form-select {
+    width: 150px;
+}
+.filter-section .form-control {
+    width: 300px;
+}
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+.table th:last-child,
+.table td:last-child {
+    width: 100px;
+    text-align: center;
+}
+.table td:last-child .btn {
+    padding: 5px 10px;
+}

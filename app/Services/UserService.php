@@ -21,13 +21,8 @@ class UserService implements IAuthService
 
     public function create($data): bool
     {
+        $data['roleId'] = !empty($data['roleId']) ? $data['roleId'] : 'USER';
         //kiểm tra dữ liệu rỗng
-        foreach($data as $user){
-            if(empty($user['email']) || empty($user['password'])){
-                echo json_encode(["error" => true, "message" => "dữ liệu rỗng"]);
-                return false;
-            }
-        }
         $options = ['cost' => 8];
 
         if (!is_array(reset($data))) {

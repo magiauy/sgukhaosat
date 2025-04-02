@@ -35,13 +35,13 @@ class UserRepository implements IAuthRepository {
     public function create($data): bool {
         $this->pdo->beginTransaction();
         try {
-                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?)"));
-                $sql = "INSERT INTO users (email, password, dateCreate, status) VALUES $placeholders";
+                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ? ,?)"));
+                $sql = "INSERT INTO users (email, password, dateCreate, status , roleId) VALUES $placeholders";
                 $stmt = $this->pdo->prepare($sql);
-                $expectedOrder = ['email', 'password', 'dateCreate', 'status'];
-
+                $expectedOrder = ['email', 'password', 'dateCreate', 'status', 'roleId'];
             $params = [];
             foreach ($data as $row) {
+
                 if (!is_array($row)) {
                     throw new Exception("Dữ liệu đầu vào không hợp lệ!");
                 }

@@ -16,16 +16,10 @@
         class UserController implements IAuthController
         {
             private IAuthService $userService;
-            private IBaseService $roleService;
-            private jwt_helper $jwt;
-            private $secret;
 
             public function __construct()
             {
                 $this->userService = new UserService();
-                $this->roleService = new RoleService();
-                // $this->jwt = new jwt_helper();
-                // $this->secret = require __DIR__ . '/../../config/JwtConfig.php';
             }
 
             public function create(Response $response, Request $request)
@@ -63,7 +57,7 @@
                         $response->json(['error' => 'Failed to update user'], 500);
                     }
                 } catch (\Exception $e) {
-                    $response->json(['error' => $e->getMessage()], 500);
+                    $response->json(['error' => $e->getMessage()], $e->getCode());
                 }
             }
 
@@ -83,7 +77,7 @@
                         $response->json(['error' => 'Failed to delete user'], 500);
                     }
                 } catch (\Exception $e) {
-                    $response->json(['error' => $e->getMessage()], 500);
+                    $response->json(['error' => $e->getMessage()], $e->getCode());
                 }
             }
 
@@ -103,7 +97,7 @@
                         $response->json(['error' => 'User not found'], 404);
                     }
                 } catch (\Exception $e) {
-                    $response->json(['error' => $e->getMessage()], 500);
+                    $response->json(['error' => $e->getMessage()], $e->getCode());
                 }
             }
 
@@ -113,7 +107,7 @@
                     $users = $this->userService->getAll();
                     $response->json(['data' => $users]);
                 } catch (\Exception $e) {
-                    $response->json(['error' => $e->getMessage()], 500);
+                    $response->json(['error' => $e->getMessage()], $e->getCode());
                 }
             }
 
@@ -129,15 +123,12 @@
 
                 } catch (\Exception $e) {
                     // Trả về lỗi HTTP từ exception và thông báo lỗi chi tiết
-                    $response->json([
-                        'error' => $e->getMessage()
-                    ], $e->getCode());
+                    $response->json(['error' => $e->getMessage()], $e->getCode());
                 }
             }
 
 
             public function register(Response $response, Request $request){
-                session_destroy();
             }
 
             public function logout(Response $response, Request $request){
@@ -145,12 +136,17 @@
             }
 
             public function me(Response $response, Request $request) {
-                $data = $request->getBody();
-                $response->json([
-                    'message' => 'User information',
-                    'data' => $data
-                ]);
-
+                try{
+                    $data = $request->getBody();
+                    unset($data['role']);
+                    unset($data['permissions']);
+                    $response->json([
+                        'message' => 'User information',
+                        'data' => $data
+                    ]);
+                }catch (\Exception $e){
+                    $response->json(['error' => $e->getMessage()], $e->getCode());
+                }
             }
 
         }

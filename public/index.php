@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $path = $_SERVER['REQUEST_URI'];
 
 // Route the request
-if (strpos($path, '/api/') === 0) {
+if (str_starts_with($path, '/api/')) {
     // Handle API routes
     require_once __DIR__ . '/../app/Routes/api.php';
 } else {

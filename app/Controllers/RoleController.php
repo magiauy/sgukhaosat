@@ -21,11 +21,11 @@ class RoleController implements IBaseController{
             $data = $request->getBody();
             $role = $this->roleService->create($data);
             if($role){
-                $response->json(['Message' => "Role is created successfully"]);
+                $response->json(['message' => "Role is created successfully"]);
             }
-            else $response->json(['Message' => 'Failed'], 500);
-        } catch (\Throwable $th) {
-            $response->json(['error' => $th->getMessage()], 500);
+            else $response->json(['message' => 'Failed'], 500);
+        }catch (\Exception $e){
+            $response->json(['error' => $e->getMessage()], $e->getCode());
         }
     }
 
@@ -33,17 +33,17 @@ class RoleController implements IBaseController{
         try {
             $roleId = $request->getParam('roleId');
             if(!$roleId){
-                $response->json(['Message' => "Miss data"], 500);
+                $response->json(['message' => "Miss data"], 500);
                 return;
             }
             $data = $request->getBody();
             $role = $this->roleService->update($roleId, $data);
             if($role){
-                $response->json(['Message' => "Role is updated successfully"]);
+                $response->json(['message' => "Role is updated successfully"]);
             }
-            else $response->json(['Message' => 'Failed'], 500);
-        } catch (\Throwable $th) {
-            $response->json(['error' => $th->getMessage()], 500);
+            else $response->json(['message' => 'Failed'], 500);
+        }catch (\Exception $e){
+            $response->json(['error' => $e->getMessage()], $e->getCode());
         }
     }
 
@@ -51,16 +51,16 @@ class RoleController implements IBaseController{
         try {
             $roleId = $request->getParam('roleId');
             if(!$roleId){
-                $response->json(['Message: ' => 'Miss data'], 500);
+                $response->json(['message' => 'Miss data'], 500);
                 return;
             }
             $role = $this->roleService->delete($roleId);
             if($role){
-                $response->json(['Message: ' => 'Deleted role successfully']);
+                $response->json(['message' => 'Deleted role successfully']);
             }
-            else $response->json(['Message: ' => 'Deleted role failed']);
-        } catch (\Throwable $th) {
-            $response->json(['Error: ' => $th->getMessage()]);
+            else $response->json(['message' => 'Deleted role failed']);
+        }catch (\Exception $e){
+            $response->json(['error' => $e->getMessage()], $e->getCode());
         }
     }
 
@@ -77,11 +77,11 @@ class RoleController implements IBaseController{
                 return;
             }
             $response->json([
-                'Message:' => 'Successfully',
-                'Data' => $role
+                'message:' => 'Successfully',
+                'data' => $role
             ]);
-        } catch (\Throwable $th) {
-            $response->json(['Error: ' => $th->getMessage()], 500);
+        }catch (\Exception $e){
+            $response->json(['error' => $e->getMessage()], $e->getCode());
         }
     }
 
@@ -89,11 +89,11 @@ class RoleController implements IBaseController{
         try {
             $role = $this->roleService->getAll();
             $response->json([
-                'Message: ' => 'Successfully',
-                'Data: ' => $role
+                'message: ' => 'Successfully',
+                'data: ' => $role
             ]);
-        } catch (\Throwable $th) {
-            $response->json(['Error: ' => $th->getMessage()], 500);
+        }catch (\Exception $e){
+            $response->json(['error' => $e->getMessage()], $e->getCode());
         }
     }
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace Services;
+use Exception;
 use Repositories\Database;
 use Repositories\Interface\IBaseRepository;
 use Repositories\Interface\IBaseRepositoryTransaction;
@@ -21,7 +22,7 @@ class FormService implements IBaseService
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     function create($data)
     {
@@ -34,23 +35,23 @@ class FormService implements IBaseService
             // Kiểm tra xem có thất bại không (trả về false, null, 0, '')
             if (!$formCreated) {
                 // Ném ra Exception để nhảy vào catch và rollback
-                throw new \Exception("Lỗi khi thêm form."); // Có thể thêm chi tiết lỗi nếu repository trả về
+                throw new Exception("Lỗi khi thêm form."); // Có thể thêm chi tiết lỗi nếu repository trả về
             }
 
             $questionsCreated = $this->questionRepository->create($questions, $pdo);
             // Kiểm tra xem có thất bại không
             if (!$questionsCreated) {
                 // Ném ra Exception để nhảy vào catch và rollback
-                throw new \Exception("Lỗi khi thêm câu hỏi."); // Có thể thêm chi tiết lỗi
+                throw new Exception("Lỗi khi thêm câu hỏi."); // Có thể thêm chi tiết lỗi
             }
             // Nếu cả hai đều thành công, commit transaction
             $pdo->commit();
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            throw new \Exception("Lỗi khi thực hiện thao tác: " . $e->getMessage(), $e->getCode() ?: 500, $e);
+            throw new Exception("Lỗi khi thực hiện thao tác: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }
     }
 
@@ -64,20 +65,27 @@ class FormService implements IBaseService
         // TODO: Implement delete() method.
     }
 
+    /**
+     * @throws Exception
+     */
     function getById($id)
     {
-        $form = $this->formRepository->getById($id);
-        if (!$form) {
-            throw new \Exception("Không tìm thấy form với ID: $id", 404);
+        try {
+            $form = $this->formRepository->getById($id);
+            if (!$form) {
+                throw new Exception("Không tìm thấy form với ID: $id", 404);
+            }
+            $questions = $this->questionRepository->getByFormId($id);
+            if (!$questions) {
+                throw new Exception("Không tìm thấy câu hỏi cho form với ID: $id", 404);
+            }
+            return [
+                'form' => $form,
+                'questions' => $questions
+            ];
+        } catch (Exception $e) {
+            throw new Exception("Lỗi khi lấy form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }
-        $questions = $this->questionRepository->getByFormId($id);
-        if (!$questions) {
-            throw new \Exception("Không tìm thấy câu hỏi cho form với ID: $id", 404);
-        }
-        return [
-            'form' => $form,
-            'questions' => $questions
-        ];
     }
 
     function getAll()

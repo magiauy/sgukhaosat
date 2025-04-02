@@ -10,13 +10,9 @@ use Core\jwt_helper;
 
 class JwtMiddleware
 {
-    /**
-     * @throws \Exception
-     */
-    public static function authenticate(Request $request, Response $response, $permission , $next)
+    public static function authenticate(Request $request, Response $response, $permission , $next): void
     {
         try {
-
             $token = $request->getHeader('Authorization');
             if ($token) {
                 $token = str_replace('Bearer ', '', $token);
@@ -25,7 +21,6 @@ class JwtMiddleware
                 $response->json([
                     'error' => 'Authorization token not provided'
                 ], 401);
-                return $response;
             }// Assuming you have a method to verify the token
             $jwtHelper = new jwt_helper();
             $secret = require __DIR__ . '/../../config/JwtConfig.php';
@@ -34,7 +29,6 @@ class JwtMiddleware
                 $response->json([
                     'error' => 'Invalid or expired token'
                 ], 401);
-                return $response;
             }//Don't have
             if ($permission) {
                 $permissions = $decoded->permissions;
@@ -50,25 +44,25 @@ class JwtMiddleware
                     $response->json([
                         'error' => 'Permission denied'
                     ], 403);
-                    return $response;
                 }
 
             }// Store user data in request for later use
             $request->setBody((array)$decoded);
-            return $next($request, $response);
+            $next($request, $response);
         } catch (\Exception $e) {
-            throw new \Exception("Error in JWT Middleware: " . $e->getMessage());
+            $response ->json([
+                'error' => 'An error occurred while authenticating: ' . $e->getMessage()
+            ], 500);
         }
     }
 
-    /**
-     * @throws \Exception
-     */
-    public static function verifyAccess(Request $request, Response $response)
+    public static function verifyAccess(Request $request, Response $response): void
     {
         try {
             // Lấy token từ header Authorization
             $token = $request->getHeader('Authorization');
+            $tokenPermission = $request->getBody()['permission'];
+
             if ($token) {
                 $token = str_replace('Bearer ', '', $token);
             }
@@ -77,27 +71,24 @@ class JwtMiddleware
                 $response->json([
                     'error' => 'Authorization token not provided'
                 ], 401);
-                return $response;
             }
             // Kiểm tra token
             $jwtHelper = new jwt_helper();
             $secret = require __DIR__ . '/../../config/JwtConfig.php';
             $decoded = $jwtHelper->verifyJWT($token,$secret);
-            $decoded_permission = $jwtHelper->verifyJWT($request->getBody()['permission'],$secret);
+            $decoded_permission = $jwtHelper->verifyJWT($tokenPermission,$secret);
 
             // Token không hợp lệ hoặc đã hết hạn
             if (!$decoded) {
                 $response->json([
                     'error' => 'Invalid or expired token'
                 ], 401);
-                return $response;
             }
             // Token permission không hợp lệ hoặc đã hết hạn
             if (!$decoded_permission) {
                 $response->json([
                     'error' => 'Invalid or expired token'
                 ], 401);
-                return $response;
             }
 
 
@@ -112,12 +103,11 @@ class JwtMiddleware
                     break;
                 }
             }
-                if (!$hasPermission) {
-                    $response->json([
-                        'error' => 'Permission denied'
-                    ], 403);
-                    return $response;
-                }
+            if (!$hasPermission) {
+                $response->json([
+                    'error' => 'Permission denied'
+                ], 403);
+            }
             $response ->json([
                 'message' => 'Access granted'
             ]);

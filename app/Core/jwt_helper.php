@@ -23,7 +23,7 @@ class jwt_helper
     function createPageJWT($permission, $secret) {
         $payload = [
             "permission" => $permission,
-            "exp" => time() + 1 // 1 hour expiration
+            "exp" => time() + 5 //seconds
         ];
         return JWT::encode($payload, $secret, 'HS256');
     }

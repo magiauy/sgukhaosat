@@ -1,6 +1,12 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    const token = sessionStorage.getItem('token');
+    const logout = document.getElementById('logout');
+    if (logout) {
+        logout.addEventListener('click', async (e) => {
+            sessionStorage.clear();
+        });
+    }
 
+    const token = sessionStorage.getItem('token');
     const response = await fetch(`${config.apiUrl}/me`, {
         method: "POST",
         headers: {
@@ -26,25 +32,30 @@ document.addEventListener("DOMContentLoaded", async () => {
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="/admin">
+                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" id ="btn-admin" href="/admin">
                         <i class="bi bi-house"></i> Trang quản trị
                         </a>    
                         </li>
                         
                         <li>
-                            <a class="dropdown-item py-2 text-danger fw-bold d-flex align-items-center gap-2" href="/logout">
+                            <a class="dropdown-item py-2 text-danger fw-bold d-flex align-items-center gap-2" href="/" id="logout">
                                 <i class="bi bi-box-arrow-right"></i> Đăng xuất
                             </a>
                         </li>
                     </ul>
                 </div>
             `;
-        console.log(data)
         document.getElementById('username').innerText = data['data']['user']['fullName']??'username';
         document.getElementById('dropdown-username').innerText = data['data']['user']['fullName']?? 'username';
         document.getElementById('dropdown-email').innerText = data['data']['user']['email'];
+        document.getElementById('logout').addEventListener('click', (e) => {
+            sessionStorage.clear();
+        });
+
+
     } else if (response.status===401) {
         sessionStorage.clear();
     }
 
 });
+

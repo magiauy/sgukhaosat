@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>403 - Access Forbidden</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/public/js/script.js"></script>
     <style>
         .error-template {
             padding: 40px 15px;
@@ -45,7 +46,7 @@
                         <a href="/" class="btn btn-primary">
                             <span class="bi bi-house"></span> Back to Home
                         </a>
-                        <a href="/login" class="btn btn-secondary">
+                        <a href="/login" class="btn btn-secondary" id="logout">
                             <span class="bi bi-box-arrow-in-right"></span> Login with Different Account
                         </a>
                     </div>

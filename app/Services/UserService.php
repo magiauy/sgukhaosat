@@ -99,14 +99,14 @@ class UserService implements IAuthService
         return $this->userRepository->register($data);
     }
 
-    public function logout(): \Error
+    public function logout()
     {
-        return $this->userRepository->logout();
+        //TODO: Xóa token và session
     }
 
-    public function me(): \Error
+    public function me()
     {
-        return $this->userRepository->me();
+        //TODO: Lấy thông tin người dùng từ token
     }
 
     // public function getListUsers(): array{

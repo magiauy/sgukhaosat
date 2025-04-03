@@ -25,7 +25,7 @@ include __DIR__ . '/../../views/layouts/header.php';
         </div>
     </div>
 </div>
-<script src="/public/js/login.js"></script>
+<script src="/public/js/login.js" type="module"></script>
 
 <?php
 include __DIR__ . '/../../views/layouts/footer.php';

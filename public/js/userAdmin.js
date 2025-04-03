@@ -203,8 +203,6 @@ async function renderListUsers(users){
             inputCheckbox.checked = e.target.checked;
         })
     }
-
-
 }
 
 //hàm xử lí việc ấn xem thông tin

@@ -6,10 +6,9 @@ use Repositories\Interface\IBaseRepository;
 
 class PermissionRepository implements IBaseRepository
 {
-
-    function create($data)
+    function create($data, \PDO $pdo)
     {
-        // TODO: Implement create() method.
+       
     }
 
     function update($id, $data)

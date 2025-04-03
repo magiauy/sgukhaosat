@@ -1,9 +1,8 @@
+import { checkAccess } from "./checkAccess.js";
 import { renderContentUser } from "./userAdmin.js";
 import { renderContentRole } from "./roleAdmin.js";
-import { checkAccess } from "./checkAccess.js";
 
-
-function handleClickOnSidebar(){
+function handleClickOnSidebar() {
     document.getElementById('toggleSidebar').onclick = () => {
         document.getElementById('sidebar').classList.toggle('collapsed');
     }; 
@@ -21,14 +20,12 @@ function handleClickOnSidebar(){
                 loadContent("./views/pages/chuky.php");
             } else if (text === "Loại khảo sát") {
                 loadContent("./views/pages/loaiks.php");
-            }
-            else if(e.target.textContent.trim() === "Phân quyền"){
+            } else if (e.target.textContent.trim() === "Phân quyền") {
                 renderContentRole();
             }
         }
-       
-        })
-    };
+    })
+    }
 function loadContent(url) {
     fetch(url)
         .then((response) => response.text())
@@ -41,5 +38,17 @@ function loadContent(url) {
             console.error("Error loading content:", error);
         });
 }
-await checkAccess();
-handleClickOnSidebar();
+async function initialize() {
+    if (await checkAccess('admin')){
+        handleClickOnSidebar()
+        document.getElementById("loading-overlay").style.display = "none";
+        document.getElementById("sidebar-container").removeAttribute("style");
+        document.getElementById("sidebar-container").setAttribute("class", "d-flex flex-row");
+    }else {
+        document.getElementById("loading-overlay").style.display = "none";
+        document.getElementById("sidebar-container").setAttribute("style", "display: none;");
+    }
+}
+
+initialize();
+

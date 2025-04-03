@@ -1,4 +1,6 @@
-document.addEventListener("DOMContentLoaded", function () {
+import {checkLogin} from "./checkAccess.js";
+document.addEventListener("DOMContentLoaded", async function () {
+    await checkLogin();
     const loginForm = document.getElementById("login-form");
 
     // Xóa event listener cũ nếu có
@@ -32,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Chuyển hướng đến trang chính
                 setTimeout(() => {
                     window.location.href = "/";
-                }, 2000);
+                }, 100);
             } else {
                 showPopup("Email hoặc mật khẩu không chính xác!", "error");
             }

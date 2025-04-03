@@ -3,7 +3,6 @@
 namespace Middlewares;
 require 'vendor/autoload.php';
 
-use Cassandra\Map;
 use Core\Response;
 use Core\Request;
 use Core\jwt_helper;

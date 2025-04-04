@@ -14,9 +14,14 @@ class Role_PermRepository implements IBaseRepositoryTransaction
 
     function create($data, \PDO $pdo)
     {
-        $sql = 'INSERT INTO role_permission (roleID, permID) VALUES (:roleID, :permID)';
+        $arrValue = [];
+        foreach($data['permission'] as $value){
+            $arrValue[] = "('{$data['roleID']}', '{$value}')";
+        }
+        $valuesString = implode(", ", $arrValue);
+        $sql = "INSERT INTO role_permission (roleID, permID) VALUES {$valuesString}";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute(['roleID' => $data['roleID'], 'permID' => $data['permID']]);
+        $stmt->execute();
         return $stmt->rowCount();
     }
 
@@ -33,17 +38,17 @@ class Role_PermRepository implements IBaseRepositoryTransaction
 
     function delete($id, \PDO $pdo)
     {
-        $sql = 'DELETE FROM role_permission WHERE roleID = :roleID and permID = :permID';
+        $sql = 'DELETE FROM role_permission WHERE roleID = :roleID';
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            'roleID' => $id['roleID'], 'permID' => $id['permID']
+            'roleID' => $id
         ]);
         return $stmt->rowCount();
     }
 
     function getById($id): array
     {
-        $sql = 'SELECT * FROM role_permission WHERE roleID = :id';
+        $sql = 'SELECT permID FROM role_permission WHERE roleID = :id';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id' => $id]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);

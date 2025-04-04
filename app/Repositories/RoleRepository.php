@@ -15,34 +15,22 @@ class RoleRepository implements IBaseRepositoryTransaction
 
     function create($data, \PDO $pdo): bool
     {
-        $sql = 'INSERT INTO roles (roleId, roleName) VALUES (:roleId, :roleName)';
+        $sql = 'INSERT INTO roles (roleID, roleName) VALUES (:roleID, :roleName)';
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            'roleId' => $data['roleId'],
+            'roleID' => $data['roleID'],
             'roleName' => $data['roleName']
         ]);
         return $stmt->rowCount() === 1;
     }
 
-    function update($id, $data, \PDO $pdo): bool
-    {
-        $sql = 'UPDATE roles
-                SET roleName = :roleName
-                WHERE roleId = :roleId;
-        ';
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            'roleId' => $id,
-            'roleName' => $data['roleName']
-        ]);
-        return $stmt->rowCount() === 1;
-    }
+    function update($id, $data, \PDO $pdo){}
 
     function delete($id, \PDO $pdo): bool
     {
-        $sql = 'DELETE FROM roles WHERE roleId = :roleId';
+        $sql = 'DELETE FROM roles WHERE roleID = :roleID';
         $stmt = $pdo->prepare($sql);
-        $stmt->execute(['roleId' => $id]);
+        $stmt->execute(['roleID' => $id]);
         return $stmt->rowCount();
     }
 
@@ -56,7 +44,7 @@ class RoleRepository implements IBaseRepositoryTransaction
 
     function getAll()
     {
-        $sql = "SELECT * FROM roles";
+        $sql = 'SELECT * FROM roles';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);

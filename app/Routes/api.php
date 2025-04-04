@@ -6,7 +6,7 @@ use Controllers\UserController;
 use Core\Response;
 use Middlewares\JwtMiddleware;
 use Controllers\RoleController;
-use Controllers\Role_PermController;
+// use Controllers\Role_PermController;
 
 $request = new Request();
 $response = new Response();
@@ -14,7 +14,7 @@ $response = new Response();
 $controller = new UserController();
 $formController = new FormController();
 $roleController = new RoleController();
-$rolePermController = new Role_PermController();
+// $rolePermController = new Role_PermController();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['REQUEST_URI'];
@@ -57,13 +57,13 @@ switch (true) {
     case $method === 'POST' && $path === '/api/role':
         $roleController->create($response, $request);
         break;
-    case $method === 'PUT' && str_starts_with($path, '/api/role') && isset($_GET['roleId']):
+    case $method === 'PUT' && $path === '/api/role/id':
         $roleController->update($response, $request);
         break;
-    case $method === 'DELETE' && str_starts_with($path, '/api/role') && isset($_GET['roleId']):
+    case $method === 'DELETE' && $path === '/api/role/id':
         $roleController->delete($response, $request);
         break;      
-    case $method === 'GET' && str_starts_with($path, '/api/role') && isset($_GET['roleId']):
+    case $method === 'GET' && $path === '/api/role/id':
         $roleController->getById($response, $request);
         break;
     case $method === 'GET' && $path === '/api/role':
@@ -77,21 +77,21 @@ switch (true) {
     
 
     //role_perm
-    case $method === 'POST' && $path === '/api/role_permission':
-        $rolePermController->create($response, $request);
-        break;
-    case $method === 'PUT' && $path === '/api/role_permission':
-        $rolePermController->update($response, $request);
-        break;
-    case $method === 'DELETE' && $path === '/api/role_permission':
-        $rolePermController->delete($response, $request);
-        break;
-    case $method === 'GET' && str_starts_with($path, '/api/role_perm') && isset($_GET['id']):
-        $rolePermController->getById($response, $request);
-        break;    
-    case $method === 'GET' && $path === '/api/role_permission':
-        $rolePermController->getAll($response, $request);
-        break; 
+    // case $method === 'POST' && $path === '/api/role_permission':
+    //     $rolePermController->create($response, $request);
+    //     break;
+    // case $method === 'PUT' && $path === '/api/role_permission':
+    //     $rolePermController->update($response, $request);
+    //     break;
+    // case $method === 'DELETE' && $path === '/api/role_permission':
+    //     $rolePermController->delete($response, $request);
+    //     break;
+    // case $method === 'GET' && str_starts_with($path, '/api/role_perm') && isset($_GET['id']):
+    //     $rolePermController->getById($response, $request);
+    //     break;    
+    // case $method === 'GET' && $path === '/api/role_permission':
+    //     $rolePermController->getAll($response, $request);
+    //     break; 
 
     //admin
     case $method === 'POST' && $path === '/api/admin/form':

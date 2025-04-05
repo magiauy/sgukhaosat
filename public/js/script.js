@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" id ="btn-admin" href="/admin">
+                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" id ="btn-admin" href="/admin?token=${token}">
                         <i class="bi bi-house"></i> Trang quản trị
                         </a>    
                         </li>
@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('logout').addEventListener('click', (e) => {
             sessionStorage.clear();
         });
+
 
 
     } else if (response.status===401) {

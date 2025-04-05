@@ -18,9 +18,47 @@ switch (true) {
     case ($uri === 'login'):
         require_once __DIR__ . '/../../public/views/pages/login.php';
         break;
-    case ($uri === 'admin'):
-            require_once __DIR__ . '/../../public/views/admin/index.php';
+    case ($uri === 'admin' ):
+        $token = $_COOKIE['token'] ?? null;
+        switch (JwtMiddleware::authenticatePage($token, "ACCESS_ADMIN")){
+                case 200:
+                    require_once __DIR__ . '/../../public/views/admin/index.php';
+                    break;
+                case 403:
+                    showErrorPage(403);
+                    break;
+                case 401:
+                    header('Location: /login');
+                    break;
+                default:
+                    showErrorPage(500);
+                    break;
+            }
         break;
+//    case str_starts_with($uri, 'admin'):
+//        $token = $request->getParam('token');
+//        if (isset($_GET['token'])) {
+//            $token = $_GET['token'];
+//            switch (JwtMiddleware::authenticatePage($token, "ACCESS_ADMIN")){
+//                case 200:
+//                    require_once __DIR__ . '/../../public/views/admin/index.php';
+//                    break;
+//                case 403:
+//                    showErrorPage(403);
+//                    break;
+//                case 401:
+//                    header('Location: /login');
+//                    break;
+//                default:
+//                    showErrorPage(500);
+//                    break;
+//            }
+//        } else {
+//            header('Location: /401');
+//            exit;
+//        }
+//        break;
+
     case ($uri === 'admin/form'):
         require_once __DIR__ . '/../../public/views/admin/form.php';
         break;
@@ -31,7 +69,11 @@ switch (true) {
         showErrorPage(401);
         break;
     default:
-        require_once __DIR__ . '/../../public/views/404.php';
+        print_r($uri);
+        $response->json([
+            'error' => 'Page not found'
+        ], 404);
+        //        require_once __DIR__ . '/../../public/views/404.php';
         break;
 
 }

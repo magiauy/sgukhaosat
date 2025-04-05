@@ -99,7 +99,6 @@ switch (true) {
         break;
     case $method === 'GET' && str_starts_with($path, '/api/admin/form'):
         $parts = explode('/', trim($path, '/'));
-
         if (count($parts) === 4 && is_numeric($parts[3])) {
             $_GET['id'] = (int)$parts[3]; // Gán ID vào $_GET
             JwtMiddleware::authenticate($request, $response, "FORM_VIEW", function ($request, $response) use ($formController) {

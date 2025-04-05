@@ -35,7 +35,7 @@
 
 </div>
 <script src="/public/js/config.js"></script>
-<script src="/public/js/form.js"></script>
+<script src="/public/js/form_pattern.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

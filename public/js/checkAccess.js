@@ -38,6 +38,11 @@ export async function checkAccess(page) {
             return false;
         }
 
+        if (response.status === 401) {
+            window.location.href = '/401';
+            return false;
+        }
+
         // Sau khi kiểm tra quyền truy cập, xóa thuộc tính permission
         document.body.removeAttribute('data-token');
         // document.body.removeAttribute('style');

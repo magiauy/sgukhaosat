@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 // localStorage.setItem("token", data.token);
                 showPopup(data['message'], "success");
                 sessionStorage.setItem('token', data['data']['token']);
+                document.cookie = `token=${data['data']['token']}; path=/; max-age=3600;`;
                 // Chuyển hướng đến trang chính
                 setTimeout(() => {
                     window.location.href = "/";

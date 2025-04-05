@@ -1,7 +1,6 @@
 import { checkAccess } from "./checkAccess.js";
 import { renderContentUser } from "./userAdmin.js";
 import { renderContentRole } from "./roleAdmin.js";
-
 function handleClickOnSidebar() {
     document.getElementById('toggleSidebar').onclick = () => {
         document.getElementById('sidebar').classList.toggle('collapsed');
@@ -49,6 +48,7 @@ async function initialize() {
         document.getElementById("sidebar-container").setAttribute("style", "display: none;");
     }
 }
+
 
 initialize();
 

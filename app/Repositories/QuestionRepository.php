@@ -83,6 +83,7 @@ class QuestionRepository implements IQuestionRepository
             if (empty($data)) {
                 throw new Exception("Không có dữ liệu để cập nhật!", 400);
             }
+
             $sql = "UPDATE question SET QIndex = :QIndex, QContent = :QContent, QParent = :QParent, QTypeID = :QTypeID WHERE QID = :QID";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([

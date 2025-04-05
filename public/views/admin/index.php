@@ -1,5 +1,5 @@
 <?php
-require_once "config/JwtConfig.php";
+$secret =  require "config/JwtConfig.php";
 use Core\jwt_helper;
 
 $jwtHelper = new jwt_helper();
@@ -22,6 +22,7 @@ $token = $jwtHelper->createPageJWT($page_perm,$secret);
     <link rel="stylesheet" href="/public/css/adminPage.css">
 </head>
 <body data-token="<?php echo htmlspecialchars($token); ?>">
+<!--<body>-->
     <div id="loading-overlay">
         <div id="loading-spinner"></div>
     </div>

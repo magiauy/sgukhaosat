@@ -55,6 +55,45 @@ class JwtMiddleware
         }
     }
 
+
+    public static function authenticatePage($token, $permission ):int
+    {
+        try {
+            if ($token) {
+                $token = str_replace('Bearer ', '', $token);
+            }
+            if (!$token) {
+                return 401;
+            }// Assuming you have a method to verify the token
+            $jwtHelper = new jwt_helper();
+            $secret = require __DIR__ . '/../../config/JwtConfig.php';
+            $decoded = $jwtHelper->verifyJWT($token,$secret);
+            if (!$decoded) {
+                return 401;
+            }//Don't have
+            if ($permission) {
+                $permissions = $decoded->permissions;
+                $hasPermission = false;
+
+                foreach ($permissions as $perm) {
+                    if ($perm->permID === $permission) {
+                        $hasPermission = true;
+                        break;
+                    }
+                }
+                if (!$hasPermission) {
+                    return 403;
+                }
+
+            }// Store user data in request for later use
+            return 200;
+        } catch (\Exception $e) {
+//            require_once __DIR__ . '/../../public/views/pages/home.php';
+            return 500;
+        }
+    }
+
+
     public static function verifyAccess(Request $request, Response $response): void
     {
         try {

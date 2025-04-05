@@ -43,7 +43,6 @@ class RoleController implements IBaseController{
             $role = $this->roleService->delete($id);
             $response->json(['Message: ' => 'Deleted successfully']);
         }catch (\Throwable $e){
-            $code =
             $response->json(['error' => $e->getMessage()], 500);
         }
     }

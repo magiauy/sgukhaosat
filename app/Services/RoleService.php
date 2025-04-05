@@ -93,34 +93,51 @@ class RoleService implements IBaseService
         $role = $this->roleRepository->delete($id, $pdo);
     }
 
+//    function getById($id)
+//    {
+//        try {
+//            if(!$id){
+//                throw new \Exception('Missing data', 400);
+//            }
+//            try {
+//                $role['role'] = $this->roleRepository->getById($id);
+//            } catch (\Throwable $th) {
+//                throw new \Exception("Error when getById role", 500);
+//                //throw $th;
+//            }
+//            try {
+//                $permission = $this->rolePermRepository->getById($id);
+//            } catch (\Throwable $th) {
+//                throw new \Exception("Error when getById role_perm", 500);
+//                //throw $th;
+//            }
+//
+//            $role['permissions'] = array_column($permission, 'permID');
+//            return $role;
+//        } catch (\Throwable $th) {
+//            throw $th;
+//        }
+//    }
     function getById($id)
     {
+        // $pdo = Database::getInstance()->getConnection();
         try {
-            $role;
-            $permission;
-            if(!$id){
-                throw new \Exception('Missing data', 400);
+            $role = $this->roleRepository->getById($id);
+            if ($role) {
+                $permissions = $this->rolePermRepository->getById($id);
+                return [
+                    'role' => $role,
+                    'permissions' => $permissions
+                ];
+            } else {
+                throw new \Exception('Role not found');
             }
-            try {
-                $role = $this->roleRepository->getById($id);
-            } catch (\Throwable $th) {
-                throw new \Exception("Error when getById role", 500);
-                //throw $th;
-            }
-            try {
-                $permission = $this->rolePermRepository->getById($id);
-            } catch (\Throwable $th) {
-                throw new \Exception("Error when getById role_perm", 500);
-                //throw $th;
-            }
-          
-            $role['permission'] = array_column($permission, 'permID');
-            return $role;
-        } catch (\Throwable $th) {
-            throw $th;
+        }catch (\Exception $exception){
+            return [
+                'error' => $exception->getMessage()
+            ];
         }
     }
-
     function getAll(): array
     {      
         $roleArr = $this->roleRepository->getAll();

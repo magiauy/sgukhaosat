@@ -6,7 +6,7 @@ use Controllers\UserController;
 use Core\Response;
 use Middlewares\JwtMiddleware;
 use Controllers\RoleController;
-// use Controllers\Role_PermController;
+use Controllers\PermissionController;
 
 $request = new Request();
 $response = new Response();
@@ -14,6 +14,7 @@ $response = new Response();
 $controller = new UserController();
 $formController = new FormController();
 $roleController = new RoleController();
+$permController = new PermissionController();
 // $rolePermController = new Role_PermController();
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -74,7 +75,9 @@ switch (true) {
     case $method === 'GET' && $path === '/api/permission':
         $roleController->getAll($response, $request);
         break;
-    
+    case $method === 'POST' && $path === '/api/permission/id':
+        $permController->getById($response, $request);
+        break;
 
     //role_perm
     // case $method === 'POST' && $path === '/api/role_permission':

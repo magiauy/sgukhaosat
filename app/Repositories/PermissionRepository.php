@@ -3,10 +3,18 @@
 namespace Repositories;
 
 use Repositories\Interface\IBaseRepository;
+use PDO;
 
 class PermissionRepository implements IBaseRepository
 {
-    function create($data, \PDO $pdo)
+    private $pdo;
+
+    public function __construct()
+    {
+        $this->pdo = Database::getInstance()->getConnection();
+    }
+
+    function create($data)
     {
        
     }
@@ -23,11 +31,23 @@ class PermissionRepository implements IBaseRepository
 
     function getById($id)
     {
-        // TODO: Implement getById() method.
+        // var_dump($this->pdo);
+        $sql = 'SELECT * FROM permissions WHERE permID = :id';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function getAll()
     {
         // TODO: Implement getAll() method.
+    }
+
+    function getChildrenById($id){
+        // var_dump($id);
+        $sql = 'SELECT * FROM permissions WHERE permParent = :id';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

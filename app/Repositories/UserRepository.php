@@ -13,22 +13,6 @@ class UserRepository implements IAuthRepository {
         $this->pdo = Database::getInstance()->getConnection();
     }
 
-//      $sql = "INSERT INTO users (email, password, roleId,fullName,phone,dateCreate,status) VALUES ( :email, :password, :roleId, :fullName, :phone , NOW(), 1)";
-        // $stmt = $this->pdo->prepare($sql);
-        // $options = [
-        //     'cost' => 10,
-        // ];
-        // $stmt->execute(
-        //     [
-        //         'email' => $data['email'],
-        //         'password' => password_hash($data['password'],PASSWORD_BCRYPT,$options),
-        //         'roleId' => $data['roleId'],
-        //         'fullName' => $data['fullName'],
-        //         'phone' => $data['phone']
-        //     ]
-        // );
-        // return $stmt->rowCount() === 1;
-
     /**
      * @throws Throwable
      */
@@ -87,6 +71,14 @@ class UserRepository implements IAuthRepository {
         $stmt->execute(['email' => $id]);
         return $stmt->rowCount();
     }
+
+    public function deleteByRoleID($id): bool{
+        $sql = "DELETE FROM users WHERE roleID = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount();
+    }
+
 
     public function getById($id){
         $sql = "SELECT * FROM users WHERE email = :email";

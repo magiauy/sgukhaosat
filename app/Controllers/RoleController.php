@@ -20,68 +20,46 @@ class RoleController implements IBaseController{
         try {  
             $data = $request->getBody();
             $role = $this->roleService->create($data);
-            if($role){
-                $response->json(['message' => "Role is created successfully"]);
-            }
-            else $response->json(['message' => 'Failed'], 500);
-        }catch (\Exception $e){
-            $response->json(['error' => $e->getMessage()], $e->getCode());
+            $response->json(['Message' => "Created successfully"]);
+        }catch (\Throwable $e){
+            $response->json(['Error' => $e->getMessage()], $e->getCode());
         }
     }
 
     public function update(Response $response, Request $request){
         try {
-            $roleId = $request->getParam('roleId');
-            if(!$roleId){
-                $response->json(['message' => "Miss data"], 500);
-                return;
-            }
-            $data = $request->getBody();
-            $role = $this->roleService->update($roleId, $data);
-            if($role){
-                $response->json(['message' => "Role is updated successfully"]);
-            }
-            else $response->json(['message' => 'Failed'], 500);
-        }catch (\Exception $e){
-            $response->json(['error' => $e->getMessage()], $e->getCode());
+           $data = $request->getBody();
+           $this->roleService->update($data['roleID'], $data);
+           $response->json(['Message' => "Updated successfully"], 200);
+        }catch (\Throwable $e){
+            $response->json(['error ' => $e->getMessage()], $e->getCode() ? $e->getCode() : 500);
         }
     }
 
     public function delete(Response $response, Request $request){
         try {
-            $roleId = $request->getParam('roleId');
-            if(!$roleId){
-                $response->json(['message' => 'Miss data'], 500);
-                return;
-            }
-            $role = $this->roleService->delete($roleId);
-            if($role){
-                $response->json(['message' => 'Deleted role successfully']);
-            }
-            else $response->json(['message' => 'Deleted role failed']);
-        }catch (\Exception $e){
-            $response->json(['error' => $e->getMessage()], $e->getCode());
+            $data = $request->getBody();
+            $id = $data['roleID'];
+            $role = $this->roleService->delete($id);
+            $response->json(['Message: ' => 'Deleted successfully']);
+        }catch (\Throwable $e){
+            $code =
+            $response->json(['error' => $e->getMessage()], 500);
         }
     }
 
         
     public function getById(Response $response, Request $request){
         try {
-            $roleId = $request->getParam('roleId');
-            if(!$roleId){
-                $response->json(['Message:' => 'Miss data'], 500);
-            }
-            $role = $this->roleService->getById($roleId);
-            if(!$role){
-                $response->json(['Message:' => 'Get Failed'], 500);
-                return;
-            }
+            $data = $request->getBody();
+            $id = $data['roleID'];
+            $role = $this->roleService->getById($id);
             $response->json([
-                'message:' => 'Successfully',
-                'data' => $role
+                'Message' => 'Successfully',
+                'Data' => $role
             ]);
-        }catch (\Exception $e){
-            $response->json(['error' => $e->getMessage()], $e->getCode());
+        }catch (\Throwable $th){
+            $response->json(['Error' => $th->getMessage()], $th->getCode());
         }
     }
 
@@ -89,8 +67,8 @@ class RoleController implements IBaseController{
         try {
             $role = $this->roleService->getAll();
             $response->json([
-                'message: ' => 'Successfully',
-                'data: ' => $role
+                'message' => 'Successfully',
+                'data' => $role
             ]);
         }catch (\Exception $e){
             $response->json(['error' => $e->getMessage()], $e->getCode());

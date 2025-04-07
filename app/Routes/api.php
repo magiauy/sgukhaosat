@@ -1,6 +1,7 @@
 <?php
 
 use Controllers\FormController;
+use Controllers\QuestionTypeController;
 use Core\Request;
 use Controllers\UserController;
 use Core\Response;
@@ -15,6 +16,7 @@ $controller = new UserController();
 $formController = new FormController();
 $roleController = new RoleController();
 // $rolePermController = new Role_PermController();
+ $questionTypeController = new QuestionTypeController();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['REQUEST_URI'];
@@ -94,6 +96,15 @@ switch (true) {
     //     break; 
 
     //admin
+    case $method === 'GET' && $path === '/api/pages/survey':
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", function ($request, $response) use ($formController) {
+            ob_start();
+            require __DIR__ . "/../../public/views/admin/Manage_Form.php";
+            $html = ob_get_clean();
+            $formController->getAllDataPage($request,$response, $html);
+        });
+        break;
+
     case $method === 'POST' && $path === '/api/admin/form':
         $formController->create($response, $request);
         break;
@@ -101,13 +112,21 @@ switch (true) {
         $parts = explode('/', trim($path, '/'));
         if (count($parts) === 4 && is_numeric($parts[3])) {
             $_GET['id'] = (int)$parts[3]; // Gán ID vào $_GET
-            JwtMiddleware::authenticate($request, $response, "FORM_VIEW", function ($request, $response) use ($formController) {
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", function ($request, $response) use ($formController) {
                 $formController->getById($response, $request);
+
             });
         } else {
             http_response_code(400);
             echo json_encode(["error" => "Invalid request"]);
         }
+        break;
+
+        //QuestionType
+    case $method === 'GET' && $path === '/api/question_type':
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", function ($request, $response) use ($questionTypeController) {
+            $questionTypeController->getAll($response, $request);
+        });
         break;
     default:
         $response->json('Not found', 404);

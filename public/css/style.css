@@ -68,3 +68,395 @@ body {
 .main-content {
     min-height: calc(100vh - 295px);
 }
+
+/*@media only screen and (max-width: 1540px) {*/
+/*    .custom-td-button{*/
+/*        display: block;*/
+/*        margin: 10px;*/
+/*    }*/
+/*}*/
+
+.custom-button{
+    width: 80px;
+}
+
+.form-content{
+    background-color: #f0f8ff 	;
+}
+.question-item{
+    position: relative;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 0 10px 10px 10px;
+    margin-bottom: 15px;
+}
+.question-item:focus-within {
+     border: 1px solid #007bff; /* Border xanh khi focus */
+     box-shadow: 0 2px 8px rgba(0, 123, 255, 0.25); /* Đổ bóng nhẹ */
+ }
+
+.question-item .drag-handle,
+.option-item .option-item-drag-handle,
+.row-container-item .grid-row-drag-handle,
+.column-container-item .grid-column-drag-handle{
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.question-item:focus-within .drag-handle ,
+.option-item:focus-within .option-item-drag-handle,
+.row-container-item:focus-within .grid-row-drag-handle,
+.column-container-item:focus-within .grid-column-drag-handle{
+    opacity: 1 ;
+    pointer-events: none ;
+}
+.hover-effect:hover .drag-handle,
+.hover-option-item-effect:hover .option-item-drag-handle,
+.hover-grid-row-effect:hover .grid-row-drag-handle,
+.hover-grid-column-effect:hover .grid-column-drag-handle{
+    opacity: 1;
+    pointer-events: auto;
+    cursor: move;
+    transition: opacity 0.2s ease;
+}
+.editable-option-content,
+.another-content{
+    /*background-color: #f1f3f4;*/
+    border-bottom: #0066a1;
+    min-width: 100%;
+    max-width: 100%;
+    word-break: break-all;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    position: relative;
+    padding: 6px 10px;
+    min-height: 40px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    transition: all 0.3s ease;
+    outline: none;
+}
+.editable-description-content{
+    /*background-color: #f1f3f4;*/
+    border-bottom: #0066a1;
+    margin: 5px 0 10px 0;
+    padding: 0 10px 0 10px;
+    min-width: 100%;
+    max-width: 100%;
+    word-break: break-all;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    position: relative;
+    min-height: 15px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    transition: all 0.3s ease;
+    outline: none;
+}
+.editable-content:empty::before {
+    content: attr(data-placeholder);
+    color: #6c757d;
+}
+.editable-description-content:empty::before {
+    content: attr(data-placeholder);
+    color: #6c757d;
+}
+.new-editable-grid-row-content,
+.new-editable-grid-column-content{
+    min-width: 50%;
+    max-width: 50%;
+ }
+.new-editable-option-content {
+    min-width: 25%;
+    max-width: 25%;
+
+}
+.new-editable-grid-row-content,
+.new-editable-option-content,
+.new-editable-grid-column-content{
+    /*background-color: #f1f3f4;*/
+    border-bottom: #0066a1;
+    position: relative;
+    padding: 6px 10px;
+    min-height: 40px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    transition: all 0.3s ease;
+    outline: none;
+    cursor: text;
+    color: #aaaaaa;
+}
+
+
+
+.editable-content {
+    background-color: #f1f3f4;
+    border-bottom: #0066a1;
+    min-width: 75%;
+    max-width: 75%;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    position: relative;
+    padding: 6px 10px;
+    min-height: 40px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    transition: all 0.3s ease;
+    outline: none;
+}
+/* Tạo pseudo element cho border animate */
+.editable-content::after ,
+.editable-option-content::after ,
+.editable-description-content::after{
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: #007bff;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+/* Khi focus vào div */
+.editable-content:focus::after ,
+.editable-description-content:focus::after ,
+.editable-option-content:focus::after,
+.new-editable-option-content:focus::after,
+.new-editable-option-content::after {
+    width: 100%;
+}
+
+.option-icon{
+    margin-right: 5px;
+}
+.new-option-icon{
+    /*margin-left: 38px;*/
+    margin-right: 5px;
+
+}
+
+.actions_container{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    border-top: #ccc solid 1px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+/*.grid-container{*/
+/*    min-width: 100%;*/
+/*    max-width: 100%;*/
+/*}*/
+.row-container{
+    min-width: 100%;
+    max-width: 100%;
+}
+.column-container{
+    min-width: 100%;
+    max-width: 100%;
+}
+
+.option-item {
+    margin: 5px 0 0 0;
+    padding: 0;
+}
+.create-new-option-wrapper,
+.create-new-grid-row-wrapper,
+.create-new-grid-column-wrapper{
+    margin-top: 5px;
+    margin-left: 28px;
+}
+
+/* Hover effect with smooth scale transition */
+.more-action {
+    transition: transform 0.3s ease;
+}
+
+.more-action:hover {
+    transform: scale(1.1);
+}
+
+/* Animation on click */
+.more-action.clicked {
+    animation: clickEffect 0.4s;
+}
+
+@keyframes clickEffect {
+    0% { transform: scale(1.1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+.menu-box {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px 0;
+    min-width: 160px;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.menu-box.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+}
+
+.menu-item:hover {
+    background-color: #f1f5f9; /* xanh nhạt khi hover */
+}
+
+.checkmark {
+    width: 20px; /* đảm bảo luôn có không gian dù có dấu hay không */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #5f6368;
+    font-size: 14px;
+}
+
+.menu-label {
+    margin-left: 4px;
+}
+.question-item .hover-zone {
+    position: relative;
+    height: 10px;
+    /*margin-top: -10px; !* đẩy lên gần với đáy *!*/
+    z-index: 1;
+}
+
+/* Nhóm nút hiện khi hover */
+.question-item .button-group {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Hover để hiện nút */
+.question-item:focus-within .button-group{
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+/* Style cho nút (nếu không dùng Bootstrap) */
+.question-item .button-group button {
+    background-color: #007bff;
+    border: none;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.question-item .button-group button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+.another-content{
+    color : #6c757d;
+}
+.another-item-spacing{
+    margin-left: 28px;
+}
+.editor-container{
+    background-color: #ffffff;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.status {
+    font-size: 1.1rem; /* to hơn bình thường */
+}
+
+.grid-content {
+  flex: 0 0 auto; /* prevent flex grow and shrink */
+  width: 300px;   /* set a fixed width */
+}

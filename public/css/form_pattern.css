@@ -1,37 +1,6 @@
+.custom-navbar{
 
- /* Sidebar */
- #sidebar {
-    width: 250px;
-    /*min-height: 100vh;*/
-     min-height: calc(100vh - 295px);
-    background: #340C6F;
-    transition: all 0.3s;
 }
-#sidebar .nav-link {
-    color: white;
-}
-#sidebar .nav-link:hover {
-    background: #fff;
-    color: black;
-}
-#sidebar.collapsed {
-    width: 80px;
-}
-#sidebar.collapsed .nav-text {
-    display: none;
-}
-#sidebar.collapsed .nav-link {
-    text-align: center;
-}
- /* Content */
- #content {
-    flex-grow: 1;
-    padding: 20px;
-    transition: margin-left 0.3s;
-}
-
-
-/* Lớp phủ màn hình loading */
 #loading-overlay {
     position: fixed;
     top: 0;

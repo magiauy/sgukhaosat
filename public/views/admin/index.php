@@ -1,33 +1,22 @@
 <?php
-$secret =  require "config/JwtConfig.php";
+include __DIR__ . '/../../views/layouts/header.php';
 use Core\jwt_helper;
-
-$jwtHelper = new jwt_helper();
-$page_perm = 'ACCESS_SETTINGS';
-$token = $jwtHelper->createPageJWT($page_perm,$secret);
-
+$token = $_COOKIE['access_token'] ?? null;
+if (!$token) {
+    header('Location: /login');
+    exit();
+}
+$secret = require __DIR__ . '/../../../config/JwtConfig.php';
+$decode = jwt_helper::verifyJWT($token,$secret);
+if (!$decode) {
+    header('Location: /login');
+    exit();
+}
+$user = $decode->user ?? null;
+include __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sidebar & Content</title>
-    <script src="/public/js/sidebarAdmin.js?v=<?php echo time(); ?>" type="module"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="/public/css/adminPage.css">
-</head>
-<body data-token="<?php echo htmlspecialchars($token); ?>">
-<!--<body>-->
-    <div id="loading-overlay">
-        <div id="loading-spinner"></div>
-    </div>
-    <!-- Sidebar -->
-    <div id ="sidebar-container" style="display: none">
+<link rel="stylesheet" href="/public/css/adminPage.css">
+    <div id ="sidebar-container " class="d-flex flex-row">
         <div>
             <nav id="sidebar" class="d-flex flex-column p-3">
                 <button class="btn btn-outline-light mb-3" id="toggleSidebar">
@@ -84,8 +73,7 @@ $token = $jwtHelper->createPageJWT($page_perm,$secret);
         </div>
     </div>
 
-<script src="/public/js/config.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<script src="/public/js/sidebarAdmin.js?v=<?php echo time(); ?>" type="module"></script>
+<?php
+include __DIR__ . '/../../views/layouts/footer.php';
+?>

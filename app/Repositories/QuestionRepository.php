@@ -35,13 +35,16 @@ class QuestionRepository implements IQuestionRepository
 //
 //
 //    }
-    public function create($data, \PDO $pdo): bool
+    public function create($data,\PDO $pdo){
+
+    }
+    public function createQuestion($data,$form, \PDO $pdo): bool
     {
         try {
             if (empty($data)) {
                 throw new \Exception("Không có dữ liệu để thêm!", 400);
             }
-
+            $FID = $form;
             $mainSql = "INSERT INTO question (QContent, QParent, QTypeID, FID, QIndex) VALUES (:QContent, :QParent, :QTypeID, :FID, :QIndex)";
             $stmt = $pdo->prepare($mainSql);
             foreach ($data as $question) {
@@ -49,8 +52,13 @@ class QuestionRepository implements IQuestionRepository
                     ':QContent' => $question['QContent'] ?? null,
                     ':QParent' => $question['QParent'] ?? null,
                     ':QTypeID' => $question['QTypeID'] ?? null,
-                    ':FID' => $question['FID'] ?? null,
+                    ':FID' => $FID ?? null,
                     ':QIndex' => $question['QIndex'] ?? null
+//                        'QContent' => $question->QContent ?? null,
+//                        'QParent' => $question->QParent ?? null,
+//                        'QTypeID' => $question->QTypeID ?? null,
+//                        'FID' => $FID ?? null,
+//                        'QIndex' => $question->QIndex ?? null
                 ];
 
                 $stmt->execute($params);
@@ -59,13 +67,14 @@ class QuestionRepository implements IQuestionRepository
                 // Handle children if they exist
                 if (!empty($question['children'])) {
                     foreach ($question['children'] as $child) {
+//                        print_r("child: " . json_encode($child));
                         $child['QParent'] = $parentId;
-                        $child['FID'] = $question['FID'];
+                        print_r("child: " . json_encode($child));
                         $stmt->execute([
                             ':QContent' => $child['QContent'] ?? null,
                             ':QParent' => $child['QParent'] ?? null,
                             ':QTypeID' => $child['QTypeID'] ?? null,
-                            ':FID' => $child['FID'] ?? null,
+                            ':FID' => $FID ?? null,
                             ':QIndex' => $child['QIndex'] ?? null
                         ]);
                     }
@@ -161,7 +170,6 @@ class QuestionRepository implements IQuestionRepository
 
     public function getByFormID($formID): array
     {
-
         try {
             $sql = "SELECT * FROM question WHERE FID = :FID";
             $stmt = $this->pdo->prepare($sql);

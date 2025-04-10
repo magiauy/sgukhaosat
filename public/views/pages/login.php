@@ -1,6 +1,27 @@
 <?php
 include __DIR__ . '/../../views/layouts/header.php';
+use Core\jwt_helper;
+$token = $_COOKIE['access_token'] ?? null;
+$secret = require __DIR__ . '/../../../config/JwtConfig.php';
+
+if ($token) {
+    if (jwt_helper::verifyJWT($token,$secret)) {
+        $decode = jwt_helper::verifyJWT($token,$secret);
+        $user = $decode->user ?? null;
+        if ($user) {
+            header('Location: /');
+            exit();
+        }
+    } else {
+        setcookie('access_token', '', time() - 3600, '/');
+        header('Location: /login');
+        exit();
+    }
+}
+$user = null;
+require_once __DIR__ .'/../layouts/nav-bar.php'
 ?>
+
 
 
 <div class="d-flex justify-content-center align-items-center bg-light main-content">

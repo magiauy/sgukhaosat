@@ -36,4 +36,9 @@ class Request
         $this->body = $body;
     }
 
+    public function addBody(array $body): void
+    {
+        $this->body = array_merge($this->body, $body);
+    }
+
 }

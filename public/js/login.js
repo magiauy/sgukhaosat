@@ -1,6 +1,4 @@
-import {checkLogin} from "./checkAccess.js";
 document.addEventListener("DOMContentLoaded", async function () {
-    await checkLogin();
     const loginForm = document.getElementById("login-form");
 
     // Xóa event listener cũ nếu có
@@ -24,14 +22,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                 },
                 body: JSON.stringify({ email, password }),
             });
-
             const data = await response.json();
 
             if (response.ok) {
                 // localStorage.setItem("token", data.token);
                 showPopup(data['message'], "success");
-                sessionStorage.setItem('token', data['data']['token']);
-                document.cookie = `token=${data['data']['token']}; path=/; max-age=3600;`;
+                document.cookie = `access_token=${data['data']['token']}; path=/; max-age=3600;`;
                 // Chuyển hướng đến trang chính
                 setTimeout(() => {
                     window.location.href = "/";
@@ -39,6 +35,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             } else {
                 showPopup("Email hoặc mật khẩu không chính xác!", "error");
             }
+            console.log("Response:", data);
         } catch (error) {
             console.error("Lỗi khi gửi request:", error);
             showPopup("Có lỗi xảy ra, vui lòng thử lại!", "error");

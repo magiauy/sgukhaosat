@@ -2,9 +2,9 @@
 
 namespace Repositories;
 use Exception;
-use Repositories\Interface\IBaseRepositoryTransaction;
+use Repositories\Interface\IFormRepositoryTransaction;
 
-class FormRepository implements IBaseRepositoryTransaction{
+class FormRepository implements IFormRepositoryTransaction{
 
     private $pdo;
 
@@ -16,16 +16,17 @@ class FormRepository implements IBaseRepositoryTransaction{
     /**
      * @throws Exception
      */
-    public function create($data, \PDO $pdo) {
+    public function create($data, \PDO $pdo): bool|string
+    {
         if (empty($data)) {
             throw new \Exception("Không có dữ liệu để thêm!", 400);
         }
-            $sql = "INSERT INTO forms (FID, FName, TypeID, MajorID, PeriodID, Note, `Limit`, File, Status) VALUES (:FID, :FName, :TypeID, :MajorID, :PeriodID, :Note, :Limit, :File, :Status)";
+            $sql = "INSERT INTO forms ( FName,UID, TypeID, MajorID, PeriodID, Note, `Limit`, File, Status) VALUES ( :FName,:UID, :TypeID, :MajorID, :PeriodID, :Note, :Limit, :File, :Status)";
             $stmt = $pdo->prepare($sql);
 //            print_r($data);
             $stmt->execute([
-                ':FID' => $data['FID'],
                 ':FName' => $data['FName'],
+                ':UID' => $data['UID'],
                 ':TypeID' => $data['TypeID'],
                 ':MajorID' => $data['MajorID'],
                 ':PeriodID' => $data['PeriodID'],
@@ -34,8 +35,8 @@ class FormRepository implements IBaseRepositoryTransaction{
                 ':File' => $data['File'],
                 ':Status' => $data['Status']
             ]);
-            return $stmt->rowCount() > 0; // Trả về true nếu có dòng nào được thêm vào
-
+            //Trả về ID của form vừa tạo
+            return $pdo->lastInsertId();
     }
 
     /**
@@ -80,4 +81,11 @@ class FormRepository implements IBaseRepositoryTransaction{
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    function getByIdAndUser($id, $userId)
+    {
+        $sql = "SELECT * FROM forms WHERE FID =:FID AND UID = :UserID";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':FID' => $id, ':UserID' => $userId]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
 }

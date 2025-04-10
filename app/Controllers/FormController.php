@@ -2,14 +2,16 @@
 
 namespace Controllers;
 
-use Controllers\Interface\IBaseController;
+use Controllers\Interface\IFormController;
+use Core\jwt_helper;
 use Core\Request;
 use Core\Response;
-use Services\Interface\IBaseService;
+use Middlewares\JwtMiddleware;
 use Services\FormService;
+use Services\Interface\IFormService;
 
-class FormController implements IBaseController{
-    private IBaseService $formService;
+class FormController implements IFormController{
+    private IFormService $formService;
 
     function __construct()
     {
@@ -24,7 +26,6 @@ class FormController implements IBaseController{
                 $response->json([
                     'status' => true,
                     'message' => 'Form created successfully',
-                    'data' => $data
                 ]);
             }else{
                 $response->json([
@@ -78,8 +79,64 @@ class FormController implements IBaseController{
         }
     }
 
-    function getAll(Response $response, Request $request)
+    function getAll($response, $request)
     {
+        try {
+            $forms = $this->formService->getAll();
+            if ($forms) {
+                $response->json([
+                    'status' => true,
+                    'message' => 'Forms retrieved successfully',
+                    'data' => $forms
+                ]);
+            } else {
+                $response->json([
+                    'status' => false,
+                    'message' => 'No forms found'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => 'Failed to retrieve forms',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
+    function getAllDataPage(Request $request,Response $response, $html)
+    {
+        try {
+            $form = $this->formService->getAll();
+            if ($form) {
+                $response->json([
+                    'status' => true,
+                    'message' => 'Forms retrieved successfully',
+                    'data' => $form,
+                    'html' => $html
+                ]);
+            } else {
+                $response->json([
+                    'status' => false,
+                    'message' => 'No forms found'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return[
+                'status' => false,
+                'message' => 'Failed to retrieve forms',
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    function checkPermission($formId, $userId)
+    {
+        $form = $this->formService->getByIdAndUser($formId, $userId);
+        if ($form) {
+            return $form;
+        } else {
+            return null;
+        }
     }
 }

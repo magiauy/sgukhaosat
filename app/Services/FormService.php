@@ -3,16 +3,16 @@
 namespace Services;
 use Exception;
 use Repositories\Database;
-use Repositories\Interface\IBaseRepository;
-use Repositories\Interface\IBaseRepositoryTransaction;
+use Repositories\Interface\IFormRepositoryTransaction;
 use Repositories\Interface\IQuestionRepository;
 use Repositories\QuestionRepository;
 use Services\Interface\IBaseService;
 use Repositories\FormRepository;
+use Services\Interface\IFormService;
 
-class FormService implements IBaseService
+class FormService implements IFormService
 {
-    private IBaseRepositoryTransaction $formRepository;
+    private IFormRepositoryTransaction $formRepository;
     private IQuestionRepository $questionRepository;
     function __construct()
     {
@@ -27,8 +27,11 @@ class FormService implements IBaseService
     function create($data)
     {
         $pdo = Database::getInstance()->getConnection();
+        $email = $data['user']->email;
         $form = $data['form'];
         $questions = $data['questions'];
+        $form['UID'] = $email;
+//        print_r('question: ' . json_encode($questions));
         try {
             $pdo->beginTransaction();
             $formCreated = $this->formRepository->create($form, $pdo);
@@ -38,7 +41,8 @@ class FormService implements IBaseService
                 throw new Exception("Lỗi khi thêm form."); // Có thể thêm chi tiết lỗi nếu repository trả về
             }
 
-            $questionsCreated = $this->questionRepository->create($questions, $pdo);
+//            print_r($questions);
+            $questionsCreated = $this->questionRepository->createQuestion($questions,$formCreated, $pdo);
             // Kiểm tra xem có thất bại không
             if (!$questionsCreated) {
                 // Ném ra Exception để nhảy vào catch và rollback
@@ -51,7 +55,8 @@ class FormService implements IBaseService
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            throw new Exception("Lỗi khi thực hiện thao tác: " . $e->getMessage(), $e->getCode() ?: 500, $e);
+            $code = is_numeric($e->getCode()) ? (int)$e->getCode() : 500;
+            throw new Exception("Lỗi khi thực hiện thao tác: " . $e->getMessage(), $code, $e);
         }
     }
 
@@ -90,6 +95,46 @@ class FormService implements IBaseService
 
     function getAll()
     {
-        // TODO: Implement getAll() method.
+        try {
+            $forms = $this->formRepository->getAll();
+            if (!$forms) {
+                throw new Exception("Không tìm thấy form nào", 404);
+            }
+            foreach ($forms as &$form) {
+                $formQuestions = $this->questionRepository->getByFormId($form['FID']);
+                if (!$formQuestions) {
+                    throw new Exception("Không tìm thấy câu hỏi cho form với ID: " . $form['FID'], 404);
+                }
+                $form['questions'] = $formQuestions;
+            }
+            unset($form); // Break the reference with the last element
+
+
+            return [
+                'forms' => $forms,
+            ];
+        } catch (Exception $e) {
+            throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
+        }
+    }
+
+    function getByIdAndUser($id, $userId)
+    {
+        try {
+            $form = $this->formRepository->getByIdAndUser($id, $userId);
+            if (!$form) {
+                throw new Exception("Không tìm thấy form với ID: $id cho người dùng với ID: $userId", 404);
+            }
+            $questions = $this->questionRepository->getByFormId($id);
+            if (!$questions) {
+                throw new Exception("Không tìm thấy câu hỏi cho form với ID: $id", 404);
+            }
+            return [
+                'form' => $form,
+                'questions' => $questions
+            ];
+        } catch (Exception $e) {
+            throw new Exception("Lỗi khi lấy form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
+        }
     }
 }

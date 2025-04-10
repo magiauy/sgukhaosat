@@ -25,9 +25,6 @@ $path = $_SERVER['REQUEST_URI'];
 //Auth API
 
 switch (true) {
-    case $method === 'POST' &&$path === '/api/verify-access':
-        JwtMiddleware::verifyAccess($request, $response);
-        break;
     case $method === 'POST' && $path === '/api/user':
         $controller->create($response, $request);
         break;
@@ -109,7 +106,9 @@ switch (true) {
         break;
 
     case $method === 'POST' && $path === '/api/admin/form':
-        $formController->create($response, $request);
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", function ($request, $response) use ($formController) {
+            $formController->create($response, $request);
+        });
         break;
     case $method === 'GET' && str_starts_with($path, '/api/admin/form'):
         $parts = explode('/', trim($path, '/'));

@@ -5,7 +5,8 @@
     "ext-http": "*",
     "ext-json": "*",
     "phpoffice/phpspreadsheet": "^2.1",
-    "firebase/php-jwt": "^6.11"
+    "firebase/php-jwt": "^6.11",
+    "ext-gd": "*"
   },
   "autoload": {
     "psr-4": {

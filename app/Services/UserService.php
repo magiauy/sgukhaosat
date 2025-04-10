@@ -71,17 +71,19 @@ class UserService implements IAuthService
                 $jwtHelper = new jwt_helper();
                 $secret = require __DIR__ . '/../../config/JwtConfig.php';
                 $roleData = $this->roleService->getById($user['user']['roleId']);
+//                print_r($roleData);
                 if ($roleData) {
                     $user['role'] = $roleData['role'];
                     $user['permissions'] = $roleData['permissions'];
+//                    $user['roleData'] = $roleData;
                 } else {
                     throw new Exception("Không tìm thấy quyền truy cập", 401);
                 }
 
                 $user['token'] = $jwtHelper->createJWT($user, $secret, 900);
-                unset($user['user']);
-                unset($user['role']);
-                unset($user['permissions']);
+//                unset($user['user']);
+//                unset($user['role']);
+//                unset($user['permissions']);
                 return $user;
             }
         } catch (Exception $e) {
@@ -90,6 +92,8 @@ class UserService implements IAuthService
             } else {
                 throw new Exception("Lỗi đăng nhập: " . $e->getMessage(), 500);
             }
+        } catch (\Throwable $e) {
+            throw new Exception("Lỗi không xác định: " . $e->getMessage(), 500);
         }
         return null;
     }

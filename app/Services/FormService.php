@@ -236,6 +236,7 @@ public function update($id, $data)
             if ($this->questionRepository->hasAnswers($delQ['QID'])) {
                 $this->questionRepository->softDelete($delQ['QID'], $pdo);
             } else {
+                print_r("hasAnswers: " . json_encode($delQ));
                 $this->questionRepository->delete($delQ['QID'], $pdo);
             }
         }

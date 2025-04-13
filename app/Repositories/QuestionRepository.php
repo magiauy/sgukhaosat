@@ -185,29 +185,37 @@ class QuestionRepository implements IQuestionRepository
     {
 
         try {
-            $sql = "SELECT * FROM question WHERE FID = :FID";
+            $sql = "SELECT * FROM question WHERE FID = :FID AND `isDeleted` = 0";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([':FID' => $formID]);
             $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);// Tạo danh sách cây câu hỏi
-            $questionTree = [];
-            $lookup = [];// Tạo lookup table để truy vấn nhanh
-            foreach ($questions as $question) {
-                $question['children'] = [];
-                $lookup[$question['QID']] = $question;
-            }// Xây dựng cây cha-con
-            foreach ($lookup as &$question) {
-                if (!empty($question['QParent'])) {
-                    $lookup[$question['QParent']]['children'][] = &$question;
-                } else {
-                    $questionTree[] = &$question;
-                }
-            }
-            return $questionTree;
+            return $this->buildQuestionTree($questions);
         } catch (Exception $e) {
             throw new \Exception("Lỗi khi lấy câu hỏi: " . $e->getMessage(), 500);
         }
     }
 
+    function buildQuestionTree(array $questions): array {
+        $questionMap = [];
+        foreach ($questions as $q) {
+            $questionMap[$q['QID']] = $q + ['children' => []];
+        }
+
+        $tree = [];
+
+        foreach ($questionMap as $qid => &$q) {
+            if ($q['QParent']) {
+                if (isset($questionMap[$q['QParent']])) {
+                    $questionMap[$q['QParent']]['children'][] = &$q;
+                }
+                // Nếu parent không tồn tại trong danh sách => loại bỏ
+            } else {
+                $tree[] = &$q;
+            }
+        }
+
+        return $tree;
+    }
 
     function softDelete($id ,PDO $pdo)
     {

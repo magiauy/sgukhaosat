@@ -40,7 +40,6 @@ function initForm(form) {
 }
 function renderSurvey(data=null) {
     formStatus = data.form.Status;
-    console.log("formStatus",formStatus)
     let question = data.questions ;
     let surveyHtml = "";
     if (data && data.form && data.questions && data.questions.length > 0) {
@@ -1128,7 +1127,6 @@ function buildOptionHtml(content, count , icon="" , questionId="") {
             `;
 }
 function buildGridHtml(content, count, contentClassed, dragHandleClassed,effectClassed ,icon="",questionId=""){
-    console.log("questionId",questionId)
 return ` <div class="${contentClassed} d-flex flex-row align-items-center ${effectClassed}" style="margin: 5px 0 0 0; padding: 0;" id="q${questionId}">
           <!-- Grid dot icon for dragging -->
           <div class="grid-dot ${dragHandleClassed}" style="cursor: move;">

@@ -45,7 +45,28 @@ class FormController implements IFormController{
 
     function update(Response $response, Request $request)
     {
-        // TODO: Implement update() method.
+        $data = $request->getBody();
+        $id = $request->getParam('id');
+        try {
+            if ($this->formService->update($id, $data)) {
+                $response->json([
+                    'status' => true,
+                    'message' => 'Form updated successfully',
+                ]);
+            }else{
+                $response->json([
+                    'status' => false,
+                    'message' => 'Failed to update form'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => 'Failed to update form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
     }
 
     function delete(Response $response, Request $request)
@@ -55,27 +76,29 @@ class FormController implements IFormController{
 
     function getById(Response $response, Request $request)
     {
-        $id = $request->getParam('id');
+        $data = [
+            'id' => $request->getParam('id'),
+            'email' => $request->getBody()['user']->email ?? null
+        ];
+
         try {
-            $form = $this->formService->getById($id);
-            if ($form) {
-                $response->json([
-                    'status' => true,
-                    'message' => 'Form retrieved successfully',
-                    'data' => $form
-                ]);
-            } else {
-                $response->json([
-                    'status' => false,
-                    'message' => 'Form not found'
-                ], 404);
-            }
+            $form = $this->formService->getById($data);
+
+            $response->json([
+                'status' => true,
+                'message' => 'Form retrieved successfully',
+                'data' => $form
+            ]);
+            return;
         } catch (\Exception $e) {
+            $code = $e->getCode() ?: 500;
+
             $response->json([
                 'status' => false,
-                'message' => 'Failed to retrieve form',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => $e->getMessage(),
+            ], $code);
+            return;
+
         }
     }
 
@@ -107,7 +130,8 @@ class FormController implements IFormController{
     function getAllDataPage(Request $request,Response $response, $html)
     {
         try {
-            $form = $this->formService->getAll();
+            $email = $request->getBody()['user']->email ?? null;
+            $form = $this->formService->getFormWithPagination(0, 10, $email);
             if ($form) {
                 $response->json([
                     'status' => true,
@@ -132,11 +156,73 @@ class FormController implements IFormController{
 
     function checkPermission($formId, $userId)
     {
-        $form = $this->formService->getByIdAndUser($formId, $userId);
+        $form = $this->formService->checkPermission($formId, $userId);
         if ($form) {
             return $form;
         } else {
             return null;
         }
     }
+
+    function getFormWithPagination(Request $request, Response $response)
+    {
+        $offset = $request->getParam('offset');
+        $limit = $request->getParam('limit');
+        $userId = $request->getBody()['user']->email ?? null;
+        $search = $request->getParam('search') ?? null;
+        $sort = $request->getParam('sort') ?? null;
+
+
+        try {
+            $forms = $this->formService->getFormWithPagination($offset, $limit, $userId, $search, $sort);
+            if ($forms) {
+                $response->json( [
+                    'status' => true,
+                    'message' => 'Forms retrieved successfully',
+                    'data' => $forms
+                ]);
+            } else {
+                $response->json([
+                    'status' => false,
+                    'message' => 'No forms found'
+                ]);
+            }
+            return ;
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => 'Failed to retrieve forms',
+                'error' => $e->getMessage()
+            ]);
+            return ;
+        }
+    }
+
+    function createDraft(Response $response, Request $request): void
+    {
+        $user = $request->getBody()['user'];
+        try {
+            $draft = $this->formService->createDraft($user->email);
+            if ($draft) {
+                $response->json([
+                    'status' => true,
+                    'message' => 'Draft created successfully',
+                    'data' => $draft
+                ]);
+            } else {
+                $response->json([
+                    'status' => false,
+                    'message' => 'Failed to create draft'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => 'Failed to create draft',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+    }
+
 }

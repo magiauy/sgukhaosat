@@ -18,11 +18,12 @@ class DraftRepository implements IDraftRepository, IdGenerator
     function create($data): bool|string
     {
         try {
-            $sql = "INSERT INTO draft ( UID, DraftContent, CreateAt, UpdateAt) VALUES (:UID, :DraftContent, :CreateAt, :UpdateAt)";
+            $sql = "INSERT INTO draft ( UID, DraftContent,FID, CreateAt, UpdateAt) VALUES (:UID, :DraftContent,:FID, :CreateAt, :UpdateAt)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 ':UID'         => $data['UID'],
                 ':DraftContent'=> $data['DraftContent'],
+                ':FID'         => $data['FID'],
                 ':CreateAt'    => date('Y-m-d H:i:s'),
                 ':UpdateAt'    => date('Y-m-d H:i:s')
             ]);
@@ -35,11 +36,11 @@ class DraftRepository implements IDraftRepository, IdGenerator
     function update($id, $data): bool
     {
         try {
-            $sql = "UPDATE draft SET DraftContent = :DraftContent, UpdateAt = :UpdateAt WHERE DID = :DID";
+            $sql = "UPDATE draft SET DraftContent = :DraftContent, UpdateAt = :UpdateAt WHERE FID = :FID";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
-                ':DID'          => $id,
-                ':DraftContent' => $data['DraftContent'],
+                ':FID'          => $id,
+                ':DraftContent' => json_encode($data),
                 ':UpdateAt'     => date('Y-m-d H:i:s')
             ]);
             return $stmt->rowCount() > 0;
@@ -70,6 +71,7 @@ class DraftRepository implements IDraftRepository, IdGenerator
             $stmt->execute([
                 ':DID' => $id
             ]);
+
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode());
@@ -113,5 +115,20 @@ class DraftRepository implements IDraftRepository, IdGenerator
         } catch (\PDOException $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode());
         }
+    }
+
+    function getByFormID($id)
+    {
+        try {
+            $sql = "SELECT * FROM draft WHERE FID = :FID";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                ':FID' => $id
+            ]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode());
+        }
+
     }
 }

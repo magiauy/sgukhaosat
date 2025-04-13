@@ -28,7 +28,10 @@
     flex-grow: 1;
     padding: 20px;
     transition: margin-left 0.3s;
-}
+     position: relative;
+     overflow: visible;
+
+ }
 
 
 /* Lớp phủ màn hình loading */

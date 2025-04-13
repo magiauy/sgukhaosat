@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const path = window.location.pathname;
         if(path.match(/\/admin\/form\/(\d+)\/edit/)){
             const matches = path.match(/\/admin\/form\/(\d+)\/edit/);
-            const formId = parseInt(matches[1], 10);
+            formId = parseInt(matches[1], 10);
             const response = await fetch(`${config.apiUrl}/admin/form/${formId}`, {
                 method: "GET",
                 headers: {
@@ -13,61 +13,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const data = await response.json();
                 renderSurvey(data['data']);
             }
-        }else if (path.match(/\/admin\/form\/create/)) {
-                renderSurvey();
         }
 });
-function showSurveyPopup(surveyHtml) {
-  // Create a new modal element dynamically without setting aria-hidden.
-  const modalElement = document.createElement('div');
-  modalElement.classList.add('modal', 'fade');
-  modalElement.setAttribute('tabindex', '-1');
-
-  // Define the modal's inner HTML with the survey content.
-modalElement.innerHTML = `
-  <div class="modal-dialog" style="max-width: 800px;">
-    <div class="modal-content" style="background: lightskyblue">
-      <div class="modal-header">
-        <h5 class="modal-title">Survey Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" style="max-height:800px; overflow-y:auto;">
-        ${surveyHtml}
-      </div>
-    </div>
-  </div>
-`;
-  // Optionally, set inert on background elements to prevent focus.
-  // document.querySelector('main').setAttribute('inert', '');
-
-  document.body.appendChild(modalElement);
-  // Initialize the Bootstrap modal.
-  const modalInstance = new bootstrap.Modal(modalElement, {});
-    function onModalHide(event) {
-        if (!confirm(`Are you sure you want to close?`)) {
-            event.preventDefault();
-        }
-    }
-
-// Named function to handle the event when the modal is fully hidden
-    function onModalHidden() {
-        // Remove both event listeners
-        modalElement.removeEventListener('hide.bs.modal', onModalHide);
-        modalElement.removeEventListener('hidden.bs.modal', onModalHidden);
-        // Dispose the modal instance
-        modalInstance.dispose();
-        // Remove the modal element from the DOM
-        modalElement.remove();
-    }
-
-    modalElement.addEventListener('hide.bs.modal', onModalHide);
-    modalElement.addEventListener('hidden.bs.modal', onModalHidden);
-
-
-  // Show the modal.
-  modalInstance.show();
-}
-// Updated showSurveyPopup function to load content into .form-content
 function showSurvey(surveyHtml) {
   // Query the div with class "form-content"
   const formContentContainer = document.querySelector('.form-content');
@@ -80,35 +27,21 @@ function showSurvey(surveyHtml) {
   }
 }
 function initForm(form) {
-    console.log(form)
+    // console.log(form)
     document.getElementById('fname').value = form.FName;
     document.getElementById('note').value = form.Note;
     document.getElementById('limit').value = form.Limit;
     document.getElementById('typeid').value = form.TypeID;
     document.getElementById('majorid').value = form.MajorID;
     document.getElementById('periodid').value = form.PeriodID;
-    const statusMapping = {
-        0: { text: "Đang tạo khảo sát", class: "bg-warning text-dark" },
-        1: { text: "Đã lưu", class: "bg-success text-white" },
-        2: { text: "Đang khảo sát", class: "bg-info text-white" },
-        3: { text: "Đã đóng khảo sát", class: "bg-danger text-white" }
-    };
 
-    const statusElement = document.querySelector(".status-content .status");
 
-    if (statusElement && statusMapping.hasOwnProperty(form.Status)) {
-        const statusInfo = statusMapping[form.Status];
 
-        statusElement.textContent = statusInfo.text;
-
-        // Reset class, giữ lại class 'status badge'
-        statusElement.className = 'status badge px-3 py-2';
-
-        // Thêm các class màu sắc
-        statusElement.classList.add(...statusInfo.class.split(' '));
-    }
 }
 function renderSurvey(data=null) {
+    formStatus = data.form.Status;
+    console.log("formStatus",formStatus)
+    let question = data.questions ;
     let surveyHtml = "";
     if (data && data.form && data.questions && data.questions.length > 0) {
         // Use current data to render the form and questions
@@ -176,7 +109,7 @@ function renderSurvey(data=null) {
   </form>
 </div>`;
         surveyHtml += `<div id="questionsContainer">`;
-        data.questions.forEach(question => {
+        question.forEach(question => {
             surveyHtml += renderQuestion(question);
         });
         surveyHtml += `</div>`;
@@ -267,6 +200,7 @@ function renderSurvey(data=null) {
             }
         });
     });
+
     const editableDivs = document.querySelectorAll(".editable-content,.editable-option-content");
     editableDivs.forEach(div => {
         div.addEventListener("paste", function (e) {
@@ -570,23 +504,50 @@ function initQuestion() {
                 orderContent: true
             })))
         })
+
+
+        document.addEventListener('click',function (event){
+            const btnSave = event.target.closest('.btn-save');
+            if (!btnSave) return;
+            const result = collectQuestionData();
+            console.log(result)
+            if (formStatus=== 0 ){
+                fetch(`${config.apiUrl}/draft?id=${formId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(result)
+                }).then(r =>{
+                    if (r.ok) {
+                        showToast("Đã lưu nháp!","success");
+                    }else{
+                        showToast("Lưu nháp thất bại!","error");
+                    }
+                });
+            }else {
+                fetch(`${config.apiUrl}/admin/form?id=${formId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        // Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(result)
+                }).then(r =>{
+                    if (r.ok) {
+                        showToast("Đã lưu!","success");
+                    }else{
+                        showToast("Lưu thất bại!","error");
+                    }
+                });
+            }
+
+        });
+
         document.addEventListener('click', function(event) {
             const btnSubmit = event.target.closest('.btn-submit');
             if (!btnSubmit) return;
-            const result = {
-                form : {
-                    FID : 4,
-                    FName: document.getElementById('fname').value,
-                    Note: document.getElementById('note').value,
-                    Limit: document.getElementById('limit').value,
-                    TypeID: document.getElementById('typeid').value,
-                    MajorID: document.getElementById('majorid').value,
-                    PeriodID: document.getElementById('periodid').value,
-                    File: document.getElementById('file').value,
-                    Status: 0
-                },
-                questions: convertHTMLQuestionToJsonData()
-            }
+            const result = collectQuestionData();
             console.log(result);
             // fetch(`${config.apiUrl}/admin/form`, {
             //     method: "POST",
@@ -602,11 +563,68 @@ function initQuestion() {
             //         alert("Thất bại");
             //     }
             // });
-        })
+        });
 
+        if (formStatus === 0) {
+            (function setupAutoSave() {
+                const autoSave = () => {
+                    const result = collectQuestionData();
+                    fetch(`${config.apiUrl}/draft?id=${formId}`, {
+                        method: "PUT",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify(result)
+                    }).then(r => showToast("Đã tự động lưu!", "success"));
+                };
+                setInterval(autoSave, 60000); // auto-save every 60s
+            })();
+        }
         window.isDeleteListenerAdded = true;
 
 
+    }
+}
+function showToast(message,type) {
+  // Create a toast container
+  const toast = document.createElement('div');
+  toast.style.position = 'fixed';
+  toast.style.bottom = '20px';
+  toast.style.right = '20px';
+  toast.style.zIndex = '9999';
+  // toast.style.backgroundColor = '#4caf50';
+    toast.style.backgroundColor = type === 'error' ? '#f44336' : '#4caf50';
+  toast.style.color = '#fff';
+  toast.style.padding = '10px 20px';
+  toast.style.borderRadius = '4px';
+  toast.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.3)';
+  toast.textContent = message;
+
+  // Append and remove after timeout
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+// After saving successfully
+function handleSave() {
+  // ... your save logic
+  showToast('Saved successfully!');
+}
+
+function collectQuestionData() {
+    return{
+        form : {
+            FID : 4,
+            FName: document.getElementById('fname').value,
+            Note: document.getElementById('note').value,
+            Limit: document.getElementById('limit').value,
+            TypeID: document.getElementById('typeid').value,
+            MajorID: document.getElementById('majorid').value,
+            PeriodID: document.getElementById('periodid').value,
+            File: document.getElementById('file').value,
+            Status: formStatus
+        },
+        questions: convertHTMLQuestionToJsonData()
     }
 }
 function createElementFromHTML(htmlString) {
@@ -746,7 +764,7 @@ function swapPatternQuestion(questionElement,type) {
 }
 function renderQuestion(question) {
     const descriptionItem = question.children.find(option => option.QTypeID === "DESCRIPTION") || null;
-    let html = `<div class="question-item hover-effect flex flex-column align-items-start"">
+    let html = `<div class="question-item hover-effect flex flex-column align-items-start" ${question.QID ? `id="q${question.QID}" ` : ""}>
     <div class="drag-handle me-2 text-center" style="cursor: move;">
         <img src="/public/icons/grip-dots.svg" alt="Grip Dots" style="width: 24px; height: 24px" />
     </div>
@@ -961,7 +979,7 @@ function patternQuestionMultipleChoice(question){
         return html;
     }
     question.children.map(option => {
-        html += buildOptionHtml(option.QContent, count,MCIcon);
+        html += buildOptionHtml(option.QContent, count,MCIcon,option.QParent);
     });
     html += `</div>`;
     html += `<div class="create-new-container">`
@@ -1085,7 +1103,7 @@ function patternQuestionGridCheckBox(question) {
 
     return html;
 }
-function buildOptionHtml(content, count ,icon=""){
+function buildOptionHtml(content, count , icon=""){
     return ` <div class="option-item d-flex flex-row align-items-center hover-option-item-effect" style="margin: 5px 0 0 0; padding: 0;">
               <!-- Grid dot icon for dragging -->
                 <div class="grid-dot option-item-drag-handle" style="cursor: move;">
@@ -1286,6 +1304,7 @@ function convertHTMLQuestionToJsonData(){
     const questionIndex = qIdx + 1;
     const type = questionItem.querySelector('.form-select').value;
     const question = {
+        QID: questionItem.id.replace('q', ''),
       QContent: questionItem.querySelector('.editable-content').innerText,
       QTypeID: type,
       QIndex: questionIndex,
@@ -1297,6 +1316,7 @@ function convertHTMLQuestionToJsonData(){
     const descriptionItem = questionItem.querySelector('.question-description');
     if (descriptionItem) {
       question.children.push({
+          QParent: questionItem.id.replace('q', ''),
         QTypeID: "DESCRIPTION",
         QContent: descriptionItem.querySelector('.editable-description-content').innerText,
         QIndex: questionIndex + '.' + childIndex
@@ -1309,6 +1329,7 @@ function convertHTMLQuestionToJsonData(){
     if (optionContainer) {
       optionContainer.querySelectorAll('.option-item').forEach(optionItem => {
         question.children.push({
+            QParent: questionItem.id.replace('q', ''),
           QTypeID: type + "_OPTION",
           QContent: optionItem.querySelector('.editable-option-content').innerText,
           QIndex: questionIndex + '.' + childIndex
@@ -1370,7 +1391,6 @@ function convertHTMLQuestionToJsonData(){
 
     questions.push(question);
   });
-  console.log(questions);
   return questions;
 }
 let MCIcon = `<div class="new-option-icon">
@@ -1397,6 +1417,8 @@ let CheckBoxIcon = `<div class="new-option-icon">
                 </div>
               </div>
     `;
+let formId = null;
+let formStatus = null;
 let isDragging = false;
 let draggedElement = null;
 let globalStatus = 0;

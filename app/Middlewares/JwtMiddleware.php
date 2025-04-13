@@ -64,52 +64,46 @@ class JwtMiddleware
         }
     }
 
-    public static function authenticateFormPage($token, $permission,$formId ):int
+    public static function authenticateFormPage(string $token, string $permission, string $formId): int
     {
         try {
-            if (!isset(self::$formController)) {
+            if (!self::$formController) {
                 self::$formController = new FormController();
             }
-            if ($token) {
-                $token = str_replace('Bearer ', '', $token);
-            }
+
             if (!$token) {
                 return 401;
-            }// Assuming you have a method to verify the token
+            }
+
+            $token = str_replace('Bearer ', '', $token);
             $jwtHelper = new jwt_helper();
             $secret = require __DIR__ . '/../../config/JwtConfig.php';
-            $decoded = $jwtHelper->verifyJWT($token,$secret);
-            $user = $decoded->user;
-            if (!$decoded) {
-                return 401;
-            }//Don't have
-            if ($permission) {
-                $permissions = $decoded->permissions;
-                $hasPermission = false;
+            $decoded = $jwtHelper->verifyJWT($token, $secret);
 
-                foreach ($permissions as $perm) {
-                    if ($perm->permID === $permission) {
-                        $hasPermission = true;
-                        break;
-                    }
-                }
-                if (!$hasPermission) {
+            if (!$decoded || !isset($decoded->user)) {
+                return 401;
+            }
+
+            $user = $decoded->user;
+
+            // Check permission if required
+            if ($permission) {
+                $permissions = $decoded->permissions ?? [];
+                $hasPermission = array_filter($permissions, fn($perm) => $perm->permID === $permission);
+                if (empty($hasPermission)) {
                     return 403;
                 }
-
-            }// Store user data in request for later use
-
-            $form = self::$formController->checkPermission($formId, $user->email);
-            if ($form){
-                return 200;
-            } else {
-                return 403;
             }
-        } catch (\Exception $e) {
-//            require_once __DIR__ . '/../../public/views/pages/home.php';
+
+            // Check form permission
+            $formHasAccess = self::$formController->checkPermission($formId, $user->email);
+            return $formHasAccess ? 200 : 403;
+
+        } catch (\Throwable $e) {
             return 500;
         }
     }
+
 
     public static function authenticatePage($token, $permission ):int
     {

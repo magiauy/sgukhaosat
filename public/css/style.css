@@ -460,3 +460,74 @@ input:checked + .slider:before {
   flex: 0 0 auto; /* prevent flex grow and shrink */
   width: 300px;   /* set a fixed width */
 }
+.input-page-number::-webkit-inner-spin-button,
+.input-page-number::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.input-page-number {
+    -moz-appearance: textfield;
+}
+.tooltip-outside {
+    visibility: hidden;
+    width: 253px;
+    background-color: rgba(32, 33, 36, 0.93);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute; /* Hoặc fixed tùy thuộc vào yêu cầu */
+    z-index: 1000; /* Đảm bảo tooltip ở trên mọi thứ */
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: normal; /* Hoặc 'pre-wrap' */
+    top: 0; /* Sẽ được cập nhật bằng JavaScript */
+    left: 0; /* Sẽ được cập nhật bằng JavaScript */
+}
+
+/* Стилизация cho mũi tên (tùy chọn) */
+.tooltip-outside::after {
+    content: "";
+    position: absolute;
+    top: -10px; /* Điều chỉnh vị trí mũi tên */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent rgba(32, 33, 36, 0.93) transparent; /* Mũi tên hướng lên trên */
+}
+
+
+.page-item:focus,
+.page-item:focus-visible,
+.page-link:focus{
+    /*border: none;*/
+    outline: none;
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.page-item {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.page-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+@keyframes clickAnimation {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+.page-item:active {
+    animation: clickAnimation 0.2s;
+}

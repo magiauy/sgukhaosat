@@ -23,35 +23,9 @@
                     <a class="nav-link" href="#">Liên hệ</a>
                 </li>
             </ul>
-            <?php if ($user): ?>
-                <div class="dropdown">
-                    <button class="btn dropdown-toggle d-flex align-items-center gap-2"
-                            type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle fs-5"></i>
-                        <span id="username"><?= $user->fullName ?? "User" ?></span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3"
-                        aria-labelledby="dropdownMenuButton">
-                        <li class="px-3 py-2">
-                            <p class="mb-0 fw-bold text-dark" id="dropdown-username"><?= $user->fullName ?? "User" ?></p>
-                            <small class="text-muted" id="dropdown-email"><?= $user->email ?? "" ?></small>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center gap-2" id="btn-admin" href="/admin">
-                                <i class="bi bi-house"></i> Trang quản trị
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item py-2 text-danger fw-bold d-flex align-items-center gap-2" href="/" id="logout">
-                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            <?php else: ?>
-                <a href="/login" id="btn-login" class="btn btn-primary ms-3">Đăng nhập</a>
-            <?php endif; ?>
+            <?php
+            include __DIR__ . '/../../component/userDropdown.php';
+            ?>
         </div>
     </div>
 </nav>

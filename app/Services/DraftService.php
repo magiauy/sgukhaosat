@@ -4,18 +4,22 @@ namespace Services;
 
 use Exception;
 use Repositories\DraftRepository;
+use Repositories\FormRepository;
 use Repositories\Interface\IDraftRepository;
 use Repositories\Interface\IdGenerator;
+use Repositories\Interface\IFormRepositoryTransaction;
 use Services\Interface\IDraftService;
 
 class DraftService implements IDraftService
 {
     private IDraftRepository $draftRepository;
     private IdGenerator $idGenerator;
+    private IFormRepositoryTransaction $formRepository;
 
     public function __construct()
     {
         $repo = new DraftRepository();
+        $this->formRepository = new FormRepository();
         $this->draftRepository = $repo;
         $this->idGenerator = $repo;
     }
@@ -38,7 +42,17 @@ class DraftService implements IDraftService
     public function update($id, $data): bool
     {
         try {
-            return $this->draftRepository->update($id, $data);
+            $form = $data['form'];
+            $questions = $data['questions'];
+            if(!$this->formRepository->checkStatus($id,0)){
+                throw new Exception("Thông tin form không hợp lệ");
+            }
+            if (!$this->formRepository->checkPermission($id, $data['user']->email)) {
+                throw new Exception("Bạn không có quyền sửa bản nháp này");
+            }
+            $this->formRepository->updateDraft($id, $form);
+
+            return $this->draftRepository->update($id, $questions);
         } catch (\RuntimeException $e) {
             throw new Exception("Lỗi cập nhật bản nháp: " . $e->getMessage());
         }

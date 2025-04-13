@@ -1,5 +1,5 @@
 
-<div class="container my-4 container-account">
+<div class="container-xl my-4 container-account">
     <!-- Bộ lọc -->
     <section class="mt-4 bg-white p-3 shadow-sm rounded">
         <h5 class="mb-3">Bộ lọc</h5>
@@ -49,22 +49,31 @@
             <table class="table table-hover table-bordered bg-white shadow-sm rounded">
                 <thead class="table-dark text-center">
                 <tr>
-                    <th >Mã</th>
-                    <th>Tên khảo sát</th>
-                    <th>Loại hình khảo sát</th>
-                    <th>Mã Ngành</th>
-                    <th>Giai đoạn</th>
-                    <th class="col-2">Ghi chú</th>
-                    <th>Người tạo</th>
-                    <th>Trạng thái</th>
-                    <th>Hành động</th>
+                    <th style="width: 5%;">Mã</th>
+                    <th style="width: 20%;">Tên khảo sát</th>
+                    <th style="width: 14%;">Loại hình khảo sát</th>
+                    <th style="width: 10%;">Mã Ngành</th>
+                    <th style="width: 8%;">Giai đoạn</th>
+                    <th style="width: 15%;">Ghi chú</th>
+                    <th style="width: 10%;">Người tạo</th>
+                    <th style="width: 10%;">Trạng thái</th>
+                    <th style="width: 10%;">Hành động</th>
                 </tr>
+
                 </thead>
                 <tbody id="surveyTable" >
                 <!-- Dữ liệu sẽ được thêm vào đây -->
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center" id="pagination">
+                <!-- Các nút phân trang sẽ được render bằng JavaScript -->
+            </ul>
+        </nav>
+
     </section>
 </div>
 

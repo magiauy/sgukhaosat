@@ -170,6 +170,7 @@ class QuestionRepository implements IQuestionRepository
 
     public function getByFormID($formID): array
     {
+
         try {
             $sql = "SELECT * FROM question WHERE FID = :FID";
             $stmt = $this->pdo->prepare($sql);
@@ -190,9 +191,28 @@ class QuestionRepository implements IQuestionRepository
             }
             return $questionTree;
         } catch (Exception $e) {
-            throw new Exception($e->getMessage(), 500);
+            throw new \Exception("Lỗi khi lấy câu hỏi: " . $e->getMessage(), 500);
         }
     }
 
 
+    function softDelete($id ,PDO $pdo)
+    {
+        $sql = "UPDATE question SET isDeleted = 1 WHERE QID = :QID";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':QID' => $id]);
+        return true;
+    }
+
+    function hasAnswers($id): bool
+    {
+        try {
+            $sql = "SELECT COUNT(*) FROM answer WHERE QID = :QID";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':QID' => $id]);
+            return $stmt->fetchColumn() > 0;
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), 500);
+        }
+    }
 }

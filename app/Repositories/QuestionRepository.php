@@ -69,7 +69,6 @@ class QuestionRepository implements IQuestionRepository
                     foreach ($question['children'] as $child) {
 //                        print_r("child: " . json_encode($child));
                         $child['QParent'] = $parentId;
-                        print_r("child: " . json_encode($child));
                         $stmt->execute([
                             ':QContent' => $child['QContent'] ?? null,
                             ':QParent' => $child['QParent'] ?? null,
@@ -93,15 +92,29 @@ class QuestionRepository implements IQuestionRepository
                 throw new Exception("Không có dữ liệu để cập nhật!", 400);
             }
 
-            $sql = "UPDATE question SET QIndex = :QIndex, QContent = :QContent, QParent = :QParent, QTypeID = :QTypeID WHERE QID = :QID";
+            $sql = "UPDATE question SET QIndex = :QIndex WHERE QID = :QID";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 ':QID' => $id,
-                ':QIndex' => $data['QIndex'],
-                ':QContent' => $data['QContent'],
-                ':QParent' => $data['QParent'],
-                ':QTypeID' => $data['QTypeID']
+                ':QIndex' => $data['QIndex']
             ]);
+
+            //Update index của các câu hỏi con
+            if (!empty($data['children'])) {
+                foreach ($data['children'] as $child) {
+//                    print_r("child: " . json_encode($child));
+                    $sql = "UPDATE question SET QIndex = :QIndex WHERE QID = :QID";
+                    $stmt = $pdo->prepare($sql);
+//                    print_r("QID: " . $child['QID'] . " QIndex: " . $child['QIndex'] . $child['QContent']. "\n");
+                    $stmt->execute([
+                        ':QID' => $child['QID'],
+                        ':QIndex' => $child['QIndex']
+                    ]);
+
+                }
+            }
+
+
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), 500);
         }

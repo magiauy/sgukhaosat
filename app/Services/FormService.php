@@ -141,7 +141,7 @@ public function update($id, $data)
     $tempUpdateList = [];
     $tempDeleteList = [];
     $tempAddList = [];
-
+//    print_r(json_encode($data['questions']));
     try {
         $pdo->beginTransaction();
         $this->formRepository->update($id, $data['form'], $pdo);
@@ -151,25 +151,67 @@ public function update($id, $data)
         foreach ($oldQuestions as $q) {
             $oldLookup[$q['QID']] = $q;
         }
+
         // Identify deletes/updates/additions
+//        foreach ($data['questions'] as $newQ) {
+//            if (isset($newQ['QID']) && isset($oldLookup[$newQ['QID']])) {
+//                $oldQ = $oldLookup[$newQ['QID']];
+//                // If content or children changed, delete the old record and insert a new one.
+//                if (
+//                    $oldQ['QContent'] !== $newQ['QContent']
+//                    || (isset($oldQ['children']) && isset($newQ['children'])
+//                        && json_encode($oldQ['children']) !== json_encode($newQ['children']))
+//                    || $oldQ['QTypeID'] !== $newQ['QTypeID']
+//
+//                ) {
+//                    $tempDeleteList[] = $oldQ;
+//                    $tempAddList[] = $newQ;
+//                } else if ($oldQ['QIndex'] !== $newQ['QIndex']) {
+//                    // If only QIndex changed, update the record.
+//                    $tempUpdateList[] = $newQ;
+//                }
+//                // Remove the item from lookup so that remaining ones are treated as deletions.
+//                unset($oldLookup[$newQ['QID']]);
+//            } else if (!isset($newQ['QID'])) {
+//
+//                // New question without a QID.
+//                $tempAddList[] = $newQ;
+//            }
+//        }
+//        print_r("New questions: " . json_encode($data['questions']));
         foreach ($data['questions'] as $newQ) {
             if (isset($newQ['QID']) && isset($oldLookup[$newQ['QID']])) {
-                // If content changed, track for update
+                // Câu hỏi có tồn tại (so sánh với câu hỏi cũ)
                 $oldQ = $oldLookup[$newQ['QID']];
-                if (
-                    $oldQ['QContent'] !== $newQ['QContent']
-                    || $oldQ['QIndex'] !== $newQ['QIndex']
-                    || (isset($oldQ['children']) && isset($newQ['children']) && json_encode($oldQ['children']) !== json_encode($newQ['children']))
-                ) {
+
+                // Chuẩn hóa hai phiên bản (loại bỏ các trường index) để so sánh nội dung cốt lõi
+                $oldNormalized = $this->normalizeForComparison($oldQ);
+                $newNormalized = $this->normalizeForComparison($newQ);
+
+                // So sánh các phiên bản chuẩn hóa
+                if ($oldNormalized === $newNormalized) {
+                    $newQ = $this->assignQIDsBySortedChildren($newQ, $oldQ);
+//                    print_r("newQ: " . json_encode($newQ));
                     $tempUpdateList[] = $newQ;
+
+                } else {
+                    // Nếu nội dung chính, nội dung children (ngoại trừ index) hoặc QTypeID thay đổi,
+                    // xử lý: xoá tạm (delete list) và tạo câu hỏi mới (add list).
+                    $tempDeleteList[] = $oldQ;
+                    $tempAddList[] = $newQ;
                 }
-                // Remove from lookup so it's not flagged for deletion
+                // Loại bỏ câu hỏi này khỏi bảng lookup để cuối cùng những câu hỏi còn lại được coi là xoá.
                 unset($oldLookup[$newQ['QID']]);
-            } else {
-                // This is a new question
+            } else if (!isset($newQ['QID'])|| empty($newQ['QID'])) {
+                // Câu hỏi mới không có QID: cần thêm mới.
                 $tempAddList[] = $newQ;
             }
         }
+
+//        print_r("tempUpdateList: " . json_encode($tempUpdateList));
+//        print_r("tempAddList: " . json_encode($tempAddList));
+//        print_r("oldLookup: " . json_encode($oldLookup));
+
 
 
         // Remaining items in oldLookup are removed questions
@@ -207,6 +249,59 @@ public function update($id, $data)
         throw $e;
     }
 }
+    private function assignQIDsBySortedChildren(array $newQ, array $oldQ): array
+    {
+        // Sắp xếp children theo QIndex để đảm bảo đúng thứ tự trước khi gán
+        $sortChildren = function (&$question) {
+            if (isset($question['children']) && is_array($question['children'])) {
+                usort($question['children'], function ($a, $b) {
+                    return strcmp($a['QContent'], $b['QContent']);
+                });
+            }
+        };
+
+        $sortChildren($newQ);
+        $sortChildren($oldQ);
+
+        // Gán QID cho từng child nếu vị trí tương ứng tồn tại
+        if (isset($newQ['children']) && isset($oldQ['children'])) {
+            foreach ($newQ['children'] as $index => &$child) {
+                if (isset($oldQ['children'][$index]['QID'])) {
+                    $child['QID'] = $oldQ['children'][$index]['QID'];
+                }
+            }
+        }
+
+        return $newQ;
+    }
+
+
+    function normalizeForComparison($question) {
+        $normalized = [
+            'QID' => $question['QID'] ?? '',
+            'QContent' => $question['QContent'] ?? '',
+            'QTypeID' => $question['QTypeID'] ?? '',
+            'children' => []
+        ];
+
+        if (!empty($question['children']) && is_array($question['children'])) {
+            foreach ($question['children'] as $child) {
+                $normalized['children'][] = [
+                    'QContent' => $child['QContent'] ?? '',
+                    'QTypeID' => $child['QTypeID'] ?? '',
+                ];
+            }
+
+            // Sắp xếp theo QContent (hoặc QIndex nếu bạn muốn ổn định hơn)
+            usort($normalized['children'], function ($a, $b) {
+                return strcmp($a['QContent'], $b['QContent']);
+            });
+        }
+
+        return $normalized;
+    }
+
+
 
     function delete($id)
     {
@@ -238,13 +333,27 @@ public function update($id, $data)
 
             return [
                 'form' => $form,
-                'questions' => $questions
+                'questions' => $this->sortQuestion($questions)
             ];
         } catch (Exception $e) {
             throw new Exception("Lỗi khi lấy form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }
     }
 
+    function sortQuestion($question)
+    {
+        $sortedQuestions = [];
+        foreach ($question as $q) {
+            if (isset($q['children']) && is_array($q['children'])) {
+                $q['children'] = $this->sortQuestion($q['children']);
+            }
+            $sortedQuestions[] = $q;
+        }
+        usort($sortedQuestions, function ($a, $b) {
+            return strcmp($a['QIndex'], $b['QIndex']);
+        });
+        return $sortedQuestions;
+    }
     function getAll()
     {
         try {

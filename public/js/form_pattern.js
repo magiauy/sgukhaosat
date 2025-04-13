@@ -667,14 +667,14 @@ function swapPatternQuestion(questionElement,type) {
     if (type === "MULTIPLE_CHOICE") {
         if (currentSelect === "CHECKBOX" || currentSelect === "DROPDOWN") {
         question.children = Array.from(questionElement.querySelectorAll('.option-container .option-item')).map(input => ({
-            QTypeID: "MULTIPLE_CHOICE_OPTION",
+            QTypeID: "MC_OPTION",
             QContent: input.querySelector('.editable-option-content')?.innerText.trim()
         }));
         } else if (currentSelect === "GRID_MULTIPLE_CHOICE" || currentSelect === "GRID_CHECKBOX") {
             question.children = Array.from(questionElement.querySelectorAll('.column-container .column-container-item')).map(colItem => {
                 const colContent = colItem.querySelector('.editable-option-content')?.innerText.trim();
                 return {
-                    QTypeID: "MULTIPLE_CHOICE_OPTION",
+                    QTypeID: "MC_OPTION",
                     QContent: colContent
                 };
             })
@@ -781,7 +781,7 @@ function renderQuestion(question) {
         </div>
 
 
-        ${descriptionItem ? `<div class="question-description">
+        ${descriptionItem ? `<div class="question-description" id="q${descriptionItem.QID}">
                ${descriptionItem.QContent ? `
         <div class="editable-description-content" contentEditable="true" data-placeholder="Mô tả">
             ${descriptionItem.QContent}
@@ -837,7 +837,7 @@ function addQuestionItem() {
         QTypeID: "MULTIPLE_CHOICE",
         children: [
             {
-                QTypeID: "MULTIPLE_CHOICE_OPTION",
+                QTypeID: "MC_OPTION",
                 QContent: "Câu trả lời 1"
 
             }
@@ -953,7 +953,7 @@ function patternQuestionCheckBox(question) {
         return html;
     }
         question.children.forEach(option => {
-            html += buildOptionHtml(option.QContent ,count ,CheckBoxIcon);
+            html += buildOptionHtml(option.QContent ,count ,CheckBoxIcon,option.QID);
         });
         html += `</div>`;
         html += `<div class="create-new-container">`
@@ -967,7 +967,7 @@ function patternQuestionCheckBox(question) {
         return html;
     }
 function patternQuestionMultipleChoice(question){
-    const count = question.children.filter(option => option.QTypeID === "MULTIPLE_CHOICE_OPTION").length;
+    const count = question.children.filter(option => option.QTypeID === "MC_OPTION").length;
     const isHaveAnotherOption = question.children.some(option => option.QTypeID === "ORDER_OPTION");
     let html = `<div class="option-container" id="option-container">`;
     if (!question.children || !Array.isArray(question.children) || question.children.length === 0) {
@@ -979,7 +979,7 @@ function patternQuestionMultipleChoice(question){
         return html;
     }
     question.children.map(option => {
-        html += buildOptionHtml(option.QContent, count,MCIcon,option.QParent);
+        html += buildOptionHtml(option.QContent, count,MCIcon,option.QID);
     });
     html += `</div>`;
     html += `<div class="create-new-container">`
@@ -1003,7 +1003,7 @@ function patternQuestionDropdown(question) {
         return html;
     }
     question.children.forEach(option => {
-        html += buildOptionHtml(option.QContent, count)
+        html += buildOptionHtml(option.QContent, count, "",option.QID);
     });
     html += `</div>`;
     html += `<div>`
@@ -1023,7 +1023,7 @@ function patternQuestionGridMultipleChoice(question) {
     const countColumns = question.children.filter(option => option.QTypeID === "GRID_MC_COLUMN").length;
     question.children.forEach(option => {
         if (option.QTypeID === "GRID_MC_ROW") {
-            html += buildGridHtml(option.QContent, countRows, "row-container-item", "grid-row-drag-handle","hover-grid-row-effect");
+            html += buildGridHtml(option.QContent, countRows, "row-container-item", "grid-row-drag-handle","hover-grid-row-effect","",option.QID);
         }
     });
 
@@ -1041,7 +1041,7 @@ function patternQuestionGridMultipleChoice(question) {
 `;
     question.children.forEach(option => {
         if (option.QTypeID === "GRID_MC_COLUMN") {
-            html += buildGridHtml(option.QContent, countColumns, "column-container-item", "grid-column-drag-handle","hover-grid-column-effect",MCIcon);
+            html += buildGridHtml(option.QContent, countColumns, "column-container-item", "grid-column-drag-handle","hover-grid-column-effect",MCIcon,option.QID);
         }
     });
 
@@ -1068,7 +1068,7 @@ function patternQuestionGridCheckBox(question) {
     const countColumns = question.children.filter(option => option.QTypeID === "GRID_CHECKBOX_COLUMN").length;
     question.children.forEach(option => {
         if (option.QTypeID === "GRID_CHECKBOX_ROW") {
-            html += buildGridHtml(option.QContent, countRows, "row-container-item", "grid-row-drag-handle","hover-grid-row-effect");
+            html += buildGridHtml(option.QContent, countRows, "row-container-item", "grid-row-drag-handle","hover-grid-row-effect","",option.QID);
         }
     });
 
@@ -1086,7 +1086,7 @@ function patternQuestionGridCheckBox(question) {
 `;
     question.children.forEach(option => {
         if (option.QTypeID === "GRID_CHECKBOX_COLUMN") {
-            html += buildGridHtml(option.QContent, countColumns, "column-container-item", "grid-column-drag-handle","hover-grid-column-effect",CheckBoxIcon);
+            html += buildGridHtml(option.QContent, countColumns, "column-container-item", "grid-column-drag-handle","hover-grid-column-effect",CheckBoxIcon,option.QID);
         }
     });
 
@@ -1103,8 +1103,8 @@ function patternQuestionGridCheckBox(question) {
 
     return html;
 }
-function buildOptionHtml(content, count , icon=""){
-    return ` <div class="option-item d-flex flex-row align-items-center hover-option-item-effect" style="margin: 5px 0 0 0; padding: 0;">
+function buildOptionHtml(content, count , icon="" , questionId="") {
+    return ` <div class="option-item d-flex flex-row align-items-center hover-option-item-effect" style="margin: 5px 0 0 0; padding: 0;" id="q${questionId}">
               <!-- Grid dot icon for dragging -->
                 <div class="grid-dot option-item-drag-handle" style="cursor: move;">
                 <img src="/public/icons/grip-dots-vertical.svg" alt="Grid Dot" style="width: 28px; height: 28px; opacity: 26%;">
@@ -1127,8 +1127,9 @@ function buildOptionHtml(content, count , icon=""){
             </div>
             `;
 }
-function buildGridHtml(content, count, contentClassed, dragHandleClassed,effectClassed ,icon=""){
-return ` <div class="${contentClassed} d-flex flex-row align-items-center ${effectClassed}" style="margin: 5px 0 0 0; padding: 0;">
+function buildGridHtml(content, count, contentClassed, dragHandleClassed,effectClassed ,icon="",questionId=""){
+    console.log("questionId",questionId)
+return ` <div class="${contentClassed} d-flex flex-row align-items-center ${effectClassed}" style="margin: 5px 0 0 0; padding: 0;" id="q${questionId}">
           <!-- Grid dot icon for dragging -->
           <div class="grid-dot ${dragHandleClassed}" style="cursor: move;">
             <img src="/public/icons/grip-dots-vertical.svg" alt="Grid Dot" style="width: 28px; height: 28px; opacity: 26%;">
@@ -1298,6 +1299,10 @@ function populateSelect(selectElement, currentQTypeID) {
 }
 function convertHTMLQuestionToJsonData(){
   const questionContainer = document.getElementById('questionsContainer');
+  const mapType = {
+    "MULTIPLE_CHOICE": "MC_OPTION",
+    "CHECKBOX": "CHECKBOX_OPTION",
+    "DROPDOWN": "DROPDOWN_OPTION"}
   const questions = [];
   // Loop through each question-item with an index.
   questionContainer.querySelectorAll('.question-item').forEach((questionItem, qIdx) => {
@@ -1307,8 +1312,8 @@ function convertHTMLQuestionToJsonData(){
         QID: questionItem.id.replace('q', ''),
       QContent: questionItem.querySelector('.editable-content').innerText,
       QTypeID: type,
-      QIndex: questionIndex,
-      children: []
+        QIndex: questionIndex.toString(),
+        children: []
     };
 
     let childIndex = 1;
@@ -1316,6 +1321,7 @@ function convertHTMLQuestionToJsonData(){
     const descriptionItem = questionItem.querySelector('.question-description');
     if (descriptionItem) {
       question.children.push({
+          QID: descriptionItem.id.replace('q', ''),
           QParent: questionItem.id.replace('q', ''),
         QTypeID: "DESCRIPTION",
         QContent: descriptionItem.querySelector('.editable-description-content').innerText,
@@ -1329,8 +1335,9 @@ function convertHTMLQuestionToJsonData(){
     if (optionContainer) {
       optionContainer.querySelectorAll('.option-item').forEach(optionItem => {
         question.children.push({
+            QID: optionItem.id.replace('q', ''),
             QParent: questionItem.id.replace('q', ''),
-          QTypeID: type + "_OPTION",
+          QTypeID: mapType[type],
           QContent: optionItem.querySelector('.editable-option-content').innerText,
           QIndex: questionIndex + '.' + childIndex
         });
@@ -1349,6 +1356,7 @@ function convertHTMLQuestionToJsonData(){
             rowContainer.querySelectorAll('.row-container-item').forEach(rowItem => {
               const currentRowIndex = questionIndex + '.' + rowCounter;
               question.children.push({
+                QID: rowItem.id.replace('q', ''),
                 QTypeID: type === "GRID_MULTIPLE_CHOICE" ? "GRID_MC_ROW" : "GRID_CHECKBOX_ROW",
                 QContent: rowItem.querySelector('.editable-option-content').innerText,
                 QIndex: currentRowIndex
@@ -1367,6 +1375,7 @@ function convertHTMLQuestionToJsonData(){
             let colCounter = 1;
             columnContainer.querySelectorAll('.column-container-item').forEach(colItem => {
               question.children.push({
+                QID: colItem.id.replace('q', ''),
                 QTypeID: type === "GRID_MULTIPLE_CHOICE" ? "GRID_MC_COLUMN" : "GRID_CHECKBOX_COLUMN",
                 QContent: colItem.querySelector('.editable-option-content').innerText,
                 QIndex: colBase + '.' + colCounter

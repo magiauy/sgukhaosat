@@ -16,13 +16,19 @@ function handleClickOnSidebar() {
                     await renderContentUser();
                     break;
                 case "Quản lý ngành":
-                    loadContent("./views/pages/qlnganh.php");
+                    await loadContent('/public/views/pages/major.php');
+                    loadMajors();
+                    loadTotalMajorCount();
                     break;
                 case "Chu kỳ":
-                    loadContent("./views/pages/chuky.php");
+                    await loadContent('/public/views/pages/period.php');
+                    loadPeriods();
+                    loadTotalPeriodCount();
                     break;
                 case "Loại khảo sát":
-                    loadContent("./views/pages/loaiks.php");
+                    await loadContent('/public/views/pages/formType.php');
+                    loadFormTypes();
+                    loadTotalFormTypeCount();
                     break;
                 case "Phân quyền":
                     renderContentRole();
@@ -48,24 +54,24 @@ function handleClickOnSidebar() {
         }
     })
     }
-async function loadContent(url) {
+    async function loadContent(url) {
     const response = await fetch(url,{
-        method: "GET",
-        headers: {
+            method: "GET",
+            headers: {
             "Content-Type": "application/json",
-        }
-    });
-    if (response.ok) {
+            }
+        });
+        if (response.ok) {
         const content = await response.json();
         document.getElementById('content').innerHTML = content['html'];
-    } else if (response.status === 401) {
+        } else if (response.status === 401) {
         // Handle unauthorized access
-        window.location.href = "/login";
-    } else if (response.status === 403) {
+            window.location.href = "/login";
+        } else if (response.status === 403) {
         // Handle forbidden access
-        window.location.href = "/403";
+            window.location.href = "/403";
+        }
     }
-}
 
 function loadSurveyInformation(data) {
     if (data) {

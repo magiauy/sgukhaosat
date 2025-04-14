@@ -9,6 +9,9 @@ use Controllers\RoleController;
 use Controllers\PermissionController;
 use Controllers\QuestionTypeController;
 use Controllers\DraftController;
+use Controllers\PeriodController;
+use Controllers\MajorController;
+use Controllers\FormTypeController;
 use Services\DraftService;
 
 $request = new Request();
@@ -20,6 +23,10 @@ $roleController = new RoleController();
 $permController = new PermissionController();
 $questionTypeController = new QuestionTypeController();
 $draftController = new DraftController(new DraftService());
+$periodController = new PeriodController();
+$majorController = new MajorController();
+$formTypeController = new FormTypeController();
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['REQUEST_URI'];
@@ -48,6 +55,36 @@ switch (true) {
     case $method === 'POST' && $path === '/api/me':
         JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req));
         break;
+    case $method === 'POST' && $path === '/api/period':
+        $periodController->create($response, $request);
+        break;
+    case $method === 'GET' && preg_match('#^/api/period(\?.*)?$#', $path):
+        $periodController->getAll($response);
+        break;
+    case $method === 'GET' && $path === '/api/period/totalCount':
+        $periodController->getTotalCount($response);
+        break;  
+
+    case $method === 'POST' && $path === '/api/major':
+        $majorController->create($response, $request);
+        break;
+    case $method === 'GET' && preg_match('#^/api/major(\?.*)?$#', $path):
+        $majorController->getAll($response);
+        break;
+    case $method === 'GET' && $path === '/api/major/totalCount':
+        $majorController->getTotalCount($response);
+        break;   
+
+    case $method === 'POST' && $path === '/api/form-type':
+        $formTypeController->create($response, $request);
+        break;
+    case $method === 'GET' && preg_match('#^/api/form-type(\?.*)?$#', $path):
+        $formTypeController->getAll($response);
+        break;
+    case $method === 'GET' && $path === '/api/form-type/totalCount':
+        $formTypeController->getTotalCount($response);
+        break;      
+            
 
     // Role APIs
     case $method === 'POST' && $path === '/api/role':

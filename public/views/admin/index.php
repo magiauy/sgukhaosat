@@ -16,7 +16,7 @@ $user = $decode->user ?? null;
 include __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>
 <link rel="stylesheet" href="/public/css/adminPage.css">
-    <div id ="sidebar-container " class="d-flex flex-row">
+    <div id ="sidebar-container" class="d-flex flex-row">
         <div>
             <nav id="sidebar" class="d-flex flex-column p-3">
                 <button class="btn btn-outline-light mb-3" id="toggleSidebar">

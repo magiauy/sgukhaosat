@@ -14,7 +14,7 @@
                     <a class="nav-link" href="#">Trang chủ</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Khảo sát</a>
+                    <a class="nav-link" href="/form">Khảo sát</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Quy trình</a>

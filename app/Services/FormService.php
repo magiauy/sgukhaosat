@@ -26,7 +26,6 @@ class FormService implements IFormService
 
     function createDraft( $userId)
     {
-        print_r($userId);
         try {
             $formId = $this->formRepository->createDraft($userId);
             if (!$formId) {
@@ -89,16 +88,23 @@ class FormService implements IFormService
         $form['UID'] = $email;
 //        print_r('question: ' . json_encode($questions));
         try {
-            $pdo->beginTransaction();
-            $formCreated = $this->formRepository->create($form, $pdo);
-            // Kiểm tra xem có thất bại không (trả về false, null, 0, '')
-            if (!$formCreated) {
-                // Ném ra Exception để nhảy vào catch và rollback
-                throw new Exception("Lỗi khi thêm form."); // Có thể thêm chi tiết lỗi nếu repository trả về
+            if (!$this->checkPermission($form['FID'], $email)) {
+                throw new Exception("Bạn không có quyền triển khai form này.", 403);
             }
 
+
+            if (!$this->formRepository->checkStatus($form['FID'],0)) {
+                throw new Exception("Trạng thái không hợp lệ.", 400);
+            }
+            $form['Status'] = 1;
+            $pdo->beginTransaction();
+            $this->draftRepository->deleteByFormID($form['FID'], $pdo);
+            $this->formRepository->update($form['FID'], $form, $pdo);
+            // Kiểm tra xem có thất bại không (trả về false, null, 0, '')
+
+
 //            print_r($questions);
-            $questionsCreated = $this->questionRepository->createQuestion($questions,$formCreated, $pdo);
+            $questionsCreated = $this->questionRepository->createQuestion($questions,$form['FID'], $pdo);
             // Kiểm tra xem có thất bại không
             if (!$questionsCreated) {
                 // Ném ra Exception để nhảy vào catch và rollback
@@ -106,7 +112,7 @@ class FormService implements IFormService
             }
             // Nếu cả hai đều thành công, commit transaction
             $pdo->commit();
-            return true;
+            return $this->questionRepository->getByFormID($form['FID']);
         } catch (Exception $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
@@ -131,12 +137,15 @@ public function update($id, $data)
     // Fetch form and check permission
     $form = $this->formRepository->getById($idData);
     if (!$form) {
-        throw new \Exception("Form not found with ID: " . $id, 404);
+        throw new \Exception("Không tìm thấy biểu mẫu có ID: " . $id, 404);
     }
     if (!$this->formRepository->checkPermission($id, $data['user']->email)) {
-        throw new \Exception("No permission to update form.", 403);
+        throw new \Exception("Không có quyền cập nhật biểu mẫu.", 403);
     }
-
+    if ($form['Status'] == 0) {
+        //Status không hợp lệ
+        throw new \Exception("Biểu mẫu không ở trạng thái hợp lệ để cập nhật.", 400);
+    }
     // Prepare arrays
     $tempUpdateList = [];
     $tempDeleteList = [];
@@ -151,34 +160,6 @@ public function update($id, $data)
         foreach ($oldQuestions as $q) {
             $oldLookup[$q['QID']] = $q;
         }
-
-        // Identify deletes/updates/additions
-//        foreach ($data['questions'] as $newQ) {
-//            if (isset($newQ['QID']) && isset($oldLookup[$newQ['QID']])) {
-//                $oldQ = $oldLookup[$newQ['QID']];
-//                // If content or children changed, delete the old record and insert a new one.
-//                if (
-//                    $oldQ['QContent'] !== $newQ['QContent']
-//                    || (isset($oldQ['children']) && isset($newQ['children'])
-//                        && json_encode($oldQ['children']) !== json_encode($newQ['children']))
-//                    || $oldQ['QTypeID'] !== $newQ['QTypeID']
-//
-//                ) {
-//                    $tempDeleteList[] = $oldQ;
-//                    $tempAddList[] = $newQ;
-//                } else if ($oldQ['QIndex'] !== $newQ['QIndex']) {
-//                    // If only QIndex changed, update the record.
-//                    $tempUpdateList[] = $newQ;
-//                }
-//                // Remove the item from lookup so that remaining ones are treated as deletions.
-//                unset($oldLookup[$newQ['QID']]);
-//            } else if (!isset($newQ['QID'])) {
-//
-//                // New question without a QID.
-//                $tempAddList[] = $newQ;
-//            }
-//        }
-//        print_r("New questions: " . json_encode($data['questions']));
         foreach ($data['questions'] as $newQ) {
             if (isset($newQ['QID']) && isset($oldLookup[$newQ['QID']])) {
                 // Câu hỏi có tồn tại (so sánh với câu hỏi cũ)
@@ -207,13 +188,6 @@ public function update($id, $data)
                 $tempAddList[] = $newQ;
             }
         }
-
-//        print_r("tempUpdateList: " . json_encode($tempUpdateList));
-//        print_r("tempAddList: " . json_encode($tempAddList));
-//        print_r("oldLookup: " . json_encode($oldLookup));
-
-
-
         // Remaining items in oldLookup are removed questions
         foreach ($oldLookup as $removedQ) {
             $tempDeleteList[] = $removedQ;
@@ -236,13 +210,12 @@ public function update($id, $data)
             if ($this->questionRepository->hasAnswers($delQ['QID'])) {
                 $this->questionRepository->softDelete($delQ['QID'], $pdo);
             } else {
-                print_r("hasAnswers: " . json_encode($delQ));
                 $this->questionRepository->delete($delQ['QID'], $pdo);
             }
         }
         // Commit on success
         $pdo->commit();
-        return true;
+        return $this->questionRepository->getByFormID($id);
     } catch (\Exception $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
@@ -449,6 +422,19 @@ public function update($id, $data)
                 'limit'       => $limit,
                 'forms'       => $forms
             ];
+        } catch (Exception $e) {
+            throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
+        }
+    }
+
+    function getFormWithWhitelist($email)
+    {
+        try {
+            $forms = $this->formRepository->getFormWithWhitelist($email);
+            if (!$forms) {
+                throw new Exception("Không tìm thấy form nào", 404);
+            }
+            return $forms;
         } catch (Exception $e) {
             throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }

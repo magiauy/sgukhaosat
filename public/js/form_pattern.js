@@ -1,20 +1,6 @@
-document.addEventListener('DOMContentLoaded', async function () {
-    const path = window.location.pathname;
-        if(path.match(/\/admin\/form\/(\d+)\/edit/)){
-            const matches = path.match(/\/admin\/form\/(\d+)\/edit/);
-            formId = parseInt(matches[1], 10);
-            const response = await fetch(`${config.apiUrl}/admin/form/${formId}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                renderSurvey(data['data']);
-            }
-        }
-});
+import {callApi} from "./apiService.js";
+
+
 function showSurvey(surveyHtml) {
   // Query the div with class "form-content"
   const formContentContainer = document.querySelector('.form-content');
@@ -220,6 +206,18 @@ function renderSurvey(data=null) {
     });
 
 }
+
+function clearBrTag() {
+    document.querySelectorAll('.editable-content,.editable-option-content,.editable-description-content').forEach(el => {
+        el.addEventListener('input', function () {
+            // If the element contains only a <br> or is empty
+            if (this.innerHTML.trim() === '<br>' || this.innerHTML.trim() === '') {
+                this.innerHTML = '';
+            }
+        });
+    });
+}
+
 function attachSortable(container, itemSelector, handleClass,hoverClass) {
     const sortable = new Sortable(container, {
         handle: handleClass,
@@ -262,6 +260,7 @@ function attachSortable(container, itemSelector, handleClass,hoverClass) {
     }
 }
 function handleNewOptionClick(event, wrapperSelector, containerClosestSelector, itemQuerySelector, type="option") {
+
     const createWrapper = event.target.closest(wrapperSelector);
     if (!createWrapper) return;
     const questionContainer = event.target.closest('.question-item');
@@ -304,7 +303,30 @@ function handleNewOptionClick(event, wrapperSelector, containerClosestSelector, 
             break;
     }
         optionContainer.insertAdjacentHTML("beforeend", replaceHtml);
+        const newItem = optionContainer.querySelector(itemQuerySelector + ":last-child");
+        const inputToFocus = newItem.querySelector('input, textarea, [contenteditable="true"]');
+        clearBrTag();
+        const btnSave = document.querySelector('.btn-save');
+        if (btnSave) {
+        btnSave.disabled = false;
+            }
+        if (inputToFocus) {
+            placeCaretAtEnd(inputToFocus);
+            // inputToFocus.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
 }
+function placeCaretAtEnd(el) {
+    el.focus();
+    if (typeof window.getSelection != "undefined" && typeof document.createRange != "undefined") {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
 function initQuestionSelects() {
     const selects = document.querySelectorAll('.question-item select.form-select');
     selects.forEach(select => {
@@ -341,6 +363,14 @@ function initFormConfig() {
             select.appendChild(option);
         });
     }
+}
+
+function sleep(number) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, number);
+    });
 }
 
 function initQuestion() {
@@ -400,6 +430,7 @@ function initQuestion() {
             if (item) {
                 item.remove();
             }
+            btnSave.disabled = false;
         });
         document.addEventListener('click', function(event) {
             const deleteHandle = event.target.closest('.delete-question-handle');
@@ -408,6 +439,7 @@ function initQuestion() {
             if (item) {
                 item.remove();
             }
+            btnSave.disabled = false;
         });
         document.addEventListener('click', function(event) {
             const duplicate = event.target.closest('.duplicate-question-handle');
@@ -417,34 +449,67 @@ function initQuestion() {
             if (item) {
                 duplicateQuestionItem(item,selectElement)
             }
+            clearBrTag();
+            btnSave.disabled = false;
+
         });
 
-        questionsContainer.addEventListener('click', function(event) {
+        document.addEventListener('click', function(event) {
             const btnAddTitleDescription = event.target.closest('.btn-add-title-description');
             if (!btnAddTitleDescription) return;
             const item = btnAddTitleDescription.closest('.question-item');
+            let newItem;
 
             if (item){
                 item.insertAdjacentHTML('afterend', addTitleDescription());
-                initQuestionSelects();
+                newItem = item.nextElementSibling;
+
+
             }else{
                 questionsContainer.insertAdjacentHTML('beforeend', addTitleDescription());
-                initQuestionSelects();
+                newItem = questionsContainer.lastElementChild;
+
             }
+            initQuestionSelects();
+            const inputToFocus = newItem.querySelector('input, textarea, [contenteditable="true"]');
+            if (inputToFocus) {
+                inputToFocus.focus();
+                inputToFocus.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }else {
+                // Nếu không có input thì scroll tới cả block
+                newItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            clearBrTag();
+
         })
 
-        questionsContainer.addEventListener('click', function(event) {
+
+        document.addEventListener('click', function(event) {
             const btnAddQuestion = event.target.closest('.btn-add-question');
             if (!btnAddQuestion) return;
             const item = btnAddQuestion.closest('.question-item');
-
+            let newItem;
             if (item){
                 item.insertAdjacentHTML('afterend', addQuestionItem());
-                initQuestionSelects();
+                newItem = item.nextElementSibling;
+
             }else{
                 questionsContainer.insertAdjacentHTML('beforeend', addQuestionItem());
-                initQuestionSelects();
+                newItem = questionsContainer.lastElementChild;
+
             }
+            initQuestionSelects();
+            clearBrTag();
+            const inputToFocus = newItem.querySelector('input, textarea, [contenteditable="true"]');
+            if (inputToFocus) {
+                inputToFocus.focus();
+                inputToFocus.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }else {
+                // Nếu không có input thì scroll tới cả block
+                newItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            btnSave.disabled = false;
+
         })
 
         questionsContainer.addEventListener('click', function(event) {
@@ -473,6 +538,8 @@ function initQuestion() {
                     orderContent: false
                 })))
                 initQuestionSelects();
+                btnSave.disabled = false;
+
             }
         })
 
@@ -504,98 +571,122 @@ function initQuestion() {
             })))
         })
 
+        //disable btn-save
+        const btnSave = document.querySelector('.btn-save');
+        if (btnSave) {
+            btnSave.disabled = true;
+        }
 
-        document.addEventListener('click',function (event){
+        (function enableSaveOnChange() {
+          const btnSave = document.querySelector('.btn-save');
+          if (!btnSave) return;
+
+          // Select all elements where edits can happen
+          const editableElements = document.querySelectorAll(
+            'input, select, textarea, [contenteditable="true"] ,.editable-option-content '
+          );
+
+          const createNewElements = document.querySelectorAll(
+            '.option-item input, .row-container-item input, .column-container-item input'
+              );
+
+          editableElements.forEach(element => {
+            element.addEventListener('input', function() {
+              btnSave.disabled = false;
+            });
+
+            element.addEventListener('change', function() {
+                btnSave.disabled = false;
+            });
+
+          });
+        })();
+
+
+
+        document.addEventListener('click',async function (event) {
             const btnSave = event.target.closest('.btn-save');
             if (!btnSave) return;
             const result = collectQuestionData();
-            console.log(result)
-            if (formStatus=== 0 ){
-                fetch(`${config.apiUrl}/draft?id=${formId}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(result)
-                }).then(r =>{
-                    if (r.ok) {
-                        showToast("Đã lưu nháp!","success");
-                    }else{
-                        showToast("Lưu nháp thất bại!","error");
-                    }
-                });
-            }else {
-                fetch(`${config.apiUrl}/admin/form?id=${formId}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        // Authorization: `Bearer ${sessionStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(result)
-                }).then(r =>{
-                    if (r.ok) {
-                        showToast("Đã lưu!","success");
-                    }else{
-                        showToast("Lưu thất bại!","error");
-                    }
-                });
+            // console.log(result)
+            if (formStatus === "0") {
+                const data = await callApi(`/draft?id=${formId}`, "PUT", result);
+                if (data['status']) {
+                    showToast("Đã lưu !", "success");
+                } else {
+                    showToast("Lưu thất bại!", "error");
+                }
+            } else {
+                const data = await callApi(`/admin/form?id=${formId}`, "PUT", result);
+                if (data['status']) {
+                    showToast("Đã lưu!", "success");
+                    syncQuestion(data['data']);
+                } else {
+                    showToast("Lưu thất bại!", "error");
+                }
             }
 
         });
 
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', async function(event) {
             const btnSubmit = event.target.closest('.btn-submit');
             if (!btnSubmit) return;
             const result = collectQuestionData();
-            console.log(result);
-            // fetch(`${config.apiUrl}/admin/form`, {
-            //     method: "POST",
-            //     headers: {
-            //         "Content-Type": "application/json",
-            //         Authorization: `Bearer ${sessionStorage.getItem('token')}`
-            //     },
-            //     body: JSON.stringify(result)
-            // }).then(r =>{
-            //     if (r.ok) {
-            //         alert("Thành công");
-            //     }else{
-            //         alert("Thất bại");
-            //     }
-            // });
-        });
+            const data = await callApi(`/admin/form`, "POST", result);
+            if (data['status']) {
+                showToast("Xuất bản thành công!", "success");
+                const url = new URL(window.location.href);
+                url.searchParams.delete('status');
+                 window.history.replaceState({}, document.title, url);
+                 syncQuestion(data['data']);
+                 const text = `<span class="text-success fw-bold">Đã xuất bản</span>`;
+                 btnSubmit.replaceWith(createElementFromHTML(text));
+                 //Disable auto save
+                stopAutoSave();
 
-        if (formStatus === 0) {
-            (function setupAutoSave() {
-                const autoSave = () => {
-                    const result = collectQuestionData();
-                    fetch(`${config.apiUrl}/draft?id=${formId}`, {
-                        method: "PUT",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify(result)
-                    }).then(r => showToast("Đã tự động lưu!", "success"));
-                };
-                setInterval(autoSave, 60000); // auto-save every 60s
-            })();
+            }else{
+                showToast("Xuất bản thất bại!", "error");
+            }
+
+        });
+        if (formStatus==="0"){
+            sleep(1000).then(() => {
+                showToast("Đã bật chế độ tự động lưu!","success");
+            });
+            startAutoSave();
         }
         window.isDeleteListenerAdded = true;
 
 
     }
 }
+function startAutoSave() {
+    console.log("Auto save started");
+    autoSaveInterval = setInterval(() => {
+        const result = collectQuestionData();
+        callApi(`/draft?id=${formId}`, "PUT", result).then(r => {
+            if (r['status']) {
+                showToast("Đã tự động lưu!", "success");
+            } else {
+                showToast("Tự động lưu thất bại!", "error");
+            }
+        });
+    }, 30000); // auto-save every 30s
+}
+function stopAutoSave() {
+    console.log("Auto save stopped");
+    if (autoSaveInterval !== null) {
+        clearInterval(autoSaveInterval);
+        autoSaveInterval = null;
+    }
+}
 function showToast(message,type) {
   // Create a toast container
   const toast = document.createElement('div');
-  toast.style.position = 'fixed';
-  toast.style.bottom = '20px';
-  toast.style.right = '20px';
-  toast.style.zIndex = '9999';
-  // toast.style.backgroundColor = '#4caf50';
+    toast.className = 'custom-toast';
     toast.style.backgroundColor = type === 'error' ? '#f44336' : '#4caf50';
-  toast.style.color = '#fff';
-  toast.style.padding = '10px 20px';
-  toast.style.borderRadius = '4px';
-  toast.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.3)';
-  toast.textContent = message;
+
+    toast.textContent = message;
 
   // Append and remove after timeout
   document.body.appendChild(toast);
@@ -613,13 +704,13 @@ function handleSave() {
 function collectQuestionData() {
     return{
         form : {
-            FID : 4,
+            FID : formId,
             FName: document.getElementById('fname').value,
             Note: document.getElementById('note').value,
             Limit: document.getElementById('limit').value,
-            TypeID: document.getElementById('typeid').value,
-            MajorID: document.getElementById('majorid').value,
-            PeriodID: document.getElementById('periodid').value,
+            TypeID: document.getElementById('typeid').value || null,
+            MajorID: document.getElementById('majorid').value || null,
+            PeriodID: document.getElementById('periodid').value|| null,
             File: document.getElementById('file').value,
             Status: formStatus
         },
@@ -1170,7 +1261,7 @@ function buildOptionWrapper({
     </div>
   `;
 }
-buildAnotherOptionHtml = function (content, icon="") {
+function buildAnotherOptionHtml (content, icon="") {
     return ` <div class="another-item d-flex flex-row align-items-center hover-option-item-effect" style="margin: 5px 0 0 0; padding: 0;">
               <!-- Grid dot icon for dragging -->
                 <div class="another-item-spacing">
@@ -1195,19 +1286,9 @@ buildAnotherOptionHtml = function (content, icon="") {
 }
 // Function to load question types from the API once
 async function loadQuestionTypes() {
-    // Only fetch if it hasn't been fetched already
     if (!globalQuestionTypes) {
         try {
-            const response = await fetch('/api/question_type', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-                }
-            });
-            if (!response.ok) {
-                throw new Error('Failed to load question types');
-            }
-            globalQuestionTypes = await response.json();
+            globalQuestionTypes = await callApi('/question_type', 'GET');
         } catch (error) {
             console.error(error);
         }
@@ -1215,19 +1296,9 @@ async function loadQuestionTypes() {
 }
 
 async function loadTypesForm() {
-    // Only fetch if it hasn't been fetched already
     if (!globalTypesForm) {
         try {
-            const response = await fetch('/api/form_type', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-                }
-            });
-            if (!response.ok) {
-                throw new Error('Failed to load question types');
-            }
-            globalTypesForm = await response.json();
+            globalTypesForm = await callApi('/form_type', 'GET');
         } catch (error) {
             console.error(error);
         }
@@ -1236,19 +1307,9 @@ async function loadTypesForm() {
 
 // Function to load major from the API once
 async function loadMajor() {
-    // Only fetch if it hasn't been fetched already
     if (!globalMajor) {
         try {
-            const response = await fetch('/api/major', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-                }
-            });
-            if (!response.ok) {
-                throw new Error('Failed to load major');
-            }
-            globalMajor = await response.json();
+            globalMajor = await callApi('/major', 'GET');
         } catch (error) {
             console.error(error);
         }
@@ -1257,19 +1318,9 @@ async function loadMajor() {
 
 // Function to load period from the API once
 async function loadPeriod() {
-    // Only fetch if it hasn't been fetched already
     if (!globalPeriod) {
         try {
-            const response = await fetch('/api/period', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-                }
-            });
-            if (!response.ok) {
-                throw new Error('Failed to load period');
-            }
-            globalPeriod = await response.json();
+            globalPeriod = await callApi('/period', 'GET');
         } catch (error) {
             console.error(error);
         }
@@ -1400,8 +1451,136 @@ function convertHTMLQuestionToJsonData(){
   });
   return questions;
 }
+function flattenQuestions(questionList) {
+    const flatList = [];
+
+    questionList.forEach(q => {
+        // Đẩy câu hỏi chính vào
+        flatList.push({
+            QID: q.QID,
+            QIndex: q.QIndex,
+            QTypeID: q.QTypeID,
+            QContent: q.QContent,
+            QParent: q.QParent || null
+        });
+
+        // Nếu có children thì đẩy từng child vào
+        if (q.children && Array.isArray(q.children)) {
+            q.children.forEach(child => {
+                flatList.push({
+                    QID: child.QID || null,
+                    QIndex: child.QIndex,
+                    QTypeID: child.QTypeID,
+                    QContent: child.QContent,
+                    QParent: child.QParent || q.QID
+                });
+            });
+        }
+    });
+
+    return flatList;
+}
+
+
+function syncQuestion(newQuestion) {
+    const questionContainer = document.getElementById('questionsContainer');
+    // Gộp cả câu hỏi chính và children lại
+    const allQuestions = flattenQuestions(newQuestion);
+
+    // Helper function: tìm QID theo QIndex
+    const findQIDByIndex = (qIndex) => {
+        const found = allQuestions.find(q => q.QIndex === qIndex);
+        return found ? found.QID : null;
+    };
+
+    questionContainer.querySelectorAll('.question-item').forEach((questionItem, qIdx) => {
+        const questionIndex = (qIdx + 1).toString();
+        // Đầu tiên là câu hỏi chính
+        const qidMain = findQIDByIndex(questionIndex);
+        if (qidMain) {
+            questionItem.id = `q${qidMain}`;
+        }
+
+        let childIndex = 1;
+
+        // Gắn ID cho mô tả
+        const descriptionItem = questionItem.querySelector('.question-description');
+        if (descriptionItem) {
+            const qIndex = `${questionIndex}.${childIndex}`;
+            const qid = findQIDByIndex(qIndex);
+            if (qid) {
+                descriptionItem.id = `q${qid}`;
+            }
+            childIndex++;
+        }
+
+        // Gắn ID cho các option
+        const optionContainer = questionItem.querySelector('.option-container');
+        if (optionContainer) {
+            optionContainer.querySelectorAll('.option-item').forEach(optionItem => {
+                const qIndex = `${questionIndex}.${childIndex}`;
+                const qid = findQIDByIndex(qIndex);
+                if (qid) {
+                    optionItem.id = `q${qid}`;
+                }
+                childIndex++;
+            });
+        }
+
+        // Gắn ID cho grid rows và columns
+        const gridContainer = questionItem.querySelector('.grid-container');
+        if (gridContainer) {
+            const rowContainer = gridContainer.querySelector('.row-container');
+            let rowBase = "";
+            if (rowContainer) {
+                let rowCounter = 1;
+                rowContainer.querySelectorAll('.row-container-item').forEach(rowItem => {
+                    const currentRowIndex = `${questionIndex}.${rowCounter}`;
+                    const qid = findQIDByIndex(currentRowIndex);
+                    if (qid) {
+                        rowItem.id = `q${qid}`;
+                    }
+                    if (rowCounter === 1) {
+                        rowBase = currentRowIndex;
+                    }
+                    rowCounter++;
+                });
+            }
+
+            const colBase = rowBase || `${questionIndex}.1`;
+            const columnContainer = gridContainer.querySelector('.column-container');
+            if (columnContainer) {
+                let colCounter = 1;
+                columnContainer.querySelectorAll('.column-container-item').forEach(colItem => {
+                    const qIndex = `${colBase}.${colCounter}`;
+                    const qid = findQIDByIndex(qIndex);
+                    if (qid) {
+                        colItem.id = `q${qid}`;
+                    }
+                    colCounter++;
+                });
+            }
+        }
+
+        // Gắn ID cho "another option"
+        const anotherItems = questionItem.querySelectorAll('.another-item');
+        if (anotherItems) {
+            anotherItems.forEach(item => {
+                const qIndex = `${questionIndex}.${childIndex}`;
+                const qid = findQIDByIndex(qIndex);
+                if (qid) {
+                    item.id = `q${qid}`;
+                }
+                childIndex++;
+            });
+        }
+    });
+}
+
+
+
 let MCIcon = `<div class="new-option-icon">
-                <div class="custom-container">
+                <div class="custom-option-container">
                   <div class="custom-icon" style="
                       width: 24px;
                       height: 24px;
@@ -1413,7 +1592,7 @@ let MCIcon = `<div class="new-option-icon">
               </div>
     `;
 let CheckBoxIcon = `<div class="new-option-icon">
-                <div class="custom-container">
+                <div class="custom-option-container">
                   <div class="custom-icon" style="
                       width: 24px;
                       height: 24px;
@@ -1434,5 +1613,16 @@ let globalTypesForm = null;
 let globalMajor = null;
 let globalPeriod = null;
 let isGlobalClickListenerAdded = false;
+let autoSaveInterval = null;
 
+document.addEventListener('DOMContentLoaded', async function () {
+    const path = window.location.pathname;
+    if(path.match(/\/admin\/form\/(\d+)\/edit/)){
+        const matches = path.match(/\/admin\/form\/(\d+)\/edit/);
+        formId = parseInt(matches[1], 10);
+        const data = await callApi(`/admin/form/${formId}`);
+        console.log(data)
+        renderSurvey(data['data']);
+    }
+});
 

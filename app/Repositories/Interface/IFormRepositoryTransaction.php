@@ -18,4 +18,8 @@ interface IFormRepositoryTransaction extends IBaseRepositoryTransaction
 
     function updateDraft($id, $data);
 
+    function getFormWithWhitelist($email);
+
+    function updateStatus($fid, $status,\PDO $pdo): bool;
+
 }

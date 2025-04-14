@@ -70,6 +70,13 @@ switch (true) {
                 break;
         }
         break;
+//        if (path.match(/\/form\/(\d+)/)) {
+    case (preg_match('/form\/(\d+)/', $uri, $matches)):
+        require_once __DIR__ . '/../../public/views/pages/form.php';
+        break;
+    case ($uri === 'form'):
+        require_once __DIR__ . '/../../public/views/pages/listform.php';
+        break;
     default:
                 require_once __DIR__ . '/../../public/views/404.php';
         break;

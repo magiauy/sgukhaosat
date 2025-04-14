@@ -1,3 +1,5 @@
+import {callApi} from "./apiService.js";
+
 document.addEventListener("DOMContentLoaded", async function () {
     const loginForm = document.getElementById("login-form");
 

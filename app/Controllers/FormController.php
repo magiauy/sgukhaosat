@@ -22,16 +22,18 @@ class FormController implements IFormController{
     {
         $data = $request->getBody();
         try {
-            if ($this->formService->create($data)) {
+            $result = $this->formService->create($data);
+            if ($result) {
                 $response->json([
                     'status' => true,
-                    'message' => 'Form created successfully',
+                    'message' => 'Tạo khảo sát thành công',
+                    'data' => $result,
                 ]);
             }else{
                 $response->json([
                     'status' => false,
-                    'message' => 'Failed to create form'
-                ], 500);
+                    'message' => 'Tạo khảo sát thất bại'
+                ]);
             }
         } catch (\Exception $e) {
             $response->json([
@@ -48,10 +50,12 @@ class FormController implements IFormController{
         $data = $request->getBody();
         $id = $request->getParam('id');
         try {
-            if ($this->formService->update($id, $data)) {
+            $result = $this->formService->update($id, $data);
+            if ($result) {
                 $response->json([
                     'status' => true,
                     'message' => 'Form updated successfully',
+                    'data' => $result
                 ]);
             }else{
                 $response->json([
@@ -207,7 +211,7 @@ class FormController implements IFormController{
                 $response->json([
                     'status' => true,
                     'message' => 'Draft created successfully',
-                    'data' => $draft
+                    'url' => "/admin/form/{$draft}/edit?status=draft",
                 ]);
             } else {
                 $response->json([

@@ -58,6 +58,24 @@ async function loadSurveyTable(data) {
             }
         });
     });
+
+    const btnAddForm = document.querySelector('.btn-add-form');
+    if (btnAddForm) {
+        btnAddForm.addEventListener('click', async function () {
+            const res = await fetch(`${config.apiUrl}/draft`, {
+                method: 'POST',
+
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const url = data['url'];
+                window.location.href = `${config.Url}${url}`;
+            }
+        });
+    }
+
+
+
     cleanupTooltips();
 // Call the function to add tooltip functionality
     addTooltips();

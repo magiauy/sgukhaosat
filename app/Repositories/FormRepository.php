@@ -220,4 +220,53 @@ class FormRepository implements IFormRepositoryTransaction{
         $stmt->execute([':FID' => $form, ':Status' => $status]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
+
+    function getFormWithWhitelist($email)
+    {
+        //Lấy toàn bộ FID của người có email này trong bảng whitelist và FID phải có status = 1
+        $sql = "SELECT FID FROM whilelist_form WHERE UID = :Email";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':Email' => $email]);
+        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $formIDs = [];
+        foreach ($result as $row) {
+            $formIDs[] = $row['FID'];
+        }
+        if (empty($formIDs)) {
+            return [];
+        }
+        $sql = "SELECT * FROM forms WHERE FID IN (" . implode(',', array_fill(0, count($formIDs), '?')) . ") AND Status = 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($formIDs);
+//        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        //Tính số lần làm của người này thông qua FID và UID bên bảng result so với limit , nếu đã = limit thì không lấy form này nữa
+        $forms = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($forms as &$form) {
+            $sql = "SELECT COUNT(*) as count FROM result WHERE FID = :FID AND UID = :UID";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':FID' => $form['FID'], ':UID' => $email]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $form['count'] = (int)$result['count'];
+        }
+        //Lọc ra những form đã đủ số lần làm
+        $forms = array_filter($forms, function ($form) {
+            return $form['count'] < $form['Limit'];
+        });
+        //Sắp xếp theo FID giảm dần
+//        usort($forms, function ($a, $b) {
+//            return $b['FID'] <=> $a['FID'];
+//        });
+        return ['forms' => $forms];
+
+    }
+
+    function updateStatus($fid, $status, $pdo): bool
+    {
+        $sql = "UPDATE forms SET Status = :Status WHERE FID = :FID";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':FID' => $fid, ':Status' => $status]);
+        return $stmt->rowCount() > 0;
+    }
+
+
 }

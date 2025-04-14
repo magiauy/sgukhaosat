@@ -39,7 +39,7 @@
             <h5 class="m-0">Quản lý tài khoản</h5>
             <div class="d-flex align-items-center gap-2">
                 <input id="search-email" type="text" class="form-control" placeholder="Tìm kiếm tên khảo sát" style="max-width: 200px;">
-                <button class="btn btn-primary add-user-button">Tạo khảo sát</button>
+                <button class="btn btn-primary btn-add-form">Tạo khảo sát</button>
             </div>
         </div>
 
@@ -53,7 +53,7 @@
                     <th style="width: 20%;">Tên khảo sát</th>
                     <th style="width: 14%;">Loại hình khảo sát</th>
                     <th style="width: 10%;">Mã Ngành</th>
-                    <th style="width: 8%;">Giai đoạn</th>
+                    <th style="width: 8%;">Chu kỳ</th>
                     <th style="width: 15%;">Ghi chú</th>
                     <th style="width: 10%;">Người tạo</th>
                     <th style="width: 10%;">Trạng thái</th>

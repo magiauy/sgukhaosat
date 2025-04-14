@@ -131,4 +131,18 @@ class DraftRepository implements IDraftRepository, IdGenerator
         }
 
     }
+
+    function deleteByFormID($fid, \PDO $pdo): bool
+    {
+        try {
+            $sql = "DELETE FROM draft WHERE FID = :FID";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':FID' => $fid
+            ]);
+            return $stmt->rowCount() > 0;
+        } catch (\PDOException $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode());
+        }
+    }
 }

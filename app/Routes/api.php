@@ -120,7 +120,7 @@ switch (true) {
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getAll($res, $req));
         break;
     case $method === 'GET' && str_starts_with($path, '/api/form') && isset($_GET['id']):
-        JwtMiddleware::authenticate($request, $response, "", fn($req, $res) => $formController->getById($res, $req));
+        JwtMiddleware::authenticate($request, $response, "", fn($req, $res) => $formController->getByIdForUser($res, $req));
     break;
     case $method === 'POST' && $path === '/api/admin/form':
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->create($res, $req));

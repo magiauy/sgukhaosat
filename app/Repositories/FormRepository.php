@@ -268,5 +268,13 @@ class FormRepository implements IFormRepositoryTransaction{
         return $stmt->rowCount() > 0;
     }
 
+    function getByIdForUser($id)
+    {
+        $sql = "SELECT * FROM forms WHERE FID = :FID";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':FID' => $id]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
 
 }

@@ -439,4 +439,24 @@ public function update($id, $data)
             throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }
     }
+
+    function getByIdForUser($id)
+    {
+        try {
+            $forms = $this->formRepository->getByIdForUser($id);
+            if (!$forms) {
+                throw new Exception("Không tìm thấy form nào", 404);
+            }
+            $questions = $this->questionRepository->getByFormId($id);
+            if (!$questions) {
+                throw new Exception("Không tìm thấy câu hỏi cho form với ID: $id", 404);
+            }
+            return [
+                'form' => $forms,
+                'questions' => $questions
+            ];
+        } catch (Exception $e) {
+            throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
+        }
+    }
 }

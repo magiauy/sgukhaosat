@@ -56,12 +56,21 @@ function renderSurvey(data) {
     surveyHtml += `
             </div>
             <div class="text-center mt-5">
-                <button class="btn btn-success px-5 py-2 fw-bold">Gửi khảo sát</button>
+                <button class="btn btn-success px-5 py-2 fw-bold btn-submit-form">Gửi khảo sát</button>
             </div>
         </div>
     `;
 
     document.querySelector(".form-content").innerHTML = surveyHtml;
+    document.querySelector(".btn-submit-form").addEventListener("click", function() {
+        const formData = new FormData();
+
+        question
+
+
+
+        alert("Cảm ơn bạn đã tham gia khảo sát!");
+    });
 }
 
 
@@ -69,7 +78,7 @@ function renderQuestion(question) {
     const descriptionItem = question.children.find(option => option.QTypeID === "DESCRIPTION") || null;
 
     let html = `
-        <div class="card shadow-sm p-3 rounded">
+        <div class="card shadow-sm p-3 rounded question-item" id="q${question.QID}">
             <p class="fw-semibold">${question.QIndex}. ${question.QContent}</p>
     `;
     if (descriptionItem) {

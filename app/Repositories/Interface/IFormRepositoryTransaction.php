@@ -22,4 +22,6 @@ interface IFormRepositoryTransaction extends IBaseRepositoryTransaction
 
     function updateStatus($fid, $status,\PDO $pdo): bool;
 
+    function getByIdForUser($id);
+
 }

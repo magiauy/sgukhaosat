@@ -78,6 +78,32 @@ class FormController implements IFormController{
         // TODO: Implement delete() method.
     }
 
+    function getByIdForUser(Response $response,Request $request){
+        $id = $request->getParam('id');
+        try {
+            $form = $this->formService->getByIdForUser($id);
+
+            $response->json([
+                'status' => true,
+                'message' => 'Form retrieved successfully',
+                'data' => $form
+            ]);
+            return;
+        }catch (\Exception $e) {
+            $code = $e->getCode() ?: 500;
+
+            $response->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], $code);
+            return;
+
+        }
+
+
+
+    }
+
     function getById(Response $response, Request $request)
     {
         $data = [

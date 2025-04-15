@@ -139,8 +139,8 @@
             public function me(Response $response, Request $request) {
                 try{
                     $data = $request->getBody();
-                    unset($data['role']);
-                    unset($data['permissions']);
+                    // unset($data['role']);
+                    // unset($data['permissions']);
                     $response->json([
                         'message' => 'User information',
                         'data' => $data

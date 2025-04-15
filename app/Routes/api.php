@@ -39,9 +39,12 @@ switch (true) {
     case $method === 'GET' && $path === '/api/user':
         $controller->getAll($response, $request);
         break;
+
+
     case $method === 'GET' && str_starts_with($path, '/api/user') && isset($_GET['email']):
         $controller->getById($response, $request);
         break;
+
     case $method === 'POST' && $path === '/api/login':
         $controller->login($response, $request);
         break;
@@ -67,9 +70,9 @@ switch (true) {
         break;
 
     // Permission APIs
-//    case $method === 'GET' && $path === '/api/permission':
-//        $roleController->getAll($response, $request);
-//        break;
+   case $method === 'GET' && $path === '/api/permission':
+        $permController->getAll($response, $request);
+       break;
     case $method === 'POST' && $path === '/api/permission/id':
         $permController->getById($response, $request);
         break;

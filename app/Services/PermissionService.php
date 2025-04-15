@@ -31,5 +31,7 @@ class PermissionService implements IBaseService
         }
     }
 
-    function getAll(){}
+    function getAll(){
+        return $this->permRepository->getAll(); 
+    }
 }

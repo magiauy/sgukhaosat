@@ -40,7 +40,10 @@ class PermissionRepository implements IBaseRepository
 
     function getAll()
     {
-        // TODO: Implement getAll() method.
+        $sql = 'SELECT * FROM permissions';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function getChildrenById($id){

@@ -1,4 +1,6 @@
-export function renderContentRole(){
+import { callApi } from "./apiService.js";
+
+export async function renderContentRole(){
     document.querySelector("#content").innerHTML = `
         <div class="bg-white p-4 rounded shadow text-center mb-4">
             <h3 class="mb-0">Quản lí phân quyền</h3>
@@ -6,81 +8,18 @@ export function renderContentRole(){
 
         <!-- Div dưới: nội dung -->
         <div class="bg-white p-4 rounded shadow content-role">
-           <div class="row">
-                <!-- Khối 1 -->
-                <div class="col-md-6 mb-4">
-                    <div class="border rounded p-3">
-                    <!-- Phần đầu: checkbox lớn -->
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="mainPermission1">
-                        <label class="form-check-label fw-bold" for="mainPermission1">
-                        Quản lý người dùng
-                        </label>
-                    </div>
+            <div class="row" id="container-permission-for-role">
 
-                    <!-- Phần 2: checkbox nhỏ -->
-                    <div class="ms-4">
-                        <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="subPermission1-1">
-                        <label class="form-check-label" for="subPermission1-1">
-                            Thêm người dùng
-                        </label>
-                        </div>
-                        <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="subPermission1-2">
-                        <label class="form-check-label" for="subPermission1-2">
-                            Sửa người dùng
-                        </label>
-                        </div>
-                        <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="subPermission1-3">
-                        <label class="form-check-label" for="subPermission1-3">
-                            Xóa người dùng
-                        </label>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-
-                <!-- Khối 2 -->
-                <div class="col-md-6 mb-4">
-                    <div class="border rounded p-3">
-                    <!-- Phần đầu: checkbox lớn -->
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="mainPermission2">
-                        <label class="form-check-label fw-bold" for="mainPermission2">
-                        Quản lý bài viết
-                        </label>
-                    </div>
-
-                    <!-- Phần 2: checkbox nhỏ -->
-                    <div class="ms-4">
-                        <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="subPermission2-1">
-                        <label class="form-check-label" for="subPermission2-1">
-                            Thêm bài viết
-                        </label>
-                        </div>
-                        <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="subPermission2-2">
-                        <label class="form-check-label" for="subPermission2-2">
-                            Sửa bài viết
-                        </label>
-                        </div>
-                        <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="subPermission2-3">
-                        <label class="form-check-label" for="subPermission2-3">
-                            Xóa bài viết
-                        </label>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-                </div>
-
+            </div>
         </div>
     `
-    clickBtn();
+
+    showEnablePermissionOfCurrentUser();
+  
+   
+
+   
+    // clickBtn();
 
 }
 
@@ -159,3 +98,78 @@ function clickBtnSaveRole(){
         })       
     }
 }
+
+async function showEnablePermissionOfCurrentUser(){
+    const responsePermissionCurrentUser = await callApi('/me', 'POST');
+    let permissionsOfCurrentUser = responsePermissionCurrentUser.data;
+    permissionsOfCurrentUser = permissionsOfCurrentUser.permissions;
+
+    const responsePermission = await callApi('/permission');
+    const permissionDatabase = responsePermission.data;
+    
+    let arrManagePerm = []; // mảng này chứa những thằng permission manage như mange_users, manaege_forms
+    permissionDatabase.forEach((perm) => {
+        if(perm.editable_by_permission_code !== null){
+            arrManagePerm.includes(perm.editable_by_permission_code) ? arrManagePerm : arrManagePerm.push(perm);
+        }
+    })
+
+    //lấy tên của từng manage_..., ví dụ manage_users có tên là Quản lý người dùng
+    permissionDatabase.forEach((permDb) => {
+        arrManagePerm.forEach((perm) => {
+            if(permDb.permission_code === perm.editable_by_permission_code){
+                perm.nameEditable = permDb.name;
+            }
+        })
+    })
+
+    arrManagePerm.forEach((perm) => {
+        //kiểm tra thằng checkbox lớn đã tồn tại trong DOM chưa tránh trường hợp render bị trùng
+        let checkExistEditable = document.querySelector(`#${perm.editable_by_permission_code}`);
+
+        //render checkbox lớn
+        if(checkExistEditable === null){
+            document.querySelector('#container-permission-for-role').innerHTML +=`
+                <div class="permission-group">
+                    <div class="permission-header">
+                        <input type="checkbox" id=${perm.editable_by_permission_code} disabled=true class="form-check-input me-2" />
+                        <label for="permission1" class="form-check-label">${perm.nameEditable}</label>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div class="permission-children ${perm.editable_by_permission_code}">
+            
+                    </div>
+                </div>
+            `
+
+            // render option detail (checkbox nhỏ)
+            arrManagePerm.forEach((permDetail) => {
+                if(perm.editable_by_permission_code === permDetail.editable_by_permission_code){
+                    // console.log(perm.editable_by_permission_code)
+                    document.querySelector(`.${perm.editable_by_permission_code}`).innerHTML += `
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id=${permDetail.permission_code} disabled=true>
+                            <label class="form-check-label" for=${permDetail.permission_code}>
+                                ${permDetail.name}
+                            </label>
+                        </div>
+                    `;
+                }
+            })
+
+            //disabled nếu không có quyền
+            permissionsOfCurrentUser.forEach((pemrOfCurrentUSer) => {
+                if(pemrOfCurrentUSer.permID === perm.editable_by_permission_code){
+                    // console.log(perm.editable_by_permission_code)
+                    document.querySelector(`#${perm.editable_by_permission_code}`).disabled = false;
+                    document.querySelectorAll(`.${perm.editable_by_permission_code} input`).forEach((input) => {
+                        input.disabled = false;
+                    })
+                }
+            })
+        }
+
+    })
+    
+}
+

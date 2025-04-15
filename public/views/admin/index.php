@@ -15,9 +15,13 @@ if (!$decode) {
 }
 $user = $decode->user ?? null;
 
+
+
+
 include __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>
 <link rel="stylesheet" href="/public/css/adminPage.css">
+
     <div id ="sidebar-container " class="d-flex flex-row">
         <div>
             <nav id="sidebar" class="d-flex flex-column p-3">
@@ -25,7 +29,22 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                     <i class="bi bi-list"></i>
                 </button>
                 <ul class="nav flex-column">
-                    <li class="nav-item">
+                    <?php 
+                        //kiểm tra permission của user để hiện thanh trạng thái có thể truy cập
+                        $permissionOfCurrentUser = $decode->permissions;
+                        foreach($permissionOfCurrentUser as $perm){
+                            switch ($perm->permID){
+                                case 'MANAGE_ROLES':
+                                    echo '<li class="nav-item">
+                                        <a href="#" class="nav-link">
+                                            <i class="bi bi-bar-chart"></i> <span class="nav-text">Phân quyền</span>
+                                        </a>
+                                    </li>';
+                                break;
+                            }
+                        }
+                    ?>
+                    <!-- <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="bi bi-house-door"></i> <span class="nav-text">Thống kê</span>
                         </a>
@@ -64,7 +83,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                         <a href="#" class="nav-link">
                             <i class="bi bi-gear"></i> <span class="nav-text">Cài đặt</span>
                         </a>
-                    </li>
+                    </li> -->
                 </ul>
             </nav>
         </div>

@@ -10,6 +10,8 @@ function handleClickOnSidebar() {
         document.getElementById('sidebar').classList.toggle('collapsed');
     };
 
+    
+
     document.querySelectorAll("#sidebar ul li a").forEach((item) => {
         item.onclick = async (e) => {
             e.preventDefault();

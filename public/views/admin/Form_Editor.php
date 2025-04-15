@@ -85,9 +85,9 @@ include __DIR__ . '/../../views/layouts/header.php';
             <div class="status-content d-flex align-items-center gap-2">
                 <span class="status badge px-3 py-2" id="1">Status</span>
             </div>
-            <button class="btn btn-light" title="Thêm câu hỏi"><i class="fas fa-plus"></i></button>
+            <button class="btn btn-light btn-add-question" title="Thêm câu hỏi"><i class="fas fa-plus"></i></button>
             <!-- Thêm câu tiêu đề -->
-            <button class="btn btn-light" title="Thêm câu tiêu đề"><i class= "fas fa-heading"></i></button>
+            <button class="btn btn-light btn-add-title-description" title="Thêm câu tiêu đề"><i class= "fas fa-heading"></i></button>
             <button class="btn btn-light" title="Xem trước"><i class="fas fa-eye"></i></button>
 
 <!--            <button class="btn btn-light" title="Sao chép liên kết"><i class="fas fa-link"></i></button>-->
@@ -99,7 +99,11 @@ include __DIR__ . '/../../views/layouts/header.php';
                 <span class="d-none" id="btn-save-draft-text">Lưu nháp</span>
             </button>
             <!-- Nút xuất bản -->
-            <button class="btn-submit btn btn-primary fw-bold">Xuất bản</button>
+            <?php if ($formStatus === 'draft'): ?>
+              <button class="btn-submit btn btn-primary fw-bold">Xuất bản</button>
+            <?php else: ?>
+                <span class="text-success fw-bold">Đã xuất bản</span>
+            <?php endif; ?>
             <div class="more-action justify-content-center align-items-center">
                 <img src="/public/icons/three-dots-vertical.svg"  style="cursor: pointer; width: 28px; height: 28px;" alt="About action">
             </div>
@@ -118,7 +122,7 @@ include __DIR__ . '/../../views/layouts/header.php';
     </div>
 
 
-    <script src="/public/js/form_pattern.js"></script>
+    <script src="/public/js/form_pattern.js" type="module"></script>
 <?php
 include __DIR__ . '/../../views/layouts/footer.php';
 ?>

@@ -26,7 +26,6 @@ class FormService implements IFormService
 
     function createDraft( $userId)
     {
-        print_r($userId);
         try {
             $formId = $this->formRepository->createDraft($userId);
             if (!$formId) {
@@ -89,16 +88,23 @@ class FormService implements IFormService
         $form['UID'] = $email;
 //        print_r('question: ' . json_encode($questions));
         try {
-            $pdo->beginTransaction();
-            $formCreated = $this->formRepository->create($form, $pdo);
-            // Kiểm tra xem có thất bại không (trả về false, null, 0, '')
-            if (!$formCreated) {
-                // Ném ra Exception để nhảy vào catch và rollback
-                throw new Exception("Lỗi khi thêm form."); // Có thể thêm chi tiết lỗi nếu repository trả về
+            if (!$this->checkPermission($form['FID'], $email)) {
+                throw new Exception("Bạn không có quyền triển khai form này.", 403);
             }
 
+
+            if (!$this->formRepository->checkStatus($form['FID'],0)) {
+                throw new Exception("Trạng thái không hợp lệ.", 400);
+            }
+            $form['Status'] = 1;
+            $pdo->beginTransaction();
+            $this->draftRepository->deleteByFormID($form['FID'], $pdo);
+            $this->formRepository->update($form['FID'], $form, $pdo);
+            // Kiểm tra xem có thất bại không (trả về false, null, 0, '')
+
+
 //            print_r($questions);
-            $questionsCreated = $this->questionRepository->createQuestion($questions,$formCreated, $pdo);
+            $questionsCreated = $this->questionRepository->createQuestion($questions,$form['FID'], $pdo);
             // Kiểm tra xem có thất bại không
             if (!$questionsCreated) {
                 // Ném ra Exception để nhảy vào catch và rollback
@@ -106,7 +112,7 @@ class FormService implements IFormService
             }
             // Nếu cả hai đều thành công, commit transaction
             $pdo->commit();
-            return true;
+            return $this->questionRepository->getByFormID($form['FID']);
         } catch (Exception $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
@@ -131,17 +137,20 @@ public function update($id, $data)
     // Fetch form and check permission
     $form = $this->formRepository->getById($idData);
     if (!$form) {
-        throw new \Exception("Form not found with ID: " . $id, 404);
+        throw new \Exception("Không tìm thấy biểu mẫu có ID: " . $id, 404);
     }
     if (!$this->formRepository->checkPermission($id, $data['user']->email)) {
-        throw new \Exception("No permission to update form.", 403);
+        throw new \Exception("Không có quyền cập nhật biểu mẫu.", 403);
     }
-
+    if ($form['Status'] == 0) {
+        //Status không hợp lệ
+        throw new \Exception("Biểu mẫu không ở trạng thái hợp lệ để cập nhật.", 400);
+    }
     // Prepare arrays
     $tempUpdateList = [];
     $tempDeleteList = [];
     $tempAddList = [];
-
+//    print_r(json_encode($data['questions']));
     try {
         $pdo->beginTransaction();
         $this->formRepository->update($id, $data['form'], $pdo);
@@ -151,27 +160,34 @@ public function update($id, $data)
         foreach ($oldQuestions as $q) {
             $oldLookup[$q['QID']] = $q;
         }
-        // Identify deletes/updates/additions
         foreach ($data['questions'] as $newQ) {
             if (isset($newQ['QID']) && isset($oldLookup[$newQ['QID']])) {
-                // If content changed, track for update
+                // Câu hỏi có tồn tại (so sánh với câu hỏi cũ)
                 $oldQ = $oldLookup[$newQ['QID']];
-                if (
-                    $oldQ['QContent'] !== $newQ['QContent']
-                    || $oldQ['QIndex'] !== $newQ['QIndex']
-                    || (isset($oldQ['children']) && isset($newQ['children']) && json_encode($oldQ['children']) !== json_encode($newQ['children']))
-                ) {
+
+                // Chuẩn hóa hai phiên bản (loại bỏ các trường index) để so sánh nội dung cốt lõi
+                $oldNormalized = $this->normalizeForComparison($oldQ);
+                $newNormalized = $this->normalizeForComparison($newQ);
+
+                // So sánh các phiên bản chuẩn hóa
+                if ($oldNormalized === $newNormalized) {
+                    $newQ = $this->assignQIDsBySortedChildren($newQ, $oldQ);
+//                    print_r("newQ: " . json_encode($newQ));
                     $tempUpdateList[] = $newQ;
+
+                } else {
+                    // Nếu nội dung chính, nội dung children (ngoại trừ index) hoặc QTypeID thay đổi,
+                    // xử lý: xoá tạm (delete list) và tạo câu hỏi mới (add list).
+                    $tempDeleteList[] = $oldQ;
+                    $tempAddList[] = $newQ;
                 }
-                // Remove from lookup so it's not flagged for deletion
+                // Loại bỏ câu hỏi này khỏi bảng lookup để cuối cùng những câu hỏi còn lại được coi là xoá.
                 unset($oldLookup[$newQ['QID']]);
-            } else {
-                // This is a new question
+            } else if (!isset($newQ['QID'])|| empty($newQ['QID'])) {
+                // Câu hỏi mới không có QID: cần thêm mới.
                 $tempAddList[] = $newQ;
             }
         }
-
-
         // Remaining items in oldLookup are removed questions
         foreach ($oldLookup as $removedQ) {
             $tempDeleteList[] = $removedQ;
@@ -199,7 +215,7 @@ public function update($id, $data)
         }
         // Commit on success
         $pdo->commit();
-        return true;
+        return $this->questionRepository->getByFormID($id);
     } catch (\Exception $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
@@ -207,6 +223,59 @@ public function update($id, $data)
         throw $e;
     }
 }
+    private function assignQIDsBySortedChildren(array $newQ, array $oldQ): array
+    {
+        // Sắp xếp children theo QIndex để đảm bảo đúng thứ tự trước khi gán
+        $sortChildren = function (&$question) {
+            if (isset($question['children']) && is_array($question['children'])) {
+                usort($question['children'], function ($a, $b) {
+                    return strcmp($a['QContent'], $b['QContent']);
+                });
+            }
+        };
+
+        $sortChildren($newQ);
+        $sortChildren($oldQ);
+
+        // Gán QID cho từng child nếu vị trí tương ứng tồn tại
+        if (isset($newQ['children']) && isset($oldQ['children'])) {
+            foreach ($newQ['children'] as $index => &$child) {
+                if (isset($oldQ['children'][$index]['QID'])) {
+                    $child['QID'] = $oldQ['children'][$index]['QID'];
+                }
+            }
+        }
+
+        return $newQ;
+    }
+
+
+    function normalizeForComparison($question) {
+        $normalized = [
+            'QID' => $question['QID'] ?? '',
+            'QContent' => $question['QContent'] ?? '',
+            'QTypeID' => $question['QTypeID'] ?? '',
+            'children' => []
+        ];
+
+        if (!empty($question['children']) && is_array($question['children'])) {
+            foreach ($question['children'] as $child) {
+                $normalized['children'][] = [
+                    'QContent' => $child['QContent'] ?? '',
+                    'QTypeID' => $child['QTypeID'] ?? '',
+                ];
+            }
+
+            // Sắp xếp theo QContent (hoặc QIndex nếu bạn muốn ổn định hơn)
+            usort($normalized['children'], function ($a, $b) {
+                return strcmp($a['QContent'], $b['QContent']);
+            });
+        }
+
+        return $normalized;
+    }
+
+
 
     function delete($id)
     {
@@ -238,13 +307,27 @@ public function update($id, $data)
 
             return [
                 'form' => $form,
-                'questions' => $questions
+                'questions' => $this->sortQuestion($questions)
             ];
         } catch (Exception $e) {
             throw new Exception("Lỗi khi lấy form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }
     }
 
+    function sortQuestion($question)
+    {
+        $sortedQuestions = [];
+        foreach ($question as $q) {
+            if (isset($q['children']) && is_array($q['children'])) {
+                $q['children'] = $this->sortQuestion($q['children']);
+            }
+            $sortedQuestions[] = $q;
+        }
+        usort($sortedQuestions, function ($a, $b) {
+            return strcmp($a['QIndex'], $b['QIndex']);
+        });
+        return $sortedQuestions;
+    }
     function getAll()
     {
         try {
@@ -339,6 +422,19 @@ public function update($id, $data)
                 'limit'       => $limit,
                 'forms'       => $forms
             ];
+        } catch (Exception $e) {
+            throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
+        }
+    }
+
+    function getFormWithWhitelist($email)
+    {
+        try {
+            $forms = $this->formRepository->getFormWithWhitelist($email);
+            if (!$forms) {
+                throw new Exception("Không tìm thấy form nào", 404);
+            }
+            return $forms;
         } catch (Exception $e) {
             throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }

@@ -416,6 +416,7 @@ input:checked + .slider:before {
 }
 
 /* Hover để hiện nút */
+.question-item:hover .button-group,
 .question-item:focus-within .button-group{
     opacity: 1;
     transform: translateX(-50%) translateY(0);
@@ -530,4 +531,128 @@ input:checked + .slider:before {
 
 .page-item:active {
     animation: clickAnimation 0.2s;
+}
+/* Base style */
+.form-check-input.custom-checkbox,
+.form-check-input.custom-radio {
+    width: 1.5em;
+    height: 1.5em;
+    border: 2px solid #6c757d;
+    background-color: white;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+}
+
+/* Hover effect */
+.form-check-input.custom-radio:hover,
+.form-check-input.custom-checkbox:hover {
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.2); /* xanh dương nhẹ */
+    border-color: #0d6efd;
+}
+
+/* Checked effect with bounce */
+.form-check-input.custom-radio:checked,
+.form-check-input.custom-checkbox:checked{
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    animation: bounceScale 0.3s ease;
+}
+
+/* Bounce animation */
+@keyframes bounceScale {
+    0% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(1.4);
+    }
+    60% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+ /*Custom container style*/
+.custom-container {
+    /* Có thể thêm background nhẹ, padding hay margin tùy ý */
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 30px;
+    border-radius: 15px;
+}
+
+/* Hiệu ứng hover cho card item */
+.custom-container .card:hover {
+    transform: translateY(-5px);
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Tùy chỉnh tiêu đề (font, màu sắc) */
+.custom-container h1 {
+    font-weight: 700;
+    color: #0d6efd; /* Màu xanh dương Bootstrap */
+}
+
+/* Nếu có ảnh, căn chỉnh sao cho đẹp */
+.custom-container .card-img-top {
+    object-fit: cover;
+    height: 180px;
+}
+
+/* Đảm bảo text không bị tràn */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    border-left: 4px solid #0d6efd; /* Màu xanh Bootstrap */
+    background-color: #f8f9fa;
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toastFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.custom-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    background-color: #4caf50; /* Adjust based on error or success */
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    opacity: 1; /* Ensure it's visible */
+  /* Apply fade in immediately and fade out after 2.5s delay, duration 0.5s each */
+  animation: toastFadeIn 0.5s ease forwards, toastFadeOut 0.5s ease 2.5s forwards;
 }

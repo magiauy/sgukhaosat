@@ -80,12 +80,12 @@ class UserService implements IAuthService
                     throw new Exception("Không tìm thấy quyền truy cập", 401);
                 }
 
-                $user['token'] = $jwtHelper->createJWT($user, $secret, 900);
-//                unset($user['user']);
-//                unset($user['role']);
-//                unset($user['permissions']);
 
-                // var_dump($user);
+                $user['token'] = $jwtHelper->createJWT($user, $secret, 3600);
+                unset($user['user']);
+                unset($user['role']);
+                unset($user['permissions']);
+
                 return $user;
             }
         } catch (Exception $e) {

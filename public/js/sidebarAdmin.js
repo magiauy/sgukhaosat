@@ -2,6 +2,9 @@ import {renderContentUser} from "./userAdmin.js";
 import {renderContentRole} from "./roleAdmin.js";
 import {loadSurveyFromAPI} from "./formsManager.js";
 
+import {callApi} from "./apiService.js";
+
+
 function handleClickOnSidebar() {
     document.getElementById('toggleSidebar').onclick = () => {
         document.getElementById('sidebar').classList.toggle('collapsed');
@@ -29,7 +32,7 @@ function handleClickOnSidebar() {
                     renderContentRole();
                     break;
                 case "Khảo sát":
-                    await loadContent(`${config.apiUrl}/pages/survey`);
+                    await loadContent(`/pages/survey`);
                     await loadSurveyFromAPI(0, 10);
                     break;
                 default:
@@ -50,22 +53,9 @@ function handleClickOnSidebar() {
     })
     }
 async function loadContent(url) {
-    const response = await fetch(url,{
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        }
-    });
-    if (response.ok) {
-        const content = await response.json();
-        document.getElementById('content').innerHTML = content['html'];
-    } else if (response.status === 401) {
-        // Handle unauthorized access
-        window.location.href = "/login";
-    } else if (response.status === 403) {
-        // Handle forbidden access
-        window.location.href = "/403";
-    }
+
+    const content = await callApi(url)
+    document.getElementById('content').innerHTML = content['html'];
 }
 
 function loadSurveyInformation(data) {

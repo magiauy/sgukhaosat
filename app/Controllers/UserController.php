@@ -117,6 +117,7 @@
                     $user = $this->userService->login($data);
 
                     $response->json([
+                        'status' => true,
                         'message' => 'Đăng nhập thành công',
                         'data' => $user
                     ]);

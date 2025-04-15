@@ -131,8 +131,8 @@ class RoleService implements IBaseService
     {      
         $roleArr = $this->roleRepository->getAll();
         foreach($roleArr as &$role){
-            $permission = $this->rolePermRepository->getById($role['roleID']);
-            $role['permission'] = array_column($permission, 'permID');
+            $permissions = $this->rolePermRepository->getById($role['roleID']);
+            $role['permissions'] = $permissions;
         }
         unset($role);
         return $roleArr;

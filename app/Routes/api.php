@@ -35,7 +35,7 @@ switch (true) {
     case $method === 'DELETE' && str_starts_with($path, '/api/user') && isset($_GET['email']):
         $controller->delete($response, $request);
         break;
-    case $method === 'GET' && $path === '/api/getListUsers':
+    // case $method === 'GET' && $path === '/api/getListUsers':
     case $method === 'GET' && $path === '/api/user':
         $controller->getAll($response, $request);
         break;

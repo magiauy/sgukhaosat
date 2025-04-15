@@ -21,7 +21,7 @@ switch (true) {
         require_once __DIR__ . '/../../public/views/pages/login.php';
         break;
     case ($uri === 'admin' ):
-        switch (JwtMiddleware::authenticatePage($token, "ACCESS_ADMIN")){
+        switch (JwtMiddleware::authenticatePage($token, "ACCESS_ADMIN")){   
                 case 200:
                     require_once __DIR__ . '/../../public/views/admin/index.php';
                     break;

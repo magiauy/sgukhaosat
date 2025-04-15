@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . '/../../views/layouts/header.php';
+
 use Core\jwt_helper;
 $token = $_COOKIE['access_token'] ?? null;
 if (!$token) {
@@ -13,6 +14,7 @@ if (!$decode) {
     exit();
 }
 $user = $decode->user ?? null;
+
 include __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>
 <link rel="stylesheet" href="/public/css/adminPage.css">

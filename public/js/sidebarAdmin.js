@@ -1,6 +1,7 @@
 import {renderContentUser} from "./userAdmin.js";
 import {renderContentRole} from "./roleAdmin.js";
 import {loadSurveyFromAPI} from "./formsManager.js";
+
 function handleClickOnSidebar() {
     document.getElementById('toggleSidebar').onclick = () => {
         document.getElementById('sidebar').classList.toggle('collapsed');

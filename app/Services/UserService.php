@@ -84,6 +84,8 @@ class UserService implements IAuthService
 //                unset($user['user']);
 //                unset($user['role']);
 //                unset($user['permissions']);
+
+                // var_dump($user);
                 return $user;
             }
         } catch (Exception $e) {

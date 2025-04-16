@@ -1,28 +1,50 @@
 let currentPeriodPage = 1;
 const itemsPerPage = 5;
+let editingPeriodId = null;
 
-function loadPeriodAdd() {
-    fetch('/public/views/pages/periodAdd.php')
-        .then(res => res.text())
-        .then(html => document.getElementById('content').innerHTML = html);
+async function renderPeriod(mode, periodData = null) {
+    await loadContentPeriodForm();
+
+    const title = document.getElementById("periodTitle");
+    const startYearInput = document.getElementById("startYearInput");
+    const endYearInput = document.getElementById("endYearInput");
+    const actionBtn = document.getElementById("periodActionBtn");
+
+    if (mode === "add") {
+        title.textContent = "Thêm chu kỳ";
+        actionBtn.textContent = "Thêm";
+        actionBtn.onclick = () => addPeriod();
+    } else if (mode === "edit") {
+        title.textContent = "Sửa chu kỳ";
+        actionBtn.textContent = "Lưu thay đổi";
+        actionBtn.onclick = () => updatePeriod();
+
+        if (periodData) {
+            startYearInput.value = periodData.startYear || "";
+            endYearInput.value = periodData.endYear || "";
+        }
+    }
 }
 
+//Thêm chu kỳ
 
-async function addCycle() {
-    const startYear = document.getElementById('start_year').value;
-    const endYear = document.getElementById('end_year').value;
+async function loadPeriodAdd() {
+    await renderPeriod("add");
+}
 
+async function addPeriod() {
+    const startYear = document.getElementById("startYearInput").value;
+    const endYear = document.getElementById("endYearInput").value;
     const toastMessage = document.getElementById('toastMessage');
-    const toastElement = new bootstrap.Toast(document.getElementById('cycleToast'));
+    const toastElement = new bootstrap.Toast(document.getElementById('periodToast'));
 
-    // Kiểm tra điều kiện năm bắt đầu phải nhỏ hơn năm kết thúc
     if (startYear && endYear) {
         if (parseInt(startYear) >= parseInt(endYear)) {
             toastMessage.innerText = 'Năm bắt đầu phải nhỏ hơn năm kết thúc';
-            document.getElementById('cycleToast').classList.remove('text-bg-success');
-            document.getElementById('cycleToast').classList.add('text-bg-danger');
+            document.getElementById('periodToast').classList.remove('text-bg-success');
+            document.getElementById('periodToast').classList.add('text-bg-danger');
             toastElement.show();
-            return; // Dừng lại nếu điều kiện không thỏa mãn
+            return;
         }
 
         try {
@@ -38,107 +60,193 @@ async function addCycle() {
             });
 
             const result = await response.json();
-
             if (response.status === 201) {
                 toastMessage.innerText = 'Chu kỳ đã được thêm thành công';
-                document.getElementById('cycleToast').classList.remove('text-bg-danger');
-                document.getElementById('cycleToast').classList.add('text-bg-success');
+                document.getElementById('startYearInput').value = '';
+                document.getElementById('endYearInput').value = '';
+                document.getElementById('periodToast').classList.remove('text-bg-danger');
+                document.getElementById('periodToast').classList.add('text-bg-success');
             } else {
                 toastMessage.innerText = result.message || 'Thêm chu kỳ thất bại';
-                document.getElementById('cycleToast').classList.remove('text-bg-success');
-                document.getElementById('cycleToast').classList.add('text-bg-danger');
+                document.getElementById('periodToast').classList.remove('text-bg-success');
+                document.getElementById('periodToast').classList.add('text-bg-danger');
             }
 
             toastElement.show();
         } catch (error) {
             toastMessage.innerText = 'Lỗi: ' + error.message;
-            document.getElementById('cycleToast').classList.remove('text-bg-success');
-            document.getElementById('cycleToast').classList.add('text-bg-danger');
+            document.getElementById('periodToast').classList.remove('text-bg-success');
+            document.getElementById('periodToast').classList.add('text-bg-danger');
             toastElement.show();
         }
     } else {
         toastMessage.innerText = 'Vui lòng nhập đầy đủ thông tin';
-        document.getElementById('cycleToast').classList.remove('text-bg-success');
-        document.getElementById('cycleToast').classList.add('text-bg-danger');
+        document.getElementById('periodToast').classList.remove('text-bg-success');
+        document.getElementById('periodToast').classList.add('text-bg-danger');
         toastElement.show();
     }
 }
 
-async function loadPeriods(page = 1) {
-    console.log('Đang tải dữ liệu chu kỳ...');
-    try {
-        const response = await fetch(`/api/period?page=${page}&limit=${itemsPerPage}`);
+//Sửa chu kỳ
 
-        if (!response.ok) {
-            throw new Error('Không thể tải chu kỳ. Vui lòng thử lại sau.');
-        }
+async function loadPeriodEdit(id) {
+    editingPeriodId = id;
+    const response = await fetch(`/api/period/${id}`);
+    const result = await response.json();
+    const period = result.data;
+
+    await renderPeriod("edit", {
+        startYear: period.startYear,
+        endYear: period.endYear,
+    });
+}
+
+
+async function updatePeriod() {
+    const startYear = document.getElementById('startYearInput').value;
+    const endYear = document.getElementById('endYearInput').value;
+    const toastMessage = document.getElementById('toastMessage');
+    const toastElement = new bootstrap.Toast(document.getElementById('periodToast'));
+
+    if (!startYear || !endYear) {
+        toastMessage.innerText = 'Vui lòng nhập đầy đủ thông tin';
+        document.getElementById('periodToast').classList.remove('text-bg-success');
+        document.getElementById('periodToast').classList.add('text-bg-danger');
+        toastElement.show();
+        return;
+    }
+
+    if (parseInt(startYear) >= parseInt(endYear)) {
+        toastMessage.innerText = 'Năm bắt đầu phải nhỏ hơn năm kết thúc';
+        document.getElementById('periodToast').classList.remove('text-bg-success');
+        document.getElementById('periodToast').classList.add('text-bg-danger');
+        toastElement.show();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/period/${editingPeriodId}`, {
+
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                startYear,
+                endYear
+            })
+        });
 
         const result = await response.json();
-        console.log(result); // Kiểm tra dữ liệu trả về
+
+        if (response.ok) {
+            toastMessage.innerText = 'Cập nhật chu kỳ thành công';
+            document.getElementById('periodToast').classList.remove('text-bg-danger');
+            document.getElementById('periodToast').classList.add('text-bg-success');
+            toastElement.show();
+        } else {
+            toastMessage.innerText = result.message || 'Cập nhật thất bại';
+            document.getElementById('periodToast').classList.remove('text-bg-success');
+            document.getElementById('periodToast').classList.add('text-bg-danger');
+            toastElement.show();
+        }
+    } catch (error) {
+        toastMessage.innerText = 'Lỗi: ' + error.message;
+        document.getElementById('periodToast').classList.remove('text-bg-success');
+        document.getElementById('periodToast').classList.add('text-bg-danger');
+        toastElement.show();
+    }
+}
+
+//Tìm kiếm chu kỳ
+async function loadFilteredPeriods() {
+    const searchKeyword = document.getElementById('searchInput').value.trim();
+    document.getElementById('searchInput').value = '';
+    await loadPeriods(1, searchKeyword);
+}
+
+
+async function loadPeriods(page = 1, keyword = '') {
+    try {
+        const startYear = document.getElementById('startYearFilter').value.trim();
+        const endYear = document.getElementById('endYearFilter').value.trim();
+
+        document.getElementById('startYearFilter').value = '';
+        document.getElementById('endYearFilter').value = '';
+
+        const queryParams = new URLSearchParams({
+            page,
+            limit: itemsPerPage,
+            search: keyword || '',
+            startYear: startYear || '',
+            endYear: endYear || ''
+        });
+
+        const url = `/api/period/search?${queryParams.toString()}`;
+
+        const response = await fetch(url);
+        const result = await response.json();
 
         const tbody = document.getElementById('periodTableBody');
         const pagination = document.getElementById('pagination');
 
-        if (!tbody) {
-            console.error('Không tìm thấy phần tử #periodTableBody');
-            return;
-        }
+        // Hiển thị tổng số chu kỳ
+        const totalCount = result.totalCount || 0;
+        document.querySelector('.card-stats h5').innerText = totalCount;
 
-        tbody.innerHTML = ''; // Xóa nội dung bảng
-        pagination.innerHTML = ''; // Xóa phân trang cũ
+        tbody.innerHTML = '';
+        pagination.innerHTML = '';
 
         if (result.data && result.data.length > 0) {
-            result.data.forEach(period => {
+            result.data.forEach((period, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><input type="checkbox" value="${period.periodID}"></td>
-                    <td>#${period.periodID}</td>
-                    <td>${formatDate(period.startYear)}</td>
-                    <td>${formatDate(period.endYear)}</td>
+                    <td><input type="checkbox" class="periodCheckbox" value="${period.periodID}"></td> 
+                    <td>${(page - 1) * itemsPerPage + index + 1}</td>
+                    <td>${period.startYear}</td>
+                    <td>${period.endYear}</td>
                     <td>
-                        <button class="btn btn-outline-primary" onclick="editPeriod(${period.periodID})">
+                        <button class="btn btn-outline-primary" onclick="loadPeriodEdit(${period.periodID})">
                             <i class="bi bi-gear-fill"></i> Sửa
                         </button>
                     </td>
+                    <td>
+                        <button class="btn btn-outline-danger" onclick="handleDeletePeriod(${period.periodID})">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </td>
+
                 `;
                 tbody.appendChild(row);
+                document.getElementById('selectAll').addEventListener('change', function () {
+                    const isChecked = this.checked;
+                    document.querySelectorAll('.periodCheckbox').forEach(cb => {
+                        cb.checked = isChecked;
+                    });
+                });
             });
 
-            // Tạo phân trang
             const totalPages = Math.ceil(result.totalCount / itemsPerPage);
 
-            // Thêm nút "Trước"
             if (page > 1) {
                 const prevButton = document.createElement('li');
                 prevButton.classList.add('page-item');
-                prevButton.innerHTML = `
-                    <a class="page-link" href="#" aria-label="Previous" onclick="loadPeriods(${page - 1})">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                `;
+                prevButton.innerHTML = `<a class="page-link" href="#" onclick="loadPeriods(${page - 1})">&laquo;</a>`;
                 pagination.appendChild(prevButton);
             }
 
-            // Thêm các nút trang
             for (let i = 1; i <= totalPages; i++) {
                 const pageButton = document.createElement('li');
                 pageButton.classList.add('page-item');
                 pageButton.classList.toggle('active', i === page);
-                pageButton.innerHTML = `
-                    <a class="page-link" href="#" onclick="loadPeriods(${i})">${i}</a>
-                `;
+                pageButton.innerHTML = `<a class="page-link" href="#" onclick="loadPeriods(${i})">${i}</a>`;
                 pagination.appendChild(pageButton);
             }
 
-            // Thêm nút "Tiếp theo"
             if (page < totalPages) {
                 const nextButton = document.createElement('li');
                 nextButton.classList.add('page-item');
-                nextButton.innerHTML = `
-                    <a class="page-link" href="#" aria-label="Next" onclick="loadPeriods(${page + 1})">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                `;
+                nextButton.innerHTML = `<a class="page-link" href="#" onclick="loadPeriods(${page + 1})">&raquo;</a>`;
                 pagination.appendChild(nextButton);
             }
         } else {
@@ -146,32 +254,11 @@ async function loadPeriods(page = 1) {
         }
     } catch (error) {
         console.error('Lỗi tải chu kỳ:', error);
-        const tbody = document.getElementById('periodTableBody');
-        
-        if (!tbody) {
-            console.error('Không tìm thấy phần tử #periodTableBody');
-            return;
-        }
-        
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Lỗi: ${error.message}</td></tr>`;
     }
+    document.getElementById('selectAll').checked = false;
 }
 
-async function loadTotalPeriodCount() {
-    try {
-        const response = await fetch('/api/period/totalCount');
-        const result = await response.json();
 
-        if (response.ok) {
-            const totalCount = result.totalCount || 0;
-            document.querySelector('.card-stats h5').innerText = totalCount;
-        } else {
-            console.error('Không thể lấy tổng số chu kỳ');
-        }
-    } catch (error) {
-        console.error('Lỗi khi tải tổng số chu kỳ:', error);
-    }
-}
 
 function formatDate(dateStr) {
     if (!dateStr.includes('-')) return dateStr; 
@@ -181,15 +268,121 @@ function formatDate(dateStr) {
 }
 
 window.addEventListener('load', function() {
-    console.log('DOM và tài nguyên đã sẵn sàng');
     loadPeriods(currentPeriodPage); 
 });
 
- 
-function editPeriod(id) {
-    console.log("Sửa chu kỳ ID:", id);
- 
-} 
+//Xóa chu kỳ
 
+async function deletePeriod(id) {
+    try {
+        const response = await fetch(`/api/period/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const textResponse = await response.text();
+
+        let result;
+        try {
+            result = JSON.parse(textResponse);
+        } catch (e) {
+            return { success: false, message: 'Xóa chu kỳ thất bại (phản hồi không hợp lệ)' };
+        }
+
+        if (response.ok) {
+            return { success: true, message: 'Xóa chu kỳ thành công' };
+        } else {
+            return { success: false, message: result?.message || 'Xóa chu kỳ thất bại' };
+        }
+    } catch (error) {
+        return { success: false, message: 'Lỗi: ' + error.message };
+    }
+}
+
+async function handleDeletePeriod(id) {
+    const result = await Swal.fire({
+        icon: 'question',
+        title: 'Xác nhận xóa',
+        text: 'Bạn có chắc muốn xóa chu kỳ này?',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy'
+    });
+
+    if (result.isConfirmed) {
+        const res = await deletePeriod(id);
+
+        Swal.fire({
+            icon: res.success ? 'success' : 'error',
+            title: res.success ? 'Thành công' : 'Thất bại',
+            text: res.message,
+            timer: 2000,
+            showConfirmButton: false
+        });
+
+        if (res.success) {
+            loadPeriods(currentPeriodPage);
+        }
+    }
+}
+
+
+async function deleteSelectedPeriods() {
+    const selected = Array.from(document.querySelectorAll('.periodCheckbox:checked'))
+                          .map(cb => parseInt(cb.value));
+
+    if (selected.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Chưa chọn chu kỳ nào',
+            text: 'Vui lòng chọn ít nhất một chu kỳ để xóa.',
+            confirmButtonText: 'Đã hiểu'
+        });
+        return;
+    }
+
+    const result = await Swal.fire({
+        icon: 'question',
+        title: 'Xác nhận xóa',
+        text: `Bạn có chắc muốn xóa ${selected.length} chu kỳ?`,
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy'
+    });
+
+    if (result.isConfirmed) {
+        let successCount = 0;
+        let failedCount = 0;
+        let failedMessages = [];
+
+        for (const id of selected) {
+            const res = await deletePeriod(id);
+            if (res.success) {
+                successCount++;
+            } else {
+                failedCount++;
+                failedMessages.push(`ID ${id}: ${res.message}`);
+            }
+        }
+
+        let summary = `✅ Đã xóa: ${successCount}\n❌ Lỗi: ${failedCount}`;
+        if (failedCount > 0) {
+            summary += `\n\nChi tiết lỗi:\n` + failedMessages.join('\n');
+        }
+
+        Swal.fire({
+            icon: failedCount === 0 ? 'success' : 'warning',
+            title: 'Kết quả xóa',
+            html: `<pre style="text-align:left">${summary}</pre>`,
+            confirmButtonText: 'Đóng'
+        });
+
+        loadPeriods(currentPeriodPage);
+    }
+}
 
 

@@ -59,11 +59,25 @@ switch (true) {
         $periodController->create($response, $request);
         break;
     case $method === 'GET' && preg_match('#^/api/period(\?.*)?$#', $path):
-        $periodController->getAll($response);
+        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
+        $periodController->getAll($response, $queryParams); 
         break;
-    case $method === 'GET' && $path === '/api/period/totalCount':
-        $periodController->getTotalCount($response);
-        break;  
+    case $method === 'GET' && preg_match('#^/api/period/search(\?.*)?$#', $path):
+        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
+        $periodController->search($response, $queryParams); 
+        break;
+    case $method === 'GET' && preg_match('#^/api/period/(\d+)$#', $path, $matches):
+        $periodController->getById($response, $matches[1]);
+        break; 
+    case $method === 'PUT' && preg_match('#^/api/period/(\d+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $periodController->update($response, $request);
+        break;
+    case $method === 'DELETE' && preg_match('#^/api/period/(\d+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $periodController->delete($response, $request);
+        break;
+            
 
     case $method === 'POST' && $path === '/api/major':
         $majorController->create($response, $request);
@@ -71,9 +85,21 @@ switch (true) {
     case $method === 'GET' && preg_match('#^/api/major(\?.*)?$#', $path):
         $majorController->getAll($response);
         break;
-    case $method === 'GET' && $path === '/api/major/totalCount':
-        $majorController->getTotalCount($response);
-        break;   
+    case $method === 'GET' && preg_match('#^/api/major/search(\?.*)?$#', $path):
+        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
+        $majorController->search($response, $queryParams); 
+        break;
+    case $method === 'GET' && preg_match('#^/api/major/(\w+)$#', $path, $matches):
+        $majorController->getById($response, $matches[1]);
+        break; 
+    case $method === 'PUT' && preg_match('#^/api/major/(\w+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $majorController->update($response, $request);
+        break;
+    case $method === 'DELETE' && preg_match('#^/api/major/(\w+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $majorController->delete($response, $request);
+        break; 
 
     case $method === 'POST' && $path === '/api/form-type':
         $formTypeController->create($response, $request);
@@ -81,9 +107,22 @@ switch (true) {
     case $method === 'GET' && preg_match('#^/api/form-type(\?.*)?$#', $path):
         $formTypeController->getAll($response);
         break;
-    case $method === 'GET' && $path === '/api/form-type/totalCount':
-        $formTypeController->getTotalCount($response);
-        break;      
+    case $method === 'GET' && preg_match('#^/api/form-type/search(\?.*)?$#', $path):
+        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
+        $formTypeController->search($response, $queryParams); 
+        break;
+    case $method === 'GET' && preg_match('#^/api/form-type/(\w+)$#', $path, $matches):
+        $formTypeController->getById($response, $matches[1]);
+        break; 
+    case $method === 'PUT' && preg_match('#^/api/form-type/(\w+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $formTypeController->update($response, $request);
+        break;
+    case $method === 'DELETE' && preg_match('#^/api/form-type/(\w+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $formTypeController->delete($response, $request);
+        break;
+        
             
 
     // Role APIs

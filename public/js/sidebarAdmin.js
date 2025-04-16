@@ -18,17 +18,14 @@ function handleClickOnSidebar() {
                 case "Quản lý ngành":
                     await loadContent('/public/views/pages/major.php');
                     loadMajors();
-                    loadTotalMajorCount();
                     break;
                 case "Chu kỳ":
                     await loadContent('/public/views/pages/period.php');
                     loadPeriods();
-                    loadTotalPeriodCount();
                     break;
                 case "Loại khảo sát":
                     await loadContent('/public/views/pages/formType.php');
-                    loadFormTypes();
-                    loadTotalFormTypeCount();
+                    loadFTypes();
                     break;
                 case "Phân quyền":
                     renderContentRole();
@@ -55,23 +52,24 @@ function handleClickOnSidebar() {
     })
     }
     async function loadContent(url) {
-    const response = await fetch(url,{
+        const response = await fetch(url, {
             method: "GET",
             headers: {
-            "Content-Type": "application/json",
+                "Content-Type": "text/html",
             }
         });
         if (response.ok) {
-        const content = await response.json();
-        document.getElementById('content').innerHTML = content['html'];
+            const content = await response.text();
+            document.getElementById('content').innerHTML = content;
         } else if (response.status === 401) {
-        // Handle unauthorized access
             window.location.href = "/login";
         } else if (response.status === 403) {
-        // Handle forbidden access
             window.location.href = "/403";
+        } else {
+            console.error("Failed to load:", url);
         }
     }
+    
 
 function loadSurveyInformation(data) {
     if (data) {
@@ -95,3 +93,27 @@ function loadSurveyInformation(data) {
 //
 // initialize();
 
+window.navigateToFTypeList = function () {
+    loadContent('/public/views/pages/formType.php')
+        .then(() => loadFTypes(currentFTypePage));
+}
+window.navigateToMajorList = function () {
+    loadContent('/public/views/pages/major.php')
+        .then(() => loadMajors(currentMajorPage));
+}
+window.navigateToPeriodList = function () {
+    loadContent('/public/views/pages/period.php')
+        .then(() => loadPeriods(currentPeriodPage));
+}
+window.loadContentFTypeForm = async function () {
+    await loadContent('/public/views/pages/formTypeForm.php');
+    await new Promise(resolve => setTimeout(resolve, 0));
+}
+window.loadContentMajorForm = async function () {
+    await loadContent('/public/views/pages/majorForm.php');
+    await new Promise(resolve => setTimeout(resolve, 0));
+}
+window.loadContentPeriodForm = async function () {
+    await loadContent('/public/views/pages/periodForm.php');
+    await new Promise(resolve => setTimeout(resolve, 0));
+}

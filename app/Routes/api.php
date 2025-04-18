@@ -9,6 +9,9 @@ use Controllers\RoleController;
 use Controllers\PermissionController;
 use Controllers\QuestionTypeController;
 use Controllers\DraftController;
+use Controllers\PeriodController;
+use Controllers\MajorController;
+use Controllers\FormTypeController;
 use Services\DraftService;
 
 $request = new Request();
@@ -20,6 +23,10 @@ $roleController = new RoleController();
 $permController = new PermissionController();
 $questionTypeController = new QuestionTypeController();
 $draftController = new DraftController(new DraftService());
+$periodController = new PeriodController();
+$majorController = new MajorController();
+$formTypeController = new FormTypeController();
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['REQUEST_URI'];
@@ -48,6 +55,75 @@ switch (true) {
     case $method === 'POST' && $path === '/api/me':
         JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req));
         break;
+    case $method === 'POST' && $path === '/api/period':
+        $periodController->create($response, $request);
+        break;
+    case $method === 'GET' && preg_match('#^/api/period(\?.*)?$#', $path):
+        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
+        $periodController->getAll($response, $queryParams); 
+        break;
+    case $method === 'GET' && preg_match('#^/api/period/search(\?.*)?$#', $path):
+        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
+        $periodController->search($response, $queryParams); 
+        break;
+    case $method === 'GET' && preg_match('#^/api/period/(\d+)$#', $path, $matches):
+        $periodController->getById($response, $matches[1]);
+        break; 
+    case $method === 'PUT' && preg_match('#^/api/period/(\d+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $periodController->update($response, $request);
+        break;
+    case $method === 'DELETE' && preg_match('#^/api/period/(\d+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $periodController->delete($response, $request);
+        break;
+            
+
+    case $method === 'POST' && $path === '/api/major':
+        $majorController->create($response, $request);
+        break;
+    case $method === 'GET' && preg_match('#^/api/major(\?.*)?$#', $path):
+        $majorController->getAll($response);
+        break;
+    case $method === 'GET' && preg_match('#^/api/major/search(\?.*)?$#', $path):
+        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
+        $majorController->search($response, $queryParams); 
+        break;
+    case $method === 'GET' && preg_match('#^/api/major/(\w+)$#', $path, $matches):
+        $majorController->getById($response, $matches[1]);
+        break; 
+    case $method === 'PUT' && preg_match('#^/api/major/(\w+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $majorController->update($response, $request);
+        break;
+    case $method === 'DELETE' && preg_match('#^/api/major/(\w+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $majorController->delete($response, $request);
+        break; 
+
+    case $method === 'POST' && $path === '/api/form-type':
+        $formTypeController->create($response, $request);
+        break;
+    case $method === 'GET' && preg_match('#^/api/form-type(\?.*)?$#', $path):
+        $formTypeController->getAll($response);
+        break;
+    case $method === 'GET' && preg_match('#^/api/form-type/search(\?.*)?$#', $path):
+        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
+        $formTypeController->search($response, $queryParams); 
+        break;
+    case $method === 'GET' && preg_match('#^/api/form-type/(\w+)$#', $path, $matches):
+        $formTypeController->getById($response, $matches[1]);
+        break; 
+    case $method === 'PUT' && preg_match('#^/api/form-type/(\w+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $formTypeController->update($response, $request);
+        break;
+    case $method === 'DELETE' && preg_match('#^/api/form-type/(\w+)$#', $path, $matches):
+        $_GET['id'] = $matches[1]; 
+        $formTypeController->delete($response, $request);
+        break;
+        
+            
 
     // Role APIs
     case $method === 'POST' && $path === '/api/role':

@@ -18,19 +18,22 @@ function handleClickOnSidebar() {
                     await renderContentUser();
                     break;
                 case "Quản lý ngành":
-                    loadContent("./views/pages/qlnganh.php");
+                    await loadContent('/public/views/pages/major.php');
+                    loadMajors();
                     break;
                 case "Chu kỳ":
-                    loadContent("./views/pages/chuky.php");
+                    await loadContent('/public/views/pages/period.php');
+                    loadPeriods();
                     break;
                 case "Loại khảo sát":
-                    loadContent("./views/pages/loaiks.php");
+                    await loadContent('/public/views/pages/formType.php');
+                    loadFTypes();
                     break;
                 case "Phân quyền":
                     renderContentRole();
                     break;
                 case "Khảo sát":
-                    await loadContent(`/pages/survey`);
+                    await loadContent2(`/pages/survey`);
                     await loadSurveyFromAPI(0, 10);
                     break;
                 default:
@@ -50,11 +53,30 @@ function handleClickOnSidebar() {
         }
     })
     }
-async function loadContent(url) {
+async function loadContent2(url) {
 
     const content = await callApi(url)
     document.getElementById('content').innerHTML = content['html'];
 }
+    async function loadContent(url) {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "text/html",
+            }
+        });
+        if (response.ok) {
+            const content = await response.text();
+            document.getElementById('content').innerHTML = content;
+        } else if (response.status === 401) {
+            window.location.href = "/login";
+        } else if (response.status === 403) {
+            window.location.href = "/403";
+        } else {
+            console.error("Failed to load:", url);
+        }
+    }
+    
 
 function loadSurveyInformation(data) {
     if (data) {
@@ -78,3 +100,27 @@ function loadSurveyInformation(data) {
 //
 // initialize();
 
+window.navigateToFTypeList = function () {
+    loadContent('/public/views/pages/formType.php')
+        .then(() => loadFTypes(currentFTypePage));
+}
+window.navigateToMajorList = function () {
+    loadContent('/public/views/pages/major.php')
+        .then(() => loadMajors(currentMajorPage));
+}
+window.navigateToPeriodList = function () {
+    loadContent('/public/views/pages/period.php')
+        .then(() => loadPeriods(currentPeriodPage));
+}
+window.loadContentFTypeForm = async function () {
+    await loadContent('/public/views/pages/formTypeForm.php');
+    await new Promise(resolve => setTimeout(resolve, 0));
+}
+window.loadContentMajorForm = async function () {
+    await loadContent('/public/views/pages/majorForm.php');
+    await new Promise(resolve => setTimeout(resolve, 0));
+}
+window.loadContentPeriodForm = async function () {
+    await loadContent('/public/views/pages/periodForm.php');
+    await new Promise(resolve => setTimeout(resolve, 0));
+}

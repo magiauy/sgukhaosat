@@ -1,6 +1,6 @@
-let currentFTypePage = 1;
-const itemsPerFormTypePage = 5;
 let editingFTypeId = null;
+let currentFTypePage = 1;
+let totalFTypePages = 1;
 
 
 async function renderFTypeForm(mode, fTypeData = null) {
@@ -166,13 +166,14 @@ async function updateFType() {
 //Tìm kiếm loại khảo sát
 async function loadFilteredFTypes() {
     const searchKeyword = document.getElementById('fTypeKeyword').value.trim();
-    document.getElementById('fTypeKeyword').value = '';
     await loadFTypes(1, searchKeyword);
 }
 
-
 async function loadFTypes(page = 1, keyword = '') {
     try {
+        currentFTypePage = page;
+
+        const itemsPerPage = parseInt(document.getElementById('itemsPerFTypePageSelect').value);
         const queryParams = new URLSearchParams({
             page,
             limit: itemsPerPage,
@@ -185,14 +186,12 @@ async function loadFTypes(page = 1, keyword = '') {
         const result = await response.json();
 
         const tbody = document.getElementById('formTypeTableBody');
-        const pagination = document.getElementById('pagination');
+        const infoText = document.getElementById('tableInfoText');
 
-        // Hiển thị tổng số loại khảo sát
         const totalCount = result.totalCount || 0;
         document.querySelector('.card-stats h5').innerText = totalCount;
 
         tbody.innerHTML = '';
-        pagination.innerHTML = '';
 
         if (result.data && result.data.length > 0) {
             result.data.forEach((fType) => {
@@ -211,8 +210,6 @@ async function loadFTypes(page = 1, keyword = '') {
                             <i class="bi bi-trash"></i> Xóa
                         </button>
                     </td>
-
-
                 `;
                 tbody.appendChild(row);
                 document.getElementById('selectAll').addEventListener('change', function () {
@@ -223,38 +220,54 @@ async function loadFTypes(page = 1, keyword = '') {
                 });
             });
 
-            const totalPages = Math.ceil(result.totalCount / itemsPerPage);
+            // Cập nhật chỉ số hiển thị
+            const from = (page - 1) * itemsPerPage + 1;
+            const to = Math.min(page * itemsPerPage, totalCount);
+            infoText.innerText = `${from}–${to} của ${totalCount}`;
 
-            if (page > 1) {
-                const prevButton = document.createElement('li');
-                prevButton.classList.add('page-item');
-                prevButton.innerHTML = `<a class="page-link" href="#" onclick="loadFTypes(${page - 1})">&laquo;</a>`;
-                pagination.appendChild(prevButton);
-            }
+            totalFTypePages = Math.ceil(totalCount / itemsPerPage);
 
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('li');
-                pageButton.classList.add('page-item');
-                pageButton.classList.toggle('active', i === page);
-                pageButton.innerHTML = `<a class="page-link" href="#" onclick="loadFTypes(${i})">${i}</a>`;
-                pagination.appendChild(pageButton);
-            }
-
-            if (page < totalPages) {
-                const nextButton = document.createElement('li');
-                nextButton.classList.add('page-item');
-                nextButton.innerHTML = `<a class="page-link" href="#" onclick="loadFTypes(${page + 1})">&raquo;</a>`;
-                pagination.appendChild(nextButton);
-            }
         } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>';
+            infoText.innerText = '0–0 của 0';
+            totalFTypePages = 1;
         }
+
+        // Reset lại checkbox tổng
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.addEventListener('change', function () {
+                const isChecked = this.checked;
+                document.querySelectorAll('.fTypeCheckbox').forEach(cb => {
+                    cb.checked = isChecked;
+                });
+            });
+        }
+
     } catch (error) {
-        console.error('Lỗi tải loại khảo sát:', error);
+        console.error('Lỗi tải chu kỳ:', error);
     }
-    document.getElementById('selectAll').checked = false;
 }
 
+
+function goToFTypePage(action) {
+    const searchKeyword = document.getElementById('fTypeKeyword').value.trim();
+    switch (action) {
+        case 'first':
+            if (currentFTypePage > 1) loadFTypes(1, searchKeyword);
+            break;
+        case 'prev':
+            if (currentFTypePage > 1) loadFTypes(currentFTypePage - 1, searchKeyword);
+            break;
+        case 'next':
+            if (currentFTypePage < totalFTypePages) loadFTypes(currentFTypePage + 1, searchKeyword);
+            break;
+        case 'last':
+            if (currentFTypePage < totalFTypePages) loadFTypes(totalFTypePages, searchKeyword);
+            break;
+    }
+}
 //Xóa loại khảo sát
 
 async function deleteFType(id) {
@@ -366,4 +379,11 @@ async function deleteSelectedFTypes() {
 
         loadFTypes(currentFTypePage);
     }
+}
+
+//reset bộ lọc
+
+function resetFilteredFTypes() {
+    document.getElementById("fTypeKeyword").value = "";
+    loadFTypes(1, "");
 }

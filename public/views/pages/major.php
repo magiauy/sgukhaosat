@@ -27,6 +27,7 @@
         <div class="d-flex flex-grow-1">
             <input type="text" id="majorKeyword" class="form-control" placeholder="Tìm kiếm: Nhập mã hoặc tên ngành">
             <button class="btn btn-outline-primary ms-2" onclick="loadFilteredMajors()">Lọc</button>
+            <button class="btn btn-outline-secondary" style="margin-left: 10px;" onclick="resetFilteredMajors()">Reset</button>
         </div>
 
         <div class="action-buttons ms-auto d-flex gap-2">
@@ -39,6 +40,26 @@
         </div>
     </div>
 
+    <div class="pagination-container d-flex align-items-center mt-3">
+        <div class="d-flex align-items-center">
+            <span class="me-2">Rows per page</span>
+            <select id="itemsPerMajorPageSelect" class="form-select form-select-sm w-auto" onchange="loadMajors(1, document.getElementById('majorKeyword').value.trim())">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <div class="d-flex align-items-center ms-4">
+            <span id="tableInfoText" class="me-3"></span>
+
+            <button class="btn btn-light btn-sm me-1" onclick="goToMajorPage('first')">&laquo;</button>
+            <button class="btn btn-light btn-sm me-1" onclick="goToMajorPage('prev')">&lsaquo;</button>
+            <button class="btn btn-light btn-sm me-1" onclick="goToMajorPage('next')">&rsaquo;</button>
+            <button class="btn btn-light btn-sm" onclick="goToMajorPage('last')">&raquo;</button>
+        </div>
+    </div>
 
     <table class="table table-bordered">
         <thead>

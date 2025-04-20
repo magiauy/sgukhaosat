@@ -24,21 +24,43 @@
     </div>
 
     <div class="filter-section d-flex align-items-center gap-2">
-    <div class="d-flex flex-grow-1">
-        <input type="text" id="fTypeKeyword" class="form-control" placeholder="Tìm kiếm: Nhập mã hoặc tên loại khảo sát">
-        <button class="btn btn-outline-primary ms-2" onclick="loadFilteredFTypes()">Lọc</button>
-    </div>
-    
-    <div class="action-buttons ms-auto d-flex gap-2">
-        <button class="btn btn-outline-danger" onclick="deleteSelectedFTypes()">
-            <i class="bi bi-trash"></i> Xóa
-        </button>
-        <button class="btn btn-outline-primary" onclick="loadFTypeAdd()">
-            <i class="bi bi-plus"></i> Thêm loại khảo sát
-        </button>
-    </div>
-</div>
+        <div class="d-flex flex-grow-1">
+            <input type="text" id="fTypeKeyword" class="form-control" placeholder="Tìm kiếm: Nhập mã hoặc tên loại khảo sát">
+            <button class="btn btn-outline-primary ms-2" onclick="loadFilteredFTypes()">Lọc</button>
+            <button class="btn btn-outline-secondary" style="margin-left: 10px;" onclick="resetFilteredFTypes()">Reset</button>
+        </div>
 
+        <div class="action-buttons ms-auto d-flex gap-2">
+            <button class="btn btn-outline-danger" onclick="deleteSelectedFTypes()">
+                <i class="bi bi-trash"></i> Xóa
+            </button>
+            <button class="btn btn-outline-primary" onclick="loadFTypeAdd()">
+                <i class="bi bi-plus"></i> Thêm loại khảo sát
+            </button>
+        </div>
+    </div>
+
+
+    <div class="pagination-container d-flex align-items-center mt-3">
+        <div class="d-flex align-items-center">
+            <span class="me-2">Rows per page</span>
+            <select id="itemsPerFTypePageSelect" class="form-select form-select-sm w-auto" onchange="loadFTypes(1, document.getElementById('fTypeKeyword').value.trim())">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <div class="d-flex align-items-center ms-4">
+            <span id="tableInfoText" class="me-3"></span>
+
+            <button class="btn btn-light btn-sm me-1" onclick="goToFTypePage('first')">&laquo;</button>
+            <button class="btn btn-light btn-sm me-1" onclick="goToFTypePage('prev')">&lsaquo;</button>
+            <button class="btn btn-light btn-sm me-1" onclick="goToFTypePage('next')">&rsaquo;</button>
+            <button class="btn btn-light btn-sm" onclick="goToFTypePage('last')">&raquo;</button>
+        </div>
+    </div>
 
     <table class="table table-bordered">
         <thead>

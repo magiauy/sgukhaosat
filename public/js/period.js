@@ -1,6 +1,7 @@
-let currentPeriodPage = 1;
-const itemsPerPage = 5;
 let editingPeriodId = null;
+let currentPeriodPage = 1;
+let totalPeriodPages = 1; 
+
 
 async function renderPeriod(mode, periodData = null) {
     await loadContentPeriodForm();
@@ -160,19 +161,22 @@ async function updatePeriod() {
 
 //Tìm kiếm chu kỳ
 async function loadFilteredPeriods() {
-    const searchKeyword = document.getElementById('searchInput').value.trim();
-    document.getElementById('searchInput').value = '';
+    const searchKeyword = document.getElementById('periodKeyword').value.trim();
     await loadPeriods(1, searchKeyword);
 }
 
 
 async function loadPeriods(page = 1, keyword = '') {
     try {
-        const startYear = document.getElementById('startYearFilter').value.trim();
-        const endYear = document.getElementById('endYearFilter').value.trim();
+        currentPeriodPage = page;
 
-        document.getElementById('startYearFilter').value = '';
-        document.getElementById('endYearFilter').value = '';
+        const startYearTemp = document.getElementById('startYearFilter');
+        const endYearTemp = document.getElementById('endYearFilter');
+
+        const startYear = startYearTemp ? startYearTemp.value.trim() : '';
+        const endYear = endYearTemp ? endYearTemp.value.trim() : '';
+
+        const itemsPerPage = parseInt(document.getElementById('itemsPerPageSelect')?.value || '10');
 
         const queryParams = new URLSearchParams({
             page,
@@ -183,19 +187,15 @@ async function loadPeriods(page = 1, keyword = '') {
         });
 
         const url = `/api/period/search?${queryParams.toString()}`;
-
         const response = await fetch(url);
         const result = await response.json();
 
         const tbody = document.getElementById('periodTableBody');
-        const pagination = document.getElementById('pagination');
-
-        // Hiển thị tổng số chu kỳ
+        const infoText = document.getElementById('tableInfoText');
         const totalCount = result.totalCount || 0;
         document.querySelector('.card-stats h5').innerText = totalCount;
 
         tbody.innerHTML = '';
-        pagination.innerHTML = '';
 
         if (result.data && result.data.length > 0) {
             result.data.forEach((period, index) => {
@@ -215,48 +215,58 @@ async function loadPeriods(page = 1, keyword = '') {
                             <i class="bi bi-trash"></i> Xóa
                         </button>
                     </td>
-
                 `;
                 tbody.appendChild(row);
-                document.getElementById('selectAll').addEventListener('change', function () {
-                    const isChecked = this.checked;
-                    document.querySelectorAll('.periodCheckbox').forEach(cb => {
-                        cb.checked = isChecked;
-                    });
-                });
             });
 
-            const totalPages = Math.ceil(result.totalCount / itemsPerPage);
+            // Cập nhật chỉ số hiển thị
+            const from = (page - 1) * itemsPerPage + 1;
+            const to = Math.min(page * itemsPerPage, totalCount);
+            infoText.innerText = `${from}–${to} của ${totalCount}`;
 
-            if (page > 1) {
-                const prevButton = document.createElement('li');
-                prevButton.classList.add('page-item');
-                prevButton.innerHTML = `<a class="page-link" href="#" onclick="loadPeriods(${page - 1})">&laquo;</a>`;
-                pagination.appendChild(prevButton);
-            }
+            totalPeriodPages = Math.ceil(totalCount / itemsPerPage);
 
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('li');
-                pageButton.classList.add('page-item');
-                pageButton.classList.toggle('active', i === page);
-                pageButton.innerHTML = `<a class="page-link" href="#" onclick="loadPeriods(${i})">${i}</a>`;
-                pagination.appendChild(pageButton);
-            }
-
-            if (page < totalPages) {
-                const nextButton = document.createElement('li');
-                nextButton.classList.add('page-item');
-                nextButton.innerHTML = `<a class="page-link" href="#" onclick="loadPeriods(${page + 1})">&raquo;</a>`;
-                pagination.appendChild(nextButton);
-            }
         } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>';
+            infoText.innerText = '0–0 của 0';
+            totalPeriodPages = 1;
         }
+
+        // Reset lại checkbox tổng
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.addEventListener('change', function () {
+                const isChecked = this.checked;
+                document.querySelectorAll('.periodCheckbox').forEach(cb => {
+                    cb.checked = isChecked;
+                });
+            });
+        }
+
     } catch (error) {
         console.error('Lỗi tải chu kỳ:', error);
     }
-    document.getElementById('selectAll').checked = false;
 }
+
+function goToPeriodPage(action) {
+    const searchKeyword = document.getElementById('periodKeyword').value.trim();
+    switch (action) {
+        case 'first':
+            if (currentPeriodPage > 1) loadPeriods(1, searchKeyword);
+            break;
+        case 'prev':
+            if (currentPeriodPage > 1) loadPeriods(currentPeriodPage - 1, searchKeyword);
+            break;
+        case 'next':
+            if (currentPeriodPage < totalPeriodPages) loadPeriods(currentPeriodPage + 1, searchKeyword);
+            break;
+        case 'last':
+            if (currentPeriodPage < totalPeriodPages) loadPeriods(totalPeriodPages, searchKeyword);
+            break;
+    }
+}
+
 
 
 
@@ -267,9 +277,6 @@ function formatDate(dateStr) {
              (date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
 }
 
-window.addEventListener('load', function() {
-    loadPeriods(currentPeriodPage); 
-});
 
 //Xóa chu kỳ
 
@@ -385,4 +392,11 @@ async function deleteSelectedPeriods() {
     }
 }
 
+//reset bộ lọc
 
+function resetFilteredPeriods() {
+    document.getElementById("startYearFilter").value = "";
+    document.getElementById("endYearFilter").value = "";
+    document.getElementById("periodKeyword").value = "";
+    loadPeriods(1, "");
+}

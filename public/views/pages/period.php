@@ -26,23 +26,46 @@
             <input type="number" class="form-control" id="startYearFilter" placeholder="Năm bắt đầu">
             <input type="number" class="form-control" id="endYearFilter" placeholder="Năm kết thúc">
         </div>
-        <div class="d-flex gap-3 mt-2">
-            <button class="btn btn-outline-primary" onclick="loadFilteredPeriods()">Lọc</button>
-        </div>
     </div>
 
     <div class="filter-section mt-3">
-        <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm theo năm bắt đầu hoặc kết thúc">
+        <div class="action-buttons mt-2">
+            <input type="number" class="form-control" id="periodKeyword" placeholder="Tìm kiếm theo năm bắt đầu hoặc kết thúc">
+            <button class="btn btn-outline-primary" onclick="loadFilteredPeriods()">Lọc</button>
+            <button class="btn btn-outline-secondary" onclick="resetFilteredPeriods()">Reset</button>
+        </div>
         <div class="action-buttons mt-2">
             <button class="btn btn-outline-danger" onclick="deleteSelectedPeriods()"><i class="bi bi-trash"></i> Xóa</button>
             <button class="btn btn-outline-primary" onclick="loadPeriodAdd()"><i class="bi bi-plus"></i> Thêm chu kỳ</button>
         </div>
     </div>
 
+    <div class="pagination-container d-flex align-items-center mt-3">
+        <div class="d-flex align-items-center">
+            <span class="me-2">Rows per page</span>
+            <select id="itemsPerPageSelect" class="form-select form-select-sm w-auto" onchange="loadPeriods(1, document.getElementById('periodKeyword').value.trim())">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <div class="d-flex align-items-center" style="margin-left: 10px;">
+            <span id="tableInfoText" class="me-3"></span>
+
+            <button class="btn btn-light btn-sm me-1" onclick="goToPeriodPage('first')">&laquo;</button>
+            <button class="btn btn-light btn-sm me-1" onclick="goToPeriodPage('prev')">&lsaquo;</button>
+            <button class="btn btn-light btn-sm me-1" onclick="goToPeriodPage('next')">&rsaquo;</button>
+            <button class="btn btn-light btn-sm" onclick="goToPeriodPage('last')">&raquo;</button>
+        </div>
+    </div>
+
+
     <table class="table table-bordered">
         <thead>
             <tr>
-            <th><input type="checkbox" id="selectAll"></th> 
+                <th><input type="checkbox" id="selectAll"></th>
                 <th>ID</th>
                 <th>Ngày bắt đầu</th>
                 <th>Ngày kết thúc</th>

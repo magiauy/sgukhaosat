@@ -1,6 +1,6 @@
+let editingMajorId = null;
 let currentMajorPage = 1;
-const itemsPerMajorPage = 5;
-let editingMajorID = null;
+let totalMajorPages = 1;
 
 
 async function renderMajor(mode, majorData = null) {
@@ -118,7 +118,8 @@ async function updateMajor() {
     const toastMessage = document.getElementById('toastMessage');
     const toastElement = new bootstrap.Toast(document.getElementById('majorToast'));
 
-    if (majorName && majorName.trim() == "") {
+    if (!majorName || majorName.trim() === "") {
+
         toastMessage.innerText = 'Vui lòng nhập đầy đủ thông tin';
         document.getElementById('majorToast').classList.remove('text-bg-success');
         document.getElementById('majorToast').classList.add('text-bg-danger');
@@ -159,26 +160,22 @@ async function updateMajor() {
     }
 }
 
-window.addEventListener('load', function() {
-    loadMajors(currentMajorPage);
-});
-
-
 //Tìm kiếm ngành
 async function loadFilteredMajors() {
     const searchKeyword = document.getElementById('majorKeyword').value.trim();
-    document.getElementById('majorKeyword').value = '';
     await loadMajors(1, searchKeyword);
 }
 
 
 async function loadMajors(page = 1, keyword = '') {
     try {
+        currentMajorPage = page;
 
+        const itemsPerPage = parseInt(document.getElementById('itemsPerMajorPageSelect').value);
         const queryParams = new URLSearchParams({
             page,
             limit: itemsPerPage,
-            search: keyword || '',
+            search: keyword || ''
         });
 
         const url = `/api/major/search?${queryParams.toString()}`;
@@ -187,14 +184,11 @@ async function loadMajors(page = 1, keyword = '') {
         const result = await response.json();
 
         const tbody = document.getElementById('majorTableBody');
-        const pagination = document.getElementById('pagination');
+        const infoText = document.getElementById('tableInfoText');
 
-        // Hiển thị tổng số ngành
         const totalCount = result.totalCount || 0;
         document.querySelector('.card-stats h5').innerText = totalCount;
-
         tbody.innerHTML = '';
-        pagination.innerHTML = '';
 
         if (result.data && result.data.length > 0) {
             result.data.forEach((major) => {
@@ -224,37 +218,54 @@ async function loadMajors(page = 1, keyword = '') {
                 });
             });
 
-            const totalPages = Math.ceil(result.totalCount / itemsPerPage);
+            // Cập nhật chỉ số hiển thị
+            const from = (page - 1) * itemsPerPage + 1;
+            const to = Math.min(page * itemsPerPage, totalCount);
+            infoText.innerText = `${from}–${to} của ${totalCount}`;
 
-            if (page > 1) {
-                const prevButton = document.createElement('li');
-                prevButton.classList.add('page-item');
-                prevButton.innerHTML = `<a class="page-link" href="#" onclick="loadMajors(${page - 1})">&laquo;</a>`;
-                pagination.appendChild(prevButton);
-            }
+            totalMajorPages = Math.ceil(totalCount / itemsPerPage);
 
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('li');
-                pageButton.classList.add('page-item');
-                pageButton.classList.toggle('active', i === page);
-                pageButton.innerHTML = `<a class="page-link" href="#" onclick="loadMajors(${i})">${i}</a>`;
-                pagination.appendChild(pageButton);
-            }
-
-            if (page < totalPages) {
-                const nextButton = document.createElement('li');
-                nextButton.classList.add('page-item');
-                nextButton.innerHTML = `<a class="page-link" href="#" onclick="loadMajors(${page + 1})">&raquo;</a>`;
-                pagination.appendChild(nextButton);
-            }
         } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>';
+            infoText.innerText = '0–0 của 0';
+            totalMajorPages = 1;
         }
+
+        // Reset lại checkbox tổng
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.addEventListener('change', function () {
+                const isChecked = this.checked;
+                document.querySelectorAll('.majorCheckbox').forEach(cb => {
+                    cb.checked = isChecked;
+                });
+            });
+        }
+
     } catch (error) {
-        console.error('Lỗi tải ngành:', error);
+        console.error('Lỗi tải chu kỳ:', error);
     }
-    document.getElementById('selectAll').checked = false;
 }
+
+function goToMajorPage(action) {
+    const searchKeyword = document.getElementById('majorKeyword').value.trim();
+    switch (action) {
+        case 'first':
+            if (currentMajorPage > 1) loadMajors(1, searchKeyword);
+            break;
+        case 'prev':
+            if (currentMajorPage > 1) loadMajors(currentMajorPage - 1, searchKeyword);
+            break;
+        case 'next':
+            if (currentMajorPage < totalMajorPages) loadMajors(currentMajorPage + 1, searchKeyword);
+            break;
+        case 'last':
+            if (currentMajorPage < totalMajorPages) loadMajors(totalMajorPages, searchKeyword);
+            break;
+    }
+}
+
 
 //Xóa ngành
 
@@ -368,4 +379,11 @@ async function deleteSelectedMajors() {
 
         loadMajors(currentMajorPage);
     }
+}
+
+//reset bộ lọc
+
+function resetFilteredMajors() {
+    document.getElementById("majorKeyword").value = "";
+    loadMajors(1, "");
 }

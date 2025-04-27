@@ -42,11 +42,32 @@ class MajorService {
     }
     
     public function getPaginated($limit, $offset) {
-        return $this->repo->getPaginated($limit, $offset);
+        $result = $this->repo->getPaginated($limit, $offset);
+        $totalCount = $this->repo->getTotalCount();
+        $currentPage = $offset / $limit + 1;
+        $totalPages = ceil($totalCount / $limit);
+        return [
+            'major' => $result,
+            'totalCount' => $totalCount,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'limit' => $limit
+        ];
     }
     
     public function searchPaginated($keyword, $limit, $offset) {
-        return $this->repo->searchPaginated($keyword, $limit, $offset);
+//        return $this->repo->searchPaginated($keyword, $limit, $offset);
+        $result = $this->repo->searchPaginated($keyword, $limit, $offset);
+        $totalCount = $this->repo->searchCount($keyword);
+        $currentPage = $offset / $limit + 1;
+        $totalPages = ceil($totalCount / $limit);
+        return [
+            'major' => $result,
+            'totalCount' => $totalCount,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'limit' => $limit
+        ];
     }
     
     public function searchCount($keyword) {

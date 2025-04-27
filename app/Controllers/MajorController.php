@@ -82,6 +82,7 @@ class MajorController {
     
         $majors = $this->service->getPaginated($limit, $offset);
         $totalCount = $this->service->getTotalCount();
+
     
         $response->json([
             'data' => $majors,
@@ -89,18 +90,20 @@ class MajorController {
         ]);
     }
     
-    public function search(Response $response, array $queryParams) {
-        $keyword = $queryParams['search'] ?? '';
-        $page = (int)($queryParams['page'] ?? 1);
-        $limit = (int)($queryParams['limit'] ?? 5);
-        $offset = ($page - 1) * $limit;
-    
+    public function search(Response $response, Request $request) {
+//        $keyword = $queryParams['search'] ?? '';
+//        $page = (int)($queryParams['page'] ?? 1);
+//        $limit = (int)($queryParams['limit'] ?? 5);
+//        $offset = ($page - 1) * $limit;
+
+        $keyword = $request->getParam('search') ?? '';
+        $limit = (int)($request->getParam('limit') ?? 10);
+        $offset = (int)($request->getParam('offset') ?? 0);
         $result = $this->service->searchPaginated($keyword, $limit, $offset);
-        $total = $this->service->searchCount($keyword);
-    
+
         $response->json([
             'data' => $result,
-            'totalCount' => $total
+            'status' => true,
         ]);
     }
     

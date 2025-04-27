@@ -1,17 +1,119 @@
-let currentMajorPage = 1;
-const itemsPerMajorPage = 5;
-let editingMajorID = null;
+import PaginationComponent from "./component/pagination.js";
+
+let currentOffset = 0;
+let itemsPerPage = 5;
+let editingMajorId = null;
+const pagination = new PaginationComponent({
+    containerId: 'pagination',
+    onPageChange: (offset, limit) => {
+        loadMajors(offset, limit);
+    },
+    onLimitChange: (offset, limit) => {
+        loadMajors(offset, limit);
+    }
+})
+
+
+
+async function initMajor() {
+    await setupHandlers();
+    await loadMajors();
+
+}
+async function setupHandlers() {
+    document.getElementById('majorAddBtn').addEventListener('click', loadMajorAdd);
+    document.getElementById('majorSearchBtn').addEventListener('click', loadFilteredMajors);
+    document.getElementById('majorDeleteBtn').addEventListener('click', deleteSelectedMajors);
+    document.getElementById('majorKeyword').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            loadFilteredMajors();
+        }
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener('hide.bs.modal', function (event) {
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+        });
+    });
+}
 
 
 async function renderMajor(mode, majorData = null) {
-    await loadContentMajorForm();
+    // Create modal if it doesn't exist yet
+    let modalElement = document.getElementById('majorModal');
+    if (!modalElement) {
+        const modalHTML = `
+            <div class="modal fade" id="majorModal" tabindex="-1" aria-labelledby="majorModalLabel">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="majorTitle">Thêm ngành</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3" id="majorIDGroup">
+                                <label for="majorID" class="form-label">Mã ngành</label>
+                                <input type="text" class="form-control" id="majorID" placeholder="Nhập mã ngành">
+                            </div>
+                            <div class="mb-3">
+                                <label for="majorName" class="form-label">Tên ngành</label>
+                                <input type="text" class="form-control" id="majorName" placeholder="Nhập tên ngành">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="button" class="btn btn-primary" id="majorActionBtn">Thêm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
 
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        modalElement = document.getElementById('majorModal');
+
+        // Xử lý sự kiện khi modal được hiển thị
+        modalElement.addEventListener('show.bs.modal', function() {
+            // Đặt aria-hidden thành false TRƯỚC KHI modal được hiển thị
+            this.setAttribute('aria-hidden', 'false');
+        });
+
+        // Xử lý khi modal đã được hiển thị hoàn toàn
+        modalElement.addEventListener('shown.bs.modal', function() {
+            // Đảm bảo aria-hidden vẫn là false sau khi hiển thị
+            this.setAttribute('aria-hidden', 'false');
+
+            // Tự động focus vào input đầu tiên
+            const firstInput = this.querySelector('input:not([disabled])');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        });
+
+        // Xử lý khi modal đang bắt đầu đóng
+        modalElement.addEventListener('hide.bs.modal', function() {
+            // Chuyển focus ra khỏi các phần tử trong modal trước khi đóng
+            document.activeElement.blur();
+        });
+
+        // Xử lý khi modal đã đóng hoàn toàn
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            // Đặt lại aria-hidden="true" khi modal đã đóng hoàn toàn
+            this.setAttribute('aria-hidden', 'true');
+        });
+    }
+
+    // Configure modal based on mode
     const title = document.getElementById("majorTitle");
     const idGroup = document.getElementById("majorIDGroup");
     const nameInput = document.getElementById("majorName");
     const actionBtn = document.getElementById("majorActionBtn");
 
     if (mode === "add") {
+        document.getElementById('majorID').value = '';
+        nameInput.value = '';
         title.textContent = "Thêm ngành";
         idGroup.style.display = "block";
         actionBtn.textContent = "Thêm";
@@ -21,13 +123,21 @@ async function renderMajor(mode, majorData = null) {
         idGroup.style.display = "none";
         actionBtn.textContent = "Lưu thay đổi";
         actionBtn.onclick = () => updateMajor();
-
         if (majorData) {
             nameInput.value = majorData.majorName || "";
         }
     }
-}
+    // Show the modal
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: false
+    });
 
+    // Đặt aria-hidden thành false trước khi hiển thị
+    modalElement.setAttribute('aria-hidden', 'false');
+    modal.show();
+
+}
 //Thêm ngành 
 
 async function loadMajorAdd() {
@@ -81,7 +191,7 @@ async function addMajor() {
             }
 
             toastElement.show();
-            loadMajors(currentMajorPage); 
+            await loadMajors(currentMajorPage);
         } catch (error) {
             console.error('Lỗi chi tiết:', error);
             const errorDetails = error.stack || error.message || 'Không có thông tin lỗi chi tiết';
@@ -118,7 +228,7 @@ async function updateMajor() {
     const toastMessage = document.getElementById('toastMessage');
     const toastElement = new bootstrap.Toast(document.getElementById('majorToast'));
 
-    if (majorName && majorName.trim() == "") {
+    if (majorName && majorName.trim() === "") {
         toastMessage.innerText = 'Vui lòng nhập đầy đủ thông tin';
         document.getElementById('majorToast').classList.remove('text-bg-success');
         document.getElementById('majorToast').classList.add('text-bg-danger');
@@ -159,105 +269,118 @@ async function updateMajor() {
     }
 }
 
-window.addEventListener('load', function() {
-    loadMajors(currentMajorPage);
-});
-
 
 //Tìm kiếm ngành
 async function loadFilteredMajors() {
     const searchKeyword = document.getElementById('majorKeyword').value.trim();
     document.getElementById('majorKeyword').value = '';
-    await loadMajors(1, searchKeyword);
+    await loadMajors(0, itemsPerPage, searchKeyword,true);
 }
 
 
-async function loadMajors(page = 1, keyword = '') {
+// Main loadMajors function - now orchestrates separate rendering functions
+async function loadMajors(offset = 0,limit = 10, keyword = '', isSearch = false) {
     try {
-
         const queryParams = new URLSearchParams({
-            page,
-            limit: itemsPerPage,
+            offset: offset,
+            limit: limit,
             search: keyword || '',
         });
 
         const url = `/api/major/search?${queryParams.toString()}`;
-
         const response = await fetch(url);
         const result = await response.json();
 
-        const tbody = document.getElementById('majorTableBody');
-        const pagination = document.getElementById('pagination');
-
-        // Hiển thị tổng số ngành
-        const totalCount = result.totalCount || 0;
-        document.querySelector('.card-stats h5').innerText = totalCount;
-
-        tbody.innerHTML = '';
-        pagination.innerHTML = '';
-
-        if (result.data && result.data.length > 0) {
-            result.data.forEach((major) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><input type="checkbox" class="majorCheckbox" value="${major.MajorID}"></td> 
-                    <td>${major.MajorID}</td>
-                    <td>${major.MajorName}</td>
-                    <td>
-                        <button class="btn btn-outline-primary" onclick="loadMajorEdit('${major.MajorID}')">
-                            <i class="bi bi-gear-fill"></i> Sửa
-                        </button>
-                    </td>
-                    <td>
-                        <button class="btn btn-outline-danger" onclick="handleDeleteMajor('${major.MajorID}')">
-                            <i class="bi bi-trash"></i> Xóa
-                        </button>
-                    </td>
-
-                `;
-                tbody.appendChild(row);
-                document.getElementById('selectAll').addEventListener('change', function () {
-                    const isChecked = this.checked;
-                    document.querySelectorAll('.majorCheckbox').forEach(cb => {
-                        cb.checked = isChecked;
-                    });
-                });
-            });
-
-            const totalPages = Math.ceil(result.totalCount / itemsPerPage);
-
-            if (page > 1) {
-                const prevButton = document.createElement('li');
-                prevButton.classList.add('page-item');
-                prevButton.innerHTML = `<a class="page-link" href="#" onclick="loadMajors(${page - 1})">&laquo;</a>`;
-                pagination.appendChild(prevButton);
+        if (isSearch) {
+            //Thông báo
+            const toastMessage = document.getElementById('toastMessage');
+            const toastElement = new bootstrap.Toast(document.getElementById('majorToast'));
+            if (result.data['totalCount'] === 0) {
+                toastMessage.innerText = 'Không tìm thấy ngành nào';
+                document.getElementById('majorToast').classList.remove('text-bg-success');
+                document.getElementById('majorToast').classList.add('text-bg-danger');
+            } else {
+                toastMessage.innerText = `Tìm thấy ${result.data['totalCount']} ngành`;
+                document.getElementById('majorToast').classList.remove('text-bg-danger');
+                document.getElementById('majorToast').classList.add('text-bg-success');
             }
-
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('li');
-                pageButton.classList.add('page-item');
-                pageButton.classList.toggle('active', i === page);
-                pageButton.innerHTML = `<a class="page-link" href="#" onclick="loadMajors(${i})">${i}</a>`;
-                pagination.appendChild(pageButton);
-            }
-
-            if (page < totalPages) {
-                const nextButton = document.createElement('li');
-                nextButton.classList.add('page-item');
-                nextButton.innerHTML = `<a class="page-link" href="#" onclick="loadMajors(${page + 1})">&raquo;</a>`;
-                pagination.appendChild(nextButton);
-            }
-        } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
+            toastElement.show();
         }
+
+        // Update the count display
+        document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
+
+        // Call separated functions for rendering table and pagination
+        renderMajorTable(result.data['major'] || []);
+        pagination.render({
+            currentPage: result.data['currentPage'],
+            totalPages: result.data['totalPages'],
+            limit: limit,
+            totalItems: result.data['totalCount']
+        })
+        currentOffset = offset;
+        itemsPerPage = limit;
+        // Reset select all checkbox
+        document.getElementById('selectAll').checked = false;
     } catch (error) {
         console.error('Lỗi tải ngành:', error);
     }
-    document.getElementById('selectAll').checked = false;
+}
+
+// Separated function for rendering the majors table
+function renderMajorTable(majors) {
+    const tbody = document.getElementById('majorTableBody');
+    tbody.innerHTML = '';
+
+    if (majors && majors.length > 0) {
+        majors.forEach((major) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="checkbox" class="majorCheckbox" value="${major.MajorID}"></td> 
+                <td class="idMajor">${major.MajorID}</td>
+                <td>${major.MajorName}</td>
+                <td>
+                    <button class="btn btn-outline-primary" id="editMajorBtn">
+                        <i class="bi bi-gear-fill"></i> Sửa
+                    </button>
+                </td>
+                <td>
+                    <button class="btn btn-outline-danger" id="deleteMajorBtn">
+                        <i class="bi bi-trash"></i> Xóa
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        // Add event listener for "select all" checkbox
+        document.getElementById('selectAll').addEventListener('change', function () {
+            const isChecked = this.checked;
+            document.querySelectorAll('.majorCheckbox').forEach(cb => {
+                cb.checked = isChecked;
+            });
+        });
+        document.querySelectorAll('#majorTableBody .btn').forEach(button => {
+            button.addEventListener('click', async function () {
+                const row = this.closest('tr');
+                const firstTd = row?.querySelector('.idMajor');
+                if (firstTd) {
+                    const action = this.id;
+                    const id = firstTd.textContent.trim();
+                    if (action === "editMajorBtn") {
+                        await loadMajorEdit(id);
+                    } else if (action === "deleteMajorBtn") {
+                        await handleDeleteMajor(id);
+                    }
+                }
+            });
+        });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
+    }
 }
 
 //Xóa ngành
-
 async function deleteMajor(id) {
     try {
         const response = await fetch(`/api/major/${id}`, {
@@ -309,7 +432,7 @@ async function handleDeleteMajor(id) {
         });
 
         if (res.success) {
-            loadMajors(currentMajorPage);
+            loadMajors(currentOffset, itemsPerPage);
         }
     }
 }
@@ -366,6 +489,8 @@ async function deleteSelectedMajors() {
             confirmButtonText: 'Đóng'
         });
 
-        loadMajors(currentMajorPage);
+        loadMajors(currentOffset, itemsPerPage);
     }
 }
+
+export {initMajor};

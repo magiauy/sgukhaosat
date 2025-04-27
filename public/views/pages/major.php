@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-
-<body>
+<div class="container mt-4">
     <div class="card-stats">
         <div class="card">
             <h5>0</h5>
@@ -26,14 +18,14 @@
     <div class="filter-section d-flex align-items-center gap-2">
         <div class="d-flex flex-grow-1">
             <input type="text" id="majorKeyword" class="form-control" placeholder="Tìm kiếm: Nhập mã hoặc tên ngành">
-            <button class="btn btn-outline-primary ms-2" onclick="loadFilteredMajors()">Lọc</button>
+            <button class="btn btn-outline-primary ms-2 btn-search" id="majorSearchBtn">Lọc</button>
         </div>
 
         <div class="action-buttons ms-auto d-flex gap-2">
-            <button class="btn btn-outline-danger" onclick="deleteSelectedMajors()">
+            <button class="btn btn-outline-danger btn-delete-major" id="majorDeleteBtn">
                 <i class="bi bi-trash"></i> Xóa
             </button>
-            <button class="btn btn-outline-primary" onclick="loadMajorAdd()">
+            <button class="btn btn-outline-primary btn-add-major" id="majorAddBtn">
                 <i class="bi bi-plus"></i> Thêm ngành
             </button>
         </div>
@@ -43,11 +35,11 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th><input type="checkbox" id="selectAll"></th>
-                <th>Mã Ngành</th>
-                <th>Ngành</th>
-                <th>Sửa</th>
-                <th>Xóa</th>
+                <th class="col-1"><input type="checkbox" id="selectAll"></th>
+                <th class="col-2">Mã Ngành</th>
+                <th class="col-5">Ngành</th>
+                <th class="col-2">Sửa</th>
+                <th class="col-2">Xóa</th>
             </tr>
         </thead>
         <tbody id="majorTableBody">
@@ -57,6 +49,4 @@
         <ul class="pagination justify-content-center" id="pagination">
         </ul>
     </nav>
-</body>
-
-</html>
+</div>

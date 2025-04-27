@@ -1,94 +1,81 @@
 <?php
-//Load web page with the following code
-use Controllers\FormController;
-use Middlewares\JwtMiddleware;
-use Core\Response;
 use Core\Request;
-
-$uri = trim($_SERVER['REQUEST_URI'], '/');
-if (str_contains($uri, 'public/views/pages') || str_contains($uri, '.php')) {
-    header('Location: /');
-    exit;
-}
-$requestMethod = $_SERVER['REQUEST_METHOD'];
-$headers = getallheaders();
+use Core\Response;
+use Core\Router;
+use Middlewares\JwtMiddleware;
 
 $request = new Request();
 $response = new Response();
+$router = new Router();
 $token = $_COOKIE['access_token'] ?? null;
 
-switch (true) {
-    case ($uri === ''):
-        require_once __DIR__ . '/../../public/views/pages/home.php';
-        break;
-    case ($uri === 'login'):
-        require_once __DIR__ . '/../../public/views/pages/login.php';
-        break;
-    case ($uri === 'admin' ):
-        switch (JwtMiddleware::authenticatePage($token, "ACCESS_ADMIN")){
-                case 200:
-                    require_once __DIR__ . '/../../public/views/admin/index.php';
-                    break;
-                case 403:
-                    showErrorPage(403);
-                    break;
-                case 401:
-                    header('Location: /login');
-                    break;
-                default:
-                    showErrorPage(500);
-                    break;
-            }
-        break;
-    case ($uri === 'admin/form'):
-        require_once __DIR__ . '/../../public/views/admin/form.php';
-        break;
-    case ($uri === '403'):
-        showErrorPage(403);
-        break;
-    case ($uri === '401'):
-        showErrorPage(401);
-        break;
-    case($uri === 'quytrinh/chuandaura'):
-        require_once __DIR__ . '/../../public/views/pages/chuandaura.php';
-        break;
-    case (preg_match('/^admin\/form\/(\d+)\/edit\?status=draft$/', $uri, $matches)):
-    case (preg_match('/^admin\/form\/(\d+)\/edit$/', $uri, $matches)):
-        $formId = $matches[1];
-        require_once __DIR__ . '/../../public/views/admin/Form_Editor.php';
-        break;
-        //URI: admin/form/{formId}/edit?status=draft
-    case ($uri === 'admin/form/create'):
-        switch (JwtMiddleware::authenticatePage($token, "MANAGE_FORMS")){
+// Middleware function to handle authentication
+function authMiddleware($permission, $callback) {
+    global $token;
+    return function() use ($token, $permission, $callback) {
+        $result = JwtMiddleware::authenticatePage($token, $permission);
+        switch ($result) {
             case 200:
-                require_once __DIR__ . '/../../public/views/admin/Form_Editor.php';
-                break;
+                return $callback();
             case 403:
                 showErrorPage(403);
-                break;
+                exit;
             case 401:
                 header('Location: /login');
-                break;
+                exit;
             default:
                 showErrorPage(500);
-                break;
+                exit;
         }
-        break;
-//        if (path.match(/\/form\/(\d+)/)) {
-    case (preg_match('/form\/(\d+)/', $uri, $matches)):
-        require_once __DIR__ . '/../../public/views/pages/form.php';
-        break;
-    case ($uri === 'form'):
-        require_once __DIR__ . '/../../public/views/pages/listform.php';
-        break;
-    default:
-                require_once __DIR__ . '/../../public/views/404.php';
-        break;
-
+    };
 }
 
-function showErrorPage($errorCode)
-{
+// Basic pages - no /api/ prefix for web routes
+$router->get('/', function() {
+    require_once __DIR__ . '/../../public/views/pages/home.php';
+});
+
+$router->get('/login', function() {
+    require_once __DIR__ . '/../../public/views/pages/login.php';
+});
+
+// Admin routes with auth middleware
+$router->get('/admin', authMiddleware("ACCESS_ADMIN", function() {
+    require_once __DIR__ . '/../../public/views/admin/index.php';
+}));
+
+$router->get('/admin/form', function() {
+    require_once __DIR__ . '/../../public/views/admin/form.php';
+});
+
+$router->get('/admin/form/create', authMiddleware("MANAGE_FORMS", function() {
+    require_once __DIR__ . '/../../public/views/admin/Form_Editor.php';
+}));
+
+$router->get('/admin/form/{id}/edit', function($params) {
+    $formId = $params['id'];
+    require_once __DIR__ . '/../../public/views/admin/Form_Editor.php';
+});
+
+// Other pages
+$router->get('/quytrinh/chuandaura', function() {
+    require_once __DIR__ . '/../../public/views/pages/chuandaura.php';
+});
+
+$router->get('/form/{id}', function($params) {
+    require_once __DIR__ . '/../../public/views/pages/form.php';
+});
+
+$router->get('/form', function() {
+    require_once __DIR__ . '/../../public/views/pages/listform.php';
+});
+
+// Error pages
+$router->get('/403', function() { showErrorPage(403); });
+$router->get('/401', function() { showErrorPage(401); });
+$router->get('/404', function() { showErrorPage(404); });
+
+function showErrorPage($errorCode) {
     switch ($errorCode) {
         case 401:
             http_response_code(401);
@@ -98,9 +85,24 @@ function showErrorPage($errorCode)
             http_response_code(403);
             require_once __DIR__ . '/../../public/views/403.php';
             break;
+        case 500:
+            http_response_code(500);
+            require_once __DIR__ . '/../../public/views/500.php';
+            break;
         default:
             http_response_code(404);
             require_once __DIR__ . '/../../public/views/404.php';
             break;
     }
+}
+
+// Giải quyết vấn đề 404 cho web routes - đặt đường dẫn này vào CUỐI CÙNG
+$router->get('/{any}', function() {
+    showErrorPage(404);
+});
+
+// Chỉ xử lý routing cho non-API requests
+$path = $_SERVER['REQUEST_URI'];
+if (!str_starts_with($path, '/api/')) {
+    $router->resolve($_SERVER['REQUEST_METHOD'], $path);
 }

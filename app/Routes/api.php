@@ -1,7 +1,7 @@
 <?php
-
 use Core\Request;
 use Core\Response;
+use Core\Router;
 use Middlewares\JwtMiddleware;
 use Controllers\UserController;
 use Controllers\FormController;
@@ -16,7 +16,9 @@ use Services\DraftService;
 
 $request = new Request();
 $response = new Response();
+$router = new Router();
 
+// Khởi tạo các controller
 $controller = new UserController();
 $formController = new FormController();
 $roleController = new RoleController();
@@ -27,159 +29,100 @@ $periodController = new PeriodController();
 $majorController = new MajorController();
 $formTypeController = new FormTypeController();
 
-
-$method = $_SERVER['REQUEST_METHOD'];
-$path = $_SERVER['REQUEST_URI'];
-
-switch (true) {
     // User APIs
-    case $method === 'POST' && $path === '/api/user':
-        $controller->create($response, $request);
-        break;
-    case $method === 'PUT' && str_starts_with($path, '/api/user') && isset($_GET['email']):
-        $controller->update($response, $request);
-        break;
-    case $method === 'DELETE' && str_starts_with($path, '/api/user') && isset($_GET['email']):
-        $controller->delete($response, $request);
-        break;
-    case $method === 'GET' && $path === '/api/getListUsers':
-    case $method === 'GET' && $path === '/api/user':
-        $controller->getAll($response, $request);
-        break;
-    case $method === 'GET' && str_starts_with($path, '/api/user') && isset($_GET['email']):
-        $controller->getById($response, $request);
-        break;
-    case $method === 'POST' && $path === '/api/login':
-        $controller->login($response, $request);
-        break;
-    case $method === 'POST' && $path === '/api/me':
-        JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req));
-        break;
-    case $method === 'POST' && $path === '/api/period':
-        $periodController->create($response, $request);
-        break;
-    case $method === 'GET' && preg_match('#^/api/period(\?.*)?$#', $path):
-        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
-        $periodController->getAll($response, $queryParams); 
-        break;
-    case $method === 'GET' && preg_match('#^/api/period/search(\?.*)?$#', $path):
-        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
-        $periodController->search($response, $queryParams); 
-        break;
-    case $method === 'GET' && preg_match('#^/api/period/(\d+)$#', $path, $matches):
-        $periodController->getById($response, $matches[1]);
-        break; 
-    case $method === 'PUT' && preg_match('#^/api/period/(\d+)$#', $path, $matches):
-        $_GET['id'] = $matches[1]; 
+    $router->post('/api/user', fn() => $controller->create($response, $request));
+    $router->put('/api/user', fn() => $controller->update($response, $request), ['email']);
+    $router->delete('/api/user', fn() => $controller->delete($response, $request), ['email']);
+    $router->get('/api/getListUsers', fn() => $controller->getAll($response, $request));
+    $router->get('/api/user', fn() => $controller->getAll($response, $request));
+    $router->get('/api/user', fn() => $controller->getById($response, $request), ['email']);
+    $router->post('/api/login', fn() => $controller->login($response, $request));
+    $router->post('/api/me', fn() =>
+        JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req))
+    );
+
+    // Period APIs
+    $router->post('/api/period', fn() => $periodController->create($response, $request));
+    $router->get('/api/period', function() use ($response, $periodController) {
+        parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY) ?? '', $queryParams);
+        $periodController->getAll($response, $queryParams);
+    });
+    $router->get('/api/period/search', function() use ($response, $periodController) {
+        parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY) ?? '', $queryParams);
+        $periodController->search($response, $queryParams);
+    });
+    $router->get('/api/period/{id}', fn($params) => $periodController->getById($response, $params['id']));
+    $router->put('/api/period/{id}', function($params) use ($response, $request, $periodController) {
+        $_GET['id'] = $params['id'];
         $periodController->update($response, $request);
-        break;
-    case $method === 'DELETE' && preg_match('#^/api/period/(\d+)$#', $path, $matches):
-        $_GET['id'] = $matches[1]; 
+    });
+    $router->delete('/api/period/{id}', function($params) use ($response, $request, $periodController) {
+        $_GET['id'] = $params['id'];
         $periodController->delete($response, $request);
-        break;
-            
+    });
 
-    case $method === 'POST' && $path === '/api/major':
-        $majorController->create($response, $request);
-        break;
-    case $method === 'GET' && preg_match('#^/api/major(\?.*)?$#', $path):
-        $majorController->getAll($response);
-        break;
-    case $method === 'GET' && preg_match('#^/api/major/search(\?.*)?$#', $path):
-        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
-        $majorController->search($response, $queryParams); 
-        break;
-    case $method === 'GET' && preg_match('#^/api/major/(\w+)$#', $path, $matches):
-        $majorController->getById($response, $matches[1]);
-        break; 
-    case $method === 'PUT' && preg_match('#^/api/major/(\w+)$#', $path, $matches):
-        $_GET['id'] = $matches[1]; 
+    // Major APIs
+    $router->post('/api/major', fn() => $majorController->create($response, $request));
+    $router->get('/api/major', fn() => $majorController->getAll($response));
+    $router->get('/api/major/search', function() use ($response,$request, $majorController) {
+        $majorController->search($response, $request);
+    });
+    $router->get('/api/major/{id}', fn($params) => $majorController->getById($response, $params['id']));
+    $router->put('/api/major/{id}', function($params) use ($response, $request, $majorController) {
+        $_GET['id'] = $params['id'];
         $majorController->update($response, $request);
-        break;
-    case $method === 'DELETE' && preg_match('#^/api/major/(\w+)$#', $path, $matches):
-        $_GET['id'] = $matches[1]; 
+    });
+    $router->delete('/api/major/{id}', function($params) use ($response, $request, $majorController) {
+        $_GET['id'] = $params['id'];
         $majorController->delete($response, $request);
-        break; 
+    });
 
-    case $method === 'POST' && $path === '/api/form-type':
-        $formTypeController->create($response, $request);
-        break;
-    case $method === 'GET' && preg_match('#^/api/form-type(\?.*)?$#', $path):
-        $formTypeController->getAll($response);
-        break;
-    case $method === 'GET' && preg_match('#^/api/form-type/search(\?.*)?$#', $path):
-        parse_str(parse_url($path, PHP_URL_QUERY), $queryParams);
-        $formTypeController->search($response, $queryParams); 
-        break;
-    case $method === 'GET' && preg_match('#^/api/form-type/(\w+)$#', $path, $matches):
-        $formTypeController->getById($response, $matches[1]);
-        break; 
-    case $method === 'PUT' && preg_match('#^/api/form-type/(\w+)$#', $path, $matches):
-        $_GET['id'] = $matches[1]; 
+    // Form Type APIs
+    $router->post('/api/form-type', fn() => $formTypeController->create($response, $request));
+    $router->get('/api/form-type', fn() => $formTypeController->getAll($response));
+    $router->get('/api/form-type/search', function() use ($response, $formTypeController) {
+        parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY) ?? '', $queryParams);
+        $formTypeController->search($response, $queryParams);
+    });
+    $router->get('/api/form-type/{id}', fn($params) => $formTypeController->getById($response, $params['id']));
+    $router->put('/api/form-type/{id}', function($params) use ($response, $request, $formTypeController) {
+        $_GET['id'] = $params['id'];
         $formTypeController->update($response, $request);
-        break;
-    case $method === 'DELETE' && preg_match('#^/api/form-type/(\w+)$#', $path, $matches):
-        $_GET['id'] = $matches[1]; 
+    });
+    $router->delete('/api/form-type/{id}', function($params) use ($response, $request, $formTypeController) {
+        $_GET['id'] = $params['id'];
         $formTypeController->delete($response, $request);
-        break;
-        
-            
+    });
 
     // Role APIs
-    case $method === 'POST' && $path === '/api/role':
-        $roleController->create($response, $request);
-        break;
-    case $method === 'PUT' && $path === '/api/role/id':
-        $roleController->update($response, $request);
-        break;
-    case $method === 'DELETE' && $path === '/api/role/id':
-        $roleController->delete($response, $request);
-        break;
-    case $method === 'GET' && $path === '/api/role/id':
-        $roleController->getById($response, $request);
-        break;
-    case $method === 'GET' && $path === '/api/role':
-        $roleController->getAll($response, $request);
-        break;
+    $router->post('/api/role', fn() => $roleController->create($response, $request));
+    $router->put('/api/role/id', fn() => $roleController->update($response, $request));
+    $router->delete('/api/role/id', fn() => $roleController->delete($response, $request));
+    $router->get('/api/role/id', fn() => $roleController->getById($response, $request));
+    $router->get('/api/role', fn() => $roleController->getAll($response, $request));
 
     // Permission APIs
-//    case $method === 'GET' && $path === '/api/permission':
-//        $roleController->getAll($response, $request);
-//        break;
-    case $method === 'POST' && $path === '/api/permission/id':
-        $permController->getById($response, $request);
-        break;
+    $router->post('/api/permission/id', fn() => $permController->getById($response, $request));
 
     // Draft APIs
-    case $method === 'POST' && $path === '/api/draft':
+    $router->post('/api/draft', fn() =>
         JwtMiddleware::authenticate($request, $response, "ADD_FORM", function ($request, $response) use ($formController) {
             $formController->createDraft($response, $request);
-        });
-        break;
-//    case $method === 'PUT' && $path === '/api/draft':
-        case $method === 'PUT' && str_starts_with($path, '/api/draft') && isset($_GET['id']):
+        })
+    );
+    $router->put('/api/draft', fn() =>
         JwtMiddleware::authenticate($request, $response, "EDIT_FORM", function ($request, $response) use ($draftController) {
             $draftController->update($response, $request);
-        });
-        break;
-    case $method === 'DELETE' && $path === '/api/draft':
-        $draftController->delete($response, $request);
-        break;
-    case $method === 'GET' && $path === '/api/draft':
-        $draftController->getAll($response, $request);
-        break;
-    case $method === 'GET' && isset($_GET['id']) && str_starts_with($path, '/api/draft'):
-        $draftController->getById($response, $request);
-        break;
-    case $method === 'GET' && isset($_GET['uid']) && str_starts_with($path, '/api/draft/user'):
-        $draftController->getByUserID($response, $request);
-        break;
-    case $method === 'GET' && $path === '/api/draft/id/generate':
-        $draftController->idGenerate($response, $request);
-        break;
+        })
+    , ['id']);
+    $router->delete('/api/draft', fn() => $draftController->delete($response, $request));
+    $router->get('/api/draft', fn() => $draftController->getAll($response, $request));
+    $router->get('/api/draft', fn() => $draftController->getById($response, $request), ['id']);
+    $router->get('/api/draft/user', fn() => $draftController->getByUserID($response, $request), ['uid']);
+    $router->get('/api/draft/id/generate', fn() => $draftController->idGenerate($response, $request));
 
     // Admin Form Page
-    case $method === 'GET' && $path === '/api/pages/survey':
+    $router->get('/api/pages/survey', fn() =>
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", function ($request, $response) use ($formController) {
             ob_start();
             require __DIR__ . "/../../public/views/admin/Manage_Form.php";
@@ -188,35 +131,36 @@ switch (true) {
                 'status' => true,
                 'html' => $html
             ]);
-        });
-        break;
+        })
+    );
 
-    case $method === 'GET' && $path === '/api/admin/form':
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getAll($res, $req));
-        break;
-    case $method === 'GET' && str_starts_with($path, '/api/form') && isset($_GET['id']):
-        JwtMiddleware::authenticate($request, $response, "", fn($req, $res) => $formController->getByIdForUser($res, $req));
-    break;
-    case $method === 'POST' && $path === '/api/admin/form':
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->create($res, $req));
-        break;
-    case $method === 'PUT' && str_starts_with($path, '/api/admin/form') && isset($_GET['id']):
-        JwtMiddleware::authenticate($request, $response, "EDIT_FORM", fn($req, $res) => $formController->update($res, $req));
-        break;
-    case $method === 'GET' && preg_match('#^/api/admin/form/(\d+)$#', $path, $matches):
-        $_GET['id'] = (int) $matches[1];
+    // Admin Form APIs
+    $router->get('/api/admin/form', fn() =>
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getAll($res, $req))
+    );
+    $router->get('/api/form', fn() =>
+        JwtMiddleware::authenticate($request, $response, "", fn($req, $res) => $formController->getByIdForUser($res, $req))
+    , ['id']);
+    $router->post('/api/admin/form', fn() =>
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->create($res, $req))
+    );
+    $router->put('/api/admin/form', fn() =>
+        JwtMiddleware::authenticate($request, $response, "EDIT_FORM", fn($req, $res) => $formController->update($res, $req))
+    , ['id']);
+    $router->get('/api/admin/form/{id}', function($params) use ($request, $response, $formController) {
+        $_GET['id'] = (int) $params['id'];
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getById($res, $req));
-        break;
+    });
 
-    case $method === 'GET' && preg_match('#^/api/admin/forms/pagination#', $path):
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getFormWithPagination($req, $res));
-        break;
+    // Form Pagination
+    $router->get('/api/admin/forms/pagination', fn() =>
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getFormWithPagination($req, $res))
+    );
+
     // Question Type
-    case $method === 'GET' && $path === '/api/question_type':
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $questionTypeController->getAll($res, $req));
-        break;
+    $router->get('/api/question_type', fn() =>
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $questionTypeController->getAll($res, $req))
+    );
 
-    default:
-        $response->json('Not found', 404);
-        break;
-}
+    // Xử lý routing
+    $router->resolve($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

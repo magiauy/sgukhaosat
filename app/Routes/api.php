@@ -184,7 +184,6 @@ switch (true) {
             ob_start();
             require __DIR__ . "/../../public/views/admin/Manage_Form.php";
             $html = ob_get_clean();
-//            $formController->getAllDataPage($request, $response, $html);
             $response->json([
                 'status' => true,
                 'html' => $html

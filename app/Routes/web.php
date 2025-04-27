@@ -6,6 +6,10 @@ use Core\Response;
 use Core\Request;
 
 $uri = trim($_SERVER['REQUEST_URI'], '/');
+if (str_contains($uri, 'public/views/pages') || str_contains($uri, '.php')) {
+    header('Location: /');
+    exit;
+}
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $headers = getallheaders();
 

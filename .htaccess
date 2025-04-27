@@ -1,0 +1,20 @@
+RewriteEngine On
+RewriteBase /
+
+# Chuyển hướng tất cả các yêu cầu đến public/index.php
+RewriteRule ^$ public/index.php [L]
+
+# Ngăn chặn truy cập đến các tệp PHP trong thư mục public/views/pages/
+RewriteCond %{REQUEST_URI} ^/public/views/pages/.*\.php$
+RewriteRule ^ - [F,L]  # Trả về mã lỗi 403 Forbidden
+
+# Kiểm tra nếu tệp hoặc thư mục không tồn tại, chuyển hướng về index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ index.php [L]
+
+# Deny access to .htaccess files
+<Files .htaccess>
+    Order deny,allow
+    Deny from all
+</Files>

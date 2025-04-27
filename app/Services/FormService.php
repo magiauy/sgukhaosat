@@ -387,8 +387,6 @@ public function update($id, $data)
 
     function getFormWithPagination($offset, $limit, $userId, $search = null, $sort = null){
         try {
-
-
             $forms = $this->formRepository->getFormWithPagination($offset, $limit, $userId, $search, $sort);
             $totalRecords = $this->formRepository->countFormsWithPagination($userId, $search);
             $currentPage = (int)($offset / $limit) + 1;

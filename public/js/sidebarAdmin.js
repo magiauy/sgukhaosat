@@ -3,6 +3,8 @@ import {renderContentRole} from "./roleAdmin.js";
 import {loadSurveyFromAPI} from "./formsManager.js";
 import {callApi} from "./apiService.js";
 import {initMajor} from "./major.js";
+import {initPeriod} from "./period.js";
+import {initFormType} from "./formType.js";
 
 function handleClickOnSidebar() {
     document.getElementById('toggleSidebar').onclick = () => {
@@ -24,11 +26,11 @@ function handleClickOnSidebar() {
                     break;
                 case "Chu kỳ":
                     await loadContent('/public/views/pages/period.php');
-                    loadPeriods();
+                    await initPeriod();
                     break;
                 case "Loại khảo sát":
                     await loadContent('/public/views/pages/formType.php');
-                    loadFTypes();
+                    await initFormType();
                     break;
                 case "Phân quyền":
                     renderContentRole();
@@ -88,21 +90,3 @@ function loadSurveyInformation(data) {
 
 
 handleClickOnSidebar()
-
-
-window.navigateToFTypeList = function () {
-    loadContent('/public/views/pages/formType.php')
-        .then(() => loadFTypes(currentFTypePage));
-}
-window.navigateToPeriodList = function () {
-    loadContent('/public/views/pages/period.php')
-        .then(() => loadPeriods(currentPeriodPage));
-}
-window.loadContentFTypeForm = async function () {
-    await loadContent('/public/views/pages/formTypeForm.php');
-    await new Promise(resolve => setTimeout(resolve, 0));
-}
-window.loadContentPeriodForm = async function () {
-    await loadContent('/public/views/pages/periodForm.php');
-    await new Promise(resolve => setTimeout(resolve, 0));
-}

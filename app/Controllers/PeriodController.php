@@ -15,35 +15,7 @@ class PeriodController {
     public function getAll(Response $response) {
         $response->json(['data' => $this->service->getAll()]);
     }
-    public function getPaginated(Response $response, Request $request) {
-        $page = (int)($request->getParam("page") ?? 1);
-        $limit = (int)($request->getParam("limit") ?? 5);
     
-        $offset = ($page - 1) * $limit;
-    
-        $periods = $this->service->getPaginated($limit, $offset);
-    
-        $totalCount = $this->service->getTotalCount();
-    
-        if ($periods) {
-            $response->json([
-                'data' => $periods,
-                'totalCount' => $totalCount
-            ]);
-        } else {
-            $response->json(['error' => 'Không có dữ liệu'], 404);
-        }
-    }
-    
-    public function getTotalCount(Response $response, array $queryParams) {
-        $startYear = $queryParams['startYear'] ?? null;
-        $endYear = $queryParams['endYear'] ?? null;
-         
-        $totalCount = $this->service->getTotalCount($startYear, $endYear);
-        
-        $response->json(['totalCount' => $totalCount]);
-    }
-
     public function getById(Response $response, $id) {
         if (!$id) return $response->json(['error' => 'ID is required'], 400);
     
@@ -56,6 +28,10 @@ class PeriodController {
         }
     }
     
+    public function getTotalCount(Response $response) {
+        $totalCount = $this->service->getTotalCount();
+        $response->json(['totalCount' => $totalCount]);
+    }
     
     public function create(Response $res, Request $req)
     {
@@ -103,22 +79,33 @@ class PeriodController {
         }
     }
     
-    public function search(Response $response, array $queryParams) {
-        $keyword = $queryParams['search'] ?? '';  
-        $page = (int)($queryParams['page'] ?? 1);  
-        $limit = (int)($queryParams['limit'] ?? 5); 
+    public function getPaginated(Response $response, Request $request) {
+        $page = (int)($request->getParam("page") ?? 1);
+        $limit = (int)($request->getParam("limit") ?? 5);
         $offset = ($page - 1) * $limit;
-        
-        $startYear = $queryParams['startYear'] ?? null;
-        $endYear = $queryParams['endYear'] ?? null;
-     
+    
+        $periods = $this->service->getPaginated($limit, $offset);
+        $totalCount = $this->service->getTotalCount();
+
+    
+        $response->json([
+            'data' => $periods,
+            'totalCount' => $totalCount
+        ]);
+    }
+    
+    public function search(Response $response, Request $request) {
+        $keyword = $request->getParam('search') ?? '';
+        $limit = (int)($request->getParam('limit') ?? 10);
+        $offset = (int)($request->getParam('offset') ?? 0);
+        $startYear = $request->getParam('startYear') ?? null;
+        $endYear = $request->getParam('endYear') ?? null;
+    
         $result = $this->service->searchPaginated($keyword, $limit, $offset, $startYear, $endYear);
-         
-        $total = $this->service->searchCount($keyword, $startYear, $endYear);
-        
+    
         $response->json([
             'data' => $result,
-            'totalCount' => $total
+            'status' => true,
         ]);
     }
     

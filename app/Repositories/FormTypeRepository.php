@@ -21,6 +21,12 @@ class FormTypeRepository {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function isFTypeIDExists(string $fTypeID): bool {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM form_type WHERE FTypeID = ?");
+        $stmt->execute([$fTypeID]);
+        return $stmt->fetchColumn() > 0;
+    }
+    
     public function getTotalCount(): int {
         $stmt = $this->pdo->query("SELECT COUNT(*) FROM form_type");
         return $stmt->fetchColumn();

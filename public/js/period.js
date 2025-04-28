@@ -1,16 +1,122 @@
-let currentPeriodPage = 1;
-const itemsPerPage = 5;
+import PaginationComponent from "./component/pagination.js";
+
+let currentOffset = 0;
+let itemsPerPeriodPage = 5;
 let editingPeriodId = null;
 
-async function renderPeriod(mode, periodData = null) {
-    await loadContentPeriodForm();
+const pagination = new PaginationComponent({
+    containerId: 'pagination',
+    onPageChange: (offset, limit) => {
+        loadPeriods(offset, limit);
+    },
+    onLimitChange: (offset, limit) => {
+        loadPeriods(offset, limit);
+    }
+})
 
+
+async function initPeriod() {
+    await setupHandlers();
+    await loadPeriods();
+
+}
+
+async function setupHandlers() {
+    document.getElementById('periodAddBtn').addEventListener('click', loadPeriodAdd);
+    document.getElementById('periodSearchBtn').addEventListener('click', loadFilteredPeriods);
+    document.getElementById('periodDeleteBtn').addEventListener('click', deleteSelectedPeriods);
+    document.getElementById('periodKeyword').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            loadFilteredPeriods();
+        }
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener('hide.bs.modal', function (event) {
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+        });
+    });
+}
+
+
+
+async function renderPeriod(mode, periodData = null) {
+    // Create modal if it doesn't exist yet
+    let modalElement = document.getElementById('periodModal');
+    if (!modalElement) {
+        const modalHTML = `
+            <div class="modal fade" id="periodModal" tabindex="-1" aria-labelledby="periodModalLabel">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="periodTitle">Thêm chu kỳ</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                            <label for="startYearInput" class="form-label">Năm bắt đầu</label>
+                            <input type="number" class="form-control" id="startYearInput" placeholder="Năm bắt đầu">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="endYearInput" class="form-label">Năm kết thúc</label>
+                            <input type="number" class="form-control" id="endYearInput" placeholder="Năm kết thúc">
+                        </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="button" class="btn btn-primary" id="periodActionBtn">Thêm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        modalElement = document.getElementById('periodModal');
+
+        // Xử lý sự kiện khi modal được hiển thị
+        modalElement.addEventListener('show.bs.modal', function() {
+            // Đặt aria-hidden thành false TRƯỚC KHI modal được hiển thị
+            this.setAttribute('aria-hidden', 'false');
+        });
+
+        // Xử lý khi modal đã được hiển thị hoàn toàn
+        modalElement.addEventListener('shown.bs.modal', function() {
+            // Đảm bảo aria-hidden vẫn là false sau khi hiển thị
+            this.setAttribute('aria-hidden', 'false');
+
+            // Tự động focus vào input đầu tiên
+            const firstInput = this.querySelector('input:not([disabled])');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        });
+
+        // Xử lý khi modal đang bắt đầu đóng
+        modalElement.addEventListener('hide.bs.modal', function() {
+            // Chuyển focus ra khỏi các phần tử trong modal trước khi đóng
+            document.activeElement.blur();
+        });
+
+        // Xử lý khi modal đã đóng hoàn toàn
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            // Đặt lại aria-hidden="true" khi modal đã đóng hoàn toàn
+            this.setAttribute('aria-hidden', 'true');
+        });
+    }
+
+    // Configure modal based on mode
     const title = document.getElementById("periodTitle");
     const startYearInput = document.getElementById("startYearInput");
     const endYearInput = document.getElementById("endYearInput");
     const actionBtn = document.getElementById("periodActionBtn");
 
     if (mode === "add") {
+        document.getElementById("startYearInput").value = '';
+        document.getElementById("endYearInput").value = '';
         title.textContent = "Thêm chu kỳ";
         actionBtn.textContent = "Thêm";
         actionBtn.onclick = () => addPeriod();
@@ -18,12 +124,21 @@ async function renderPeriod(mode, periodData = null) {
         title.textContent = "Sửa chu kỳ";
         actionBtn.textContent = "Lưu thay đổi";
         actionBtn.onclick = () => updatePeriod();
-
         if (periodData) {
             startYearInput.value = periodData.startYear || "";
             endYearInput.value = periodData.endYear || "";
         }
     }
+    // Show the modal
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: false
+    });
+
+    // Đặt aria-hidden thành false trước khi hiển thị
+    modalElement.setAttribute('aria-hidden', 'false');
+    modal.show();
+
 }
 
 //Thêm chu kỳ
@@ -73,6 +188,8 @@ async function addPeriod() {
             }
 
             toastElement.show();
+            loadPeriods(currentOffset, itemsPerPeriodPage);
+
         } catch (error) {
             toastMessage.innerText = 'Lỗi: ' + error.message;
             document.getElementById('periodToast').classList.remove('text-bg-success');
@@ -144,6 +261,8 @@ async function updatePeriod() {
             document.getElementById('periodToast').classList.remove('text-bg-danger');
             document.getElementById('periodToast').classList.add('text-bg-success');
             toastElement.show();
+            loadPeriods(currentOffset, itemsPerPeriodPage);
+
         } else {
             toastMessage.innerText = result.message || 'Cập nhật thất bại';
             document.getElementById('periodToast').classList.remove('text-bg-success');
@@ -160,13 +279,13 @@ async function updatePeriod() {
 
 //Tìm kiếm chu kỳ
 async function loadFilteredPeriods() {
-    const searchKeyword = document.getElementById('searchInput').value.trim();
-    document.getElementById('searchInput').value = '';
-    await loadPeriods(1, searchKeyword);
+    const searchKeyword = document.getElementById('periodKeyword').value.trim();
+    document.getElementById('periodKeyword').value = '';
+    await loadPeriods(0, itemsPerPeriodPage, searchKeyword,true);
 }
 
 
-async function loadPeriods(page = 1, keyword = '') {
+async function loadPeriods(offset = 0,limit = 10, keyword = '', isSearch = false) {
     try {
         const startYear = document.getElementById('startYearFilter').value.trim();
         const endYear = document.getElementById('endYearFilter').value.trim();
@@ -175,8 +294,8 @@ async function loadPeriods(page = 1, keyword = '') {
         document.getElementById('endYearFilter').value = '';
 
         const queryParams = new URLSearchParams({
-            page,
-            limit: itemsPerPage,
+            offset: offset,
+            limit: limit,
             search: keyword || '',
             startYear: startYear || '',
             endYear: endYear || ''
@@ -186,90 +305,98 @@ async function loadPeriods(page = 1, keyword = '') {
 
         const response = await fetch(url);
         const result = await response.json();
+        console.log(result);
+        console.log(result.data['period']);
 
-        const tbody = document.getElementById('periodTableBody');
-        const pagination = document.getElementById('pagination');
-
-        // Hiển thị tổng số chu kỳ
-        const totalCount = result.totalCount || 0;
-        document.querySelector('.card-stats h5').innerText = totalCount;
-
-        tbody.innerHTML = '';
-        pagination.innerHTML = '';
-
-        if (result.data && result.data.length > 0) {
-            result.data.forEach((period, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><input type="checkbox" class="periodCheckbox" value="${period.periodID}"></td> 
-                    <td>${(page - 1) * itemsPerPage + index + 1}</td>
-                    <td>${period.startYear}</td>
-                    <td>${period.endYear}</td>
-                    <td>
-                        <button class="btn btn-outline-primary" onclick="loadPeriodEdit(${period.periodID})">
-                            <i class="bi bi-gear-fill"></i> Sửa
-                        </button>
-                    </td>
-                    <td>
-                        <button class="btn btn-outline-danger" onclick="handleDeletePeriod(${period.periodID})">
-                            <i class="bi bi-trash"></i> Xóa
-                        </button>
-                    </td>
-
-                `;
-                tbody.appendChild(row);
-                document.getElementById('selectAll').addEventListener('change', function () {
-                    const isChecked = this.checked;
-                    document.querySelectorAll('.periodCheckbox').forEach(cb => {
-                        cb.checked = isChecked;
-                    });
-                });
-            });
-
-            const totalPages = Math.ceil(result.totalCount / itemsPerPage);
-
-            if (page > 1) {
-                const prevButton = document.createElement('li');
-                prevButton.classList.add('page-item');
-                prevButton.innerHTML = `<a class="page-link" href="#" onclick="loadPeriods(${page - 1})">&laquo;</a>`;
-                pagination.appendChild(prevButton);
+        if (isSearch) {
+            //Thông báo
+            const toastMessage = document.getElementById('toastMessage');
+            const toastElement = new bootstrap.Toast(document.getElementById('periodToast'));
+            if (result.data['totalCount'] === 0) {
+                toastMessage.innerText = 'Không tìm thấy chu kỳ nào';
+                document.getElementById('periodToast').classList.remove('text-bg-success');
+                document.getElementById('periodToast').classList.add('text-bg-danger');
+            } else {
+                toastMessage.innerText = `Tìm thấy ${result.data['totalCount']} ngành`;
+                document.getElementById('periodToast').classList.remove('text-bg-danger');
+                document.getElementById('periodToast').classList.add('text-bg-success');
             }
-
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('li');
-                pageButton.classList.add('page-item');
-                pageButton.classList.toggle('active', i === page);
-                pageButton.innerHTML = `<a class="page-link" href="#" onclick="loadPeriods(${i})">${i}</a>`;
-                pagination.appendChild(pageButton);
-            }
-
-            if (page < totalPages) {
-                const nextButton = document.createElement('li');
-                nextButton.classList.add('page-item');
-                nextButton.innerHTML = `<a class="page-link" href="#" onclick="loadPeriods(${page + 1})">&raquo;</a>`;
-                pagination.appendChild(nextButton);
-            }
-        } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
+            toastElement.show();
         }
+
+        // Update the count display
+        document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
+
+        // Call separated functions for rendering table and pagination
+        renderPeriodTable(result.data['period'] || []);
+        pagination.render({
+            currentPage: result.data['currentPage'],
+            totalPages: result.data['totalPages'],
+            limit: limit,
+            totalItems: result.data['totalCount']
+        })
+        currentOffset = offset;
+        itemsPerPeriodPage = limit;
+        // Reset select all checkbox
+        document.getElementById('selectAll').checked = false;
     } catch (error) {
         console.error('Lỗi tải chu kỳ:', error);
     }
-    document.getElementById('selectAll').checked = false;
 }
 
 
+function renderPeriodTable(periods) {
+    const tbody = document.getElementById('periodTableBody');
+    tbody.innerHTML = '';
 
-function formatDate(dateStr) {
-    if (!dateStr.includes('-')) return dateStr; 
-    const date = new Date(dateStr);
-    return `${date.getDate().toString().padStart(2, '0')}/${
-             (date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    if (periods && periods.length > 0) {
+        periods.forEach((period) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="checkbox" class="periodCheckbox" value="${period.periodID}"></td> 
+                <td class="idPeriod">${period.periodID}</td>
+                <td>${period.startYear}</td>
+                <td>${period.endYear}</td>
+                <td>
+                    <button class="btn btn-outline-primary" id="editPeriodBtn">
+                        <i class="bi bi-gear-fill"></i> Sửa
+                    </button>
+                </td>
+                <td>
+                    <button class="btn btn-outline-danger" id="deletePeriodBtn">
+                        <i class="bi bi-trash"></i> Xóa
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        // Add event listener for "select all" checkbox
+        document.getElementById('selectAll').addEventListener('change', function () {
+            const isChecked = this.checked;
+            document.querySelectorAll('.periodCheckbox').forEach(cb => {
+                cb.checked = isChecked;
+            });
+        });
+        document.querySelectorAll('#periodTableBody .btn').forEach(button => {
+            button.addEventListener('click', async function () {
+                const row = this.closest('tr');
+                const firstTd = row?.querySelector('.idPeriod');
+                if (firstTd) {
+                    const action = this.id;
+                    const id = firstTd.textContent.trim();
+                    if (action === "editPeriodBtn") {
+                        await loadPeriodEdit(id);
+                    } else if (action === "deletePeriodBtn") {
+                        await handleDeletePeriod(id);
+                    }
+                }
+            });
+        });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
+    }
 }
-
-window.addEventListener('load', function() {
-    loadPeriods(currentPeriodPage); 
-});
 
 //Xóa chu kỳ
 
@@ -324,7 +451,7 @@ async function handleDeletePeriod(id) {
         });
 
         if (res.success) {
-            loadPeriods(currentPeriodPage);
+            loadPeriods(currentOffset, itemsPerPeriodPage);
         }
     }
 }
@@ -332,7 +459,7 @@ async function handleDeletePeriod(id) {
 
 async function deleteSelectedPeriods() {
     const selected = Array.from(document.querySelectorAll('.periodCheckbox:checked'))
-                          .map(cb => parseInt(cb.value));
+                          .map(cb => cb.value);
 
     if (selected.length === 0) {
         Swal.fire({
@@ -381,8 +508,9 @@ async function deleteSelectedPeriods() {
             confirmButtonText: 'Đóng'
         });
 
-        loadPeriods(currentPeriodPage);
+        loadPeriods(currentOffset, itemsPerPeriodPage);
     }
 }
 
+export {initPeriod};
 

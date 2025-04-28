@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-
-<body>
+<div class="container mt-4">
     <div class="card-stats">
         <div class="card">
             <h5>0</h5>
@@ -27,15 +19,19 @@
             <input type="number" class="form-control" id="endYearFilter" placeholder="Năm kết thúc">
         </div>
         <div class="d-flex gap-3 mt-2">
-            <button class="btn btn-outline-primary" onclick="loadFilteredPeriods()">Lọc</button>
+            <button class="btn btn-outline-primary" id="periodSearchBtn">Lọc</button>
         </div>
     </div>
 
     <div class="filter-section mt-3">
-        <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm theo năm bắt đầu hoặc kết thúc">
+        <input type="text" class="form-control" id="periodKeyword" placeholder="Tìm kiếm theo năm bắt đầu hoặc kết thúc">
         <div class="action-buttons mt-2">
-            <button class="btn btn-outline-danger" onclick="deleteSelectedPeriods()"><i class="bi bi-trash"></i> Xóa</button>
-            <button class="btn btn-outline-primary" onclick="loadPeriodAdd()"><i class="bi bi-plus"></i> Thêm chu kỳ</button>
+            <button class="btn btn-outline-danger" id="periodDeleteBtn">
+                <i class="bi bi-trash"></i> Xóa
+            </button>
+            <button class="btn btn-outline-primary" id="periodAddBtn">
+                <i class="bi bi-plus"></i> Thêm chu kỳ
+            </button>
         </div>
     </div>
 
@@ -57,6 +53,4 @@
         <ul class="pagination justify-content-center" id="pagination">
         </ul>
     </nav>
-</body>
-
-</html>
+</div>

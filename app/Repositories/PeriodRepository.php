@@ -2,7 +2,6 @@
 namespace Repositories;
 
 use PDO;
-use Exception;
 
 class PeriodRepository {
     private PDO $pdo;
@@ -16,12 +15,6 @@ class PeriodRepository {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getPaginated(int $limit, int $offset): array {
-        $stmt = $this->pdo->prepare("SELECT * FROM period LIMIT ? OFFSET ?");
-        $stmt->execute([$limit, $offset]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
     public function getTotalCount(): int {
         $stmt = $this->pdo->query("SELECT COUNT(*) FROM period");
         return $stmt->fetchColumn();
@@ -55,12 +48,20 @@ class PeriodRepository {
         return $stmt->execute([$id]);
     }
 
+    public function getPaginated($limit, $offset){
+        $stmt = $this->pdo->prepare("SELECT * FROM period LIMIT :limit OFFSET :offset");
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+    
     public function searchPaginated(string $keyword, int $limit, int $offset, ?string $startYear = null, ?string $endYear = null): array {
         $sql = "SELECT * FROM period WHERE 1=1";
         $params = [];
         
         if (!empty($keyword)) {
-            $sql .= " AND (CAST(startYear AS CHAR) LIKE :kw OR CAST(endYear AS CHAR) LIKE :kw)";
+            $sql .= " AND (CAST(periodID AS CHAR) LIKE :kw OR CAST(startYear AS CHAR) LIKE :kw OR CAST(endYear AS CHAR) LIKE :kw)";
             $params[':kw'] = "%$keyword%";
         }
     

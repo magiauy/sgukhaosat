@@ -47,9 +47,8 @@ $formTypeController = new FormTypeController();
         parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY) ?? '', $queryParams);
         $periodController->getAll($response, $queryParams);
     });
-    $router->get('/api/period/search', function() use ($response, $periodController) {
-        parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY) ?? '', $queryParams);
-        $periodController->search($response, $queryParams);
+    $router->get('/api/period/search', function() use ($response, $request, $periodController) {
+        $periodController->search($response, $request);
     });
     $router->get('/api/period/{id}', fn($params) => $periodController->getById($response, $params['id']));
     $router->put('/api/period/{id}', function($params) use ($response, $request, $periodController) {
@@ -80,9 +79,8 @@ $formTypeController = new FormTypeController();
     // Form Type APIs
     $router->post('/api/form-type', fn() => $formTypeController->create($response, $request));
     $router->get('/api/form-type', fn() => $formTypeController->getAll($response));
-    $router->get('/api/form-type/search', function() use ($response, $formTypeController) {
-        parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY) ?? '', $queryParams);
-        $formTypeController->search($response, $queryParams);
+    $router->get('/api/form-type/search', function() use ($response, $request, $formTypeController) {
+        $formTypeController->search($response, $request);
     });
     $router->get('/api/form-type/{id}', fn($params) => $formTypeController->getById($response, $params['id']));
     $router->put('/api/form-type/{id}', function($params) use ($response, $request, $formTypeController) {

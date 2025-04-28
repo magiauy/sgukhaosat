@@ -19,12 +19,12 @@ class FormTypeController {
     public function getById(Response $response, $id) {
         if (!$id) return $response->json(['error' => 'ID is required'], 400);
     
-        $Period = $this->service->getById($id);
+        $FType = $this->service->getById($id);
     
-        if ($Period) {
-            $response->json(['data' => $Period]);
+        if ($FType) {
+            $response->json(['data' => $FType]);
         } else {
-            $response->json(['error' => 'Chu kỳ không tồn tại'], 404);
+            $response->json(['error' => 'Loại khảo sát không tồn tại'], 404);
         }
     }
 
@@ -41,6 +41,9 @@ class FormTypeController {
         if (!$formTypeID || !$formTypeName) {
             return $res->json(['message' => 'Dữ liệu không hợp lệ'], 400);
         }
+        if ($this->service->isFTypeIDExists($formTypeID)) {
+            return $res->json(['message' => 'Loại khảo sát đã tồn tại. Vui lòng chọn mã loại khảo sát khác.'], 400);
+        }
 
         $this->service->create([
             'FTypeID' => $formTypeID,
@@ -53,20 +56,20 @@ class FormTypeController {
     public function update(Response $response, Request $request) {
         $id = $request->getParam("id");
         if (!$id) return $response->json(['error' => 'ID is required'], 400);
+
         $data = $request->getBody();
         $success = $this->service->update($id, $data);
         $response->json([
-            'message' => $success ? 'Cập nhật loại form thành công' : 'Cập nhật thất bại'
+            'message' => $success ? 'Cập nhật loại khảo sát thành công' : 'Cập nhật thất bại'
         ]);
     }
 
     public function delete(Response $response, Request $request) {
         $id = $request->getParam("id");
         if (!$id) return $response->json(['error' => 'ID is required'], 400);
-    
         $success = $this->service->delete($id);
         $response->json([
-            'message' => $success ? 'Xóa loại form thành công' : 'Xóa thất bại'
+            'message' => $success ? 'Xóa loại khảo sát thành công' : 'Xóa thất bại'
         ]);
     }
     
@@ -76,27 +79,24 @@ class FormTypeController {
         $limit = (int)($request->getParam("limit") ?? 5);
         $offset = ($page - 1) * $limit;
     
-        $majors = $this->service->getPaginated($limit, $offset);
+        $fType = $this->service->getPaginated($limit, $offset);
         $totalCount = $this->service->getTotalCount();
     
         $response->json([
-            'data' => $majors,
+            'data' => $fType,
             'totalCount' => $totalCount
         ]);
     }
     
-    public function search(Response $response, array $queryParams) {
-        $keyword = $queryParams['search'] ?? '';
-        $page = (int)($queryParams['page'] ?? 1);
-        $limit = (int)($queryParams['limit'] ?? 5);
-        $offset = ($page - 1) * $limit;
-    
+    public function search(Response $response, Request $request) {
+        $keyword = $request->getParam('search') ?? '';
+        $limit = (int)($request->getParam('limit') ?? 10);
+        $offset = (int)($request->getParam('offset') ?? 0);
         $result = $this->service->searchPaginated($keyword, $limit, $offset);
-        $total = $this->service->searchCount($keyword);
-    
+
         $response->json([
             'data' => $result,
-            'totalCount' => $total
+            'status' => true,
         ]);
     }
     

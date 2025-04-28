@@ -18,6 +18,10 @@ class PeriodService {
         return $this->repo->getById($id);
     }
 
+    public function getTotalCount(): int {
+        return $this->repo->getTotalCount();
+    }
+    
     public function create(array $data): bool {
         return $this->repo->create($data);
     }
@@ -30,18 +34,38 @@ class PeriodService {
         return $this->repo->delete($id);
     }
 
-    public function getPaginated(int $limit, int $offset): array {
-        return $this->repo->getPaginated($limit, $offset);
+    public function getPaginated($limit, $offset) {
+        $result = $this->repo->getPaginated($limit, $offset);
+        $totalCount = $this->repo->getTotalCount();
+        $currentPage = $offset / $limit + 1;
+        $totalPages = ceil($totalCount / $limit);
+        return [
+            'period' => $result,
+            'totalCount' => $totalCount,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'limit' => $limit
+        ];
     }
-
-    public function searchPaginated(string $keyword, int $limit, int $offset, ?string $startYear = null, ?string $endYear = null): array {
-        return $this->repo->searchPaginated($keyword, $limit, $offset, $startYear, $endYear);
+    
+    public function searchPaginated($keyword, $limit, $offset, $startYear = null, $endYear = null) {
+        $result = $this->repo->searchPaginated($keyword, $limit, $offset, $startYear, $endYear);
+        $totalCount = $this->repo->searchCount($keyword, $startYear, $endYear);
+        $currentPage = $offset / $limit + 1;
+        $totalPages = ceil($totalCount / $limit);
+    
+        return [
+            'period' => $result,
+            'totalCount' => $totalCount,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'limit' => $limit
+        ];
     }
-    public function getTotalCount(?string $startYear = null, ?string $endYear = null): int {
-        return $this->repo->searchCount('', $startYear, $endYear);
-    }
-    public function searchCount(string $keyword, ?string $startYear = null, ?string $endYear = null): int {
-        return $this->repo->searchCount($keyword, $startYear, $endYear);
+    
+    
+    public function searchCount($keyword) {
+        return $this->repo->searchCount($keyword);
     }
 
     

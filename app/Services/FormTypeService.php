@@ -23,7 +23,14 @@ class FormTypeService {
     }
     
     public function create(array $data): bool {
+        if ($this->isFTypeIDExists($data['FTypeID'])) {
+            return false; 
+        }
         return $this->repo->create($data);
+    }
+
+    public function isFTypeIDExists(string $fTypeID): bool {
+        return $this->repo->isFTypeIDExists($fTypeID);
     }
 
     public function update(string $id, array $data): bool {
@@ -35,11 +42,31 @@ class FormTypeService {
     }
 
     public function getPaginated($limit, $offset) {
-        return $this->repo->getPaginated($limit, $offset);
+        $result = $this->repo->getPaginated($limit, $offset);
+        $totalCount = $this->repo->getTotalCount();
+        $currentPage = $offset / $limit + 1;
+        $totalPages = ceil($totalCount / $limit);
+        return [
+            'fType' => $result,
+            'totalCount' => $totalCount,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'limit' => $limit
+        ];
     }
     
     public function searchPaginated($keyword, $limit, $offset) {
-        return $this->repo->searchPaginated($keyword, $limit, $offset);
+        $result = $this->repo->searchPaginated($keyword, $limit, $offset);
+        $totalCount = $this->repo->searchCount($keyword);
+        $currentPage = $offset / $limit + 1;
+        $totalPages = ceil($totalCount / $limit);
+        return [
+            'fType' => $result,
+            'totalCount' => $totalCount,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'limit' => $limit
+        ];
     }
     
     public function searchCount($keyword) {

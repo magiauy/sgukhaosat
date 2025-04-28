@@ -3,6 +3,7 @@ import PaginationComponent from "./component/pagination.js";
 let currentOffset = 0;
 let itemsPerPage = 5;
 let editingMajorId = null;
+
 const pagination = new PaginationComponent({
     containerId: 'pagination',
     onPageChange: (offset, limit) => {
@@ -191,7 +192,7 @@ async function addMajor() {
             }
 
             toastElement.show();
-            await loadMajors(currentMajorPage);
+            loadMajors(currentOffset, itemsPerPage);
         } catch (error) {
             console.error('Lỗi chi tiết:', error);
             const errorDetails = error.stack || error.message || 'Không có thông tin lỗi chi tiết';
@@ -255,6 +256,8 @@ async function updateMajor() {
             document.getElementById('majorToast').classList.remove('text-bg-danger');
             document.getElementById('majorToast').classList.add('text-bg-success');
             toastElement.show();
+            loadMajors(currentOffset, itemsPerPage);
+
         } else {
             toastMessage.innerText = result.message || 'Cập nhật thất bại';
             document.getElementById('majorToast').classList.remove('text-bg-success');
@@ -291,6 +294,8 @@ async function loadMajors(offset = 0,limit = 10, keyword = '', isSearch = false)
         const response = await fetch(url);
         const result = await response.json();
 
+        console.log(result);
+        console.log(result.data['major']);
         if (isSearch) {
             //Thông báo
             const toastMessage = document.getElementById('toastMessage');
@@ -440,7 +445,7 @@ async function handleDeleteMajor(id) {
 
 async function deleteSelectedMajors() {
     const selected = Array.from(document.querySelectorAll('.majorCheckbox:checked'))
-                          .map(cb => parseInt(cb.value));
+                          .map(cb => cb.value);
 
     if (selected.length === 0) {
         Swal.fire({

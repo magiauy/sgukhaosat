@@ -17,8 +17,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
     <script src="/public/js/config.js"></script>
     <script src="/public/js/script.js"></script>
-<!--    <script src="/public/js/period.js"></script>-->
-<!--    <script src="/public/js/major.js"></script>-->
-<!--    <script src="/public/js/formType.js"></script>-->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>

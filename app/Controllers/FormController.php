@@ -255,4 +255,82 @@ class FormController implements IFormController{
 
     }
 
+    public function editFromWhitelist($res, $req, mixed $id)
+    {
+
+        $data = $req->getBody();
+        try {
+            $result = $this->formService->editFromWhitelist($id, $data);
+            if ($result) {
+                $res->json([
+                    'status' => true,
+                    'message' => 'Form updated successfully',
+                    'data' => $result
+                ]);
+            } else {
+                $res->json([
+                    'status' => false,
+                    'message' => 'Failed to update form'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            $res->json([
+                'status' => false,
+                'message' => 'Failed to update form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function addToWhitelist($res, $req, mixed $id)
+    {
+        $data = $req->getBody();
+        try {
+            $result = $this->formService->addToWhitelist($id, $data);
+            if ($result) {
+                $res->json([
+                    'status' => true,
+                    'message' => 'Form updated successfully',
+                    'data' => $result
+                ]);
+            } else {
+                $res->json([
+                    'status' => false,
+                    'message' => 'Failed to update form'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            $res->json([
+                'status' => false,
+                'message' => 'Failed to update form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getFormWhitelist($res, mixed $id)
+    {
+        try {
+            $result = $this->formService->getFormWhitelist($id);
+            if ($result) {
+                $res->json([
+                    'status' => true,
+                    'message' => 'Form retrieved successfully',
+                    'data' => $result
+                ]);
+            } else {
+                $res->json([
+                    'status' => false,
+                    'message' => 'No forms found'
+                ]);
+            }
+        } catch (\Exception $e) {
+            $res->json([
+                'status' => false,
+                'message' => 'Failed to retrieve forms',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

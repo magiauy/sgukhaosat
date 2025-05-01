@@ -7,7 +7,9 @@ use Repositories\DraftRepository;
 use Repositories\Interface\IDraftRepository;
 use Repositories\Interface\IFormRepositoryTransaction;
 use Repositories\Interface\IQuestionRepository;
+use Repositories\Interface\IWhitelistForm;
 use Repositories\QuestionRepository;
+use Repositories\WhitelistForm;
 use Services\Interface\IBaseService;
 use Repositories\FormRepository;
 use Services\Interface\IFormService;
@@ -17,11 +19,13 @@ class FormService implements IFormService
     private IFormRepositoryTransaction $formRepository;
     private IQuestionRepository $questionRepository;
     private IDraftRepository $draftRepository;
+    private IWhitelistForm $whitelistFormRepository;
     function __construct()
     {
         $this->formRepository = new FormRepository();
         $this->questionRepository = new QuestionRepository();
         $this->draftRepository = new DraftRepository();
+        $this->whitelistFormRepository = new WhitelistForm();
     }
 
     function createDraft( $userId)
@@ -455,6 +459,46 @@ public function update($id, $data)
             ];
         } catch (Exception $e) {
             throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
+        }
+    }
+
+    function editFromWhitelist($id, $data)
+    {
+        try {
+            $result = $this->whitelistFormRepository->delete($id);
+            $this->whitelistFormRepository->create($id, $data);
+            return [
+                'status' => true,
+                'message' => 'Cập nhật danh sách truy cập thành công',
+                'data' => $result,
+            ];
+        } catch (Exception $e) {
+            return [
+                'status' => false,
+                'message' => 'Cập nhật danh sách truy cập thất bại',
+                'error' => $e->getMessage()
+            ];
+        }
+
+    }
+
+    function addToWhitelist($id, $data)
+    {
+        $result = $this->whitelistFormRepository->create($id, $data);
+        if ($result) {
+            return $result;
+        } else {
+            return null;
+        }
+    }
+
+    function getFormWhitelist($id)
+    {
+        $result = $this->whitelistFormRepository->getByFormID($id);
+        if ($result) {
+            return $result;
+        } else {
+            return null;
         }
     }
 }

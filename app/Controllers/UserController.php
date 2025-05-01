@@ -7,6 +7,7 @@
         use Core\Response;
         use Core\jwt_helper;
         // use Middlewares\JwtMiddleware;
+        use http\Params;
         use Services\Interface\IAuthService;
         use Services\Interface\IBaseService;
         use Services\RoleService;
@@ -146,6 +147,16 @@
                         'data' => $data
                     ]);
                 }catch (\Exception $e){
+                    $response->json(['error' => $e->getMessage()], $e->getCode());
+                }
+            }
+
+            public function getAllWithoutWhitelist(Response $response, Request $request, $id)
+            {
+                try {
+                    $users = $this->userService->getAllWithoutWhitelist($id);
+                    $response->json(['data' => $users]);
+                } catch (\Exception $e) {
                     $response->json(['error' => $e->getMessage()], $e->getCode());
                 }
             }

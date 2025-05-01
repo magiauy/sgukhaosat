@@ -4,7 +4,9 @@ namespace Services;
 use Core\jwt_helper;
 use Exception;
 use Repositories\Interface\IBaseRepository;
+use Repositories\Interface\IWhitelistForm;
 use Repositories\UserRepository;
+use Repositories\WhitelistForm;
 use Services\Interface\IAuthService;
 use Services\Interface\IBaseService;
 
@@ -12,11 +14,13 @@ class UserService implements IAuthService
 {
     private IBaseRepository $userRepository;
     private IBaseService $roleService;
+    private IWhitelistForm $whitelistForm;
 
     public function __construct()
     {
         $this->userRepository = new UserRepository();
         $this->roleService = new RoleService();
+        $this->whitelistForm = new WhitelistForm();
     }
 
     public function create($data): bool
@@ -117,4 +121,17 @@ class UserService implements IAuthService
     //     return $this->userRepository->getListUsers();
     // }
 
+    function getAllWithoutWhitelist($id)
+    {
+        $allUsers = $this->getAll();
+        $whitelistUsers = $this->whitelistForm->getByFormID($id);
+        // Extract UIDs from whitelist users
+        $whitelistUIDs = array_column($whitelistUsers, 'UID');
+
+        // Filter out users who are already in the whitelist
+        $filteredUsers = array_filter($allUsers, function($user) use ($whitelistUIDs) {
+            return !in_array($user['email'], $whitelistUIDs);
+        });
+        return array_values($filteredUsers); // Re-index array
+    }
 }

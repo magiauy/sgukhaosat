@@ -35,13 +35,15 @@ $formTypeController = new FormTypeController();
     $router->delete('/api/user', fn() => $controller->delete($response, $request), ['email']);
     $router->get('/api/getListUsers', fn() => $controller->getAll($response, $request));
     $router->get('/api/user', fn() => $controller->getAll($response, $request));
+    $router->get('/api/userWithoutWhitelist/{id}', fn($params) => $controller->getAllWithoutWhitelist($response, $request, $params['id']));
     $router->get('/api/user', fn() => $controller->getById($response, $request), ['email']);
     $router->post('/api/login', fn() => $controller->login($response, $request));
     $router->post('/api/me', fn() =>
         JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req))
     );
 
-    // Period APIs
+
+// Period APIs
     $router->post('/api/period', fn() => $periodController->create($response, $request));
     $router->get('/api/period', function() use ($response, $periodController) {
         parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY) ?? '', $queryParams);
@@ -91,6 +93,27 @@ $formTypeController = new FormTypeController();
         $_GET['id'] = $params['id'];
         $formTypeController->delete($response, $request);
     });
+
+    // Form Whitelist Management
+    $router->get('/api/forms/{id}/whitelist', function($params) use ($request, $response, $formController) {
+        $_GET['id'] = (int) $params['id'];
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $formController->getFormWhitelist($res, $params['id']));
+    });
+
+    $router->post('/api/forms/{id}/whitelist', function($params) use ($request, $response, $formController) {
+        $_GET['id'] = (int) $params['id'];
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $formController->addToWhitelist($res, $req, $params['id']));
+    });
+
+    $router->put('/api/forms/{id}/whitelist', function($params) use ($request, $response, $formController) {
+        $_GET['id'] = (int) $params['id'];
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $formController->editFromWhitelist($res, $req, $params['id']));
+    });
+
+
 
     // Role APIs
     $router->post('/api/role', fn() => $roleController->create($response, $request));

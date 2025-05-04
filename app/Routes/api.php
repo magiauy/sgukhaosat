@@ -41,6 +41,16 @@ $formTypeController = new FormTypeController();
     $router->post('/api/me', fn() =>
         JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req))
     );
+    // Excel Import APIs
+    $router->post('/api/excel/parse-emails', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $controller->parseEmails($res, $req));
+    });
+
+    $router->post('/api/users/bulk-create', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $controller->bulkCreate($res, $req));
+    });
 
 
 // Period APIs
@@ -111,6 +121,11 @@ $formTypeController = new FormTypeController();
         $_GET['id'] = (int) $params['id'];
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
             fn($req, $res) => $formController->editFromWhitelist($res, $req, $params['id']));
+    });
+    $router->delete('/api/forms/{id}/whitelist', function($params) use ($request, $response, $formController) {
+        $_GET['id'] = (int) $params['id'];
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $formController->deleteFromWhitelist($res, $req, $params['id']));
     });
 
 

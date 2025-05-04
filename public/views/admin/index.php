@@ -39,6 +39,11 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="/admin/results" class="nav-link">
+                            <i class="bi bi-clipboard-data"></i> <span class="nav-text">Kết quả khảo sát</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="bi bi-bar-chart"></i> <span class="nav-text">Phân quyền</span>
                         </a>

@@ -75,7 +75,10 @@ function renderSurvey(data) {
 
     document.querySelector(".form-content").innerHTML = surveyHtml;
     document.querySelector(".btn-submit-form").addEventListener("click", function() {
-        const formData = new FormData();
+
+
+
+
         alert("Cảm ơn bạn đã tham gia khảo sát!");
     });
 }

@@ -16,7 +16,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         try {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
-            console.log(`${config.apiUrl}`)
+            console.log(`${config.apiUrl}`);
+            
             const response = await fetch(`${config.apiUrl}/login`, {
                 method: "POST",
                 headers: {
@@ -24,6 +25,16 @@ document.addEventListener("DOMContentLoaded", async function () {
                 },
                 body: JSON.stringify({ email, password }),
             });
+            
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+           
+                const textResponse = await response.text();
+                console.error("Received non-JSON response:", textResponse);
+                throw new Error("Server returned invalid response format. Please try again later.");
+            }
+            
             const data = await response.json();
 
             if (response.ok) {
@@ -35,18 +46,19 @@ document.addEventListener("DOMContentLoaded", async function () {
                     window.location.href = "/";
                 }, 100);
             } else {
-                showPopup("Email hoặc mật khẩu không chính xác!", "error");
+                showPopup(data.message || "Email hoặc mật khẩu không chính xác!", "error");
             }
             console.log("Response:", data);
         } catch (error) {
             console.error("Lỗi khi gửi request:", error);
-            showPopup("Có lỗi xảy ra, vui lòng thử lại!", "error");
+            showPopup(error.message || "Có lỗi xảy ra khi kết nối đến máy chủ, vui lòng thử lại sau!", "error");
         } finally {
             // Enable lại form sau khi xử lý xong
             submitButton.disabled = false;
         }
     });
 });
+
 function showPopup(message, type = "success") {
     // Xóa modal cũ nếu có
     const existingModal = document.getElementById("popupModal");
@@ -83,5 +95,4 @@ function showPopup(message, type = "success") {
 
     // Tự động đóng sau 3 giây
     setTimeout(() => modal.hide(), 3000);
-
 }

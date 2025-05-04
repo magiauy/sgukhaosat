@@ -1,3 +1,6 @@
+
+
+
 async function fetchFormData(formId) {
     const response = await fetch(`/api/form?id=${formId}`);
     if (!response.ok) {
@@ -7,14 +10,23 @@ async function fetchFormData(formId) {
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
-  const path = window.location.pathname;
+    Loader.show();
+    const path = window.location.pathname;
   if (path.match(/\/form\/(\d+)/)) {
     const matches = path.match(/\/form\/(\d+)/);
     const formId = parseInt(matches[1], 10);
-    // Perform any actions with formId here
-    console.log('Form ID:', formId);
-    const formData = await fetchFormData(formId);
+
+    try {
+      console.log('Form ID:', formId);
+      const formData = await fetchFormData(formId);
       renderSurvey(formData['data']);
+    } catch (error) {
+      console.error('Error loading form:', error);
+      // Show an error message to the user if needed
+    } finally {
+        setTimeout(() => Loader.hide(), 600);
+        // Loader.hide();
+    }
   }
 });
 
@@ -64,11 +76,6 @@ function renderSurvey(data) {
     document.querySelector(".form-content").innerHTML = surveyHtml;
     document.querySelector(".btn-submit-form").addEventListener("click", function() {
         const formData = new FormData();
-
-        question
-
-
-
         alert("Cảm ơn bạn đã tham gia khảo sát!");
     });
 }

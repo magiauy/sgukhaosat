@@ -9,7 +9,7 @@ use Services\Interface\IBaseService;
 class PermissionService implements IBaseService
 {
 
-    private IBaseRepository $permRepository;
+    private PermissionRepository $permRepository;
 
     public function __construct()
     {

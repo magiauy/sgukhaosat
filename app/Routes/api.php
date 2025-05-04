@@ -11,6 +11,7 @@ use Controllers\QuestionTypeController;
 use Controllers\DraftController;
 use Controllers\PeriodController;
 use Controllers\MajorController;
+use Controllers\PositionController;
 use Controllers\FormTypeController;
 use Services\DraftService;
 
@@ -27,6 +28,7 @@ $questionTypeController = new QuestionTypeController();
 $draftController = new DraftController(new DraftService());
 $periodController = new PeriodController();
 $majorController = new MajorController();
+$positionController = new PositionController();
 $formTypeController = new FormTypeController();
 
     // User APIs
@@ -86,6 +88,22 @@ $formTypeController = new FormTypeController();
     $router->delete('/api/major/{id}', function($params) use ($response, $request, $majorController) {
         $_GET['id'] = $params['id'];
         $majorController->delete($response, $request);
+    });
+
+    // Position APIs
+    $router->post('/api/position', fn() => $positionController->create($response, $request));
+    $router->get('/api/position', fn() => $positionController->getAll($response));
+    $router->get('/api/position/search', function() use ($response,$request, $positionController) {
+        $positionController->search($response, $request);
+    });
+    $router->get('/api/position/{id}', fn($params) => $positionController->getById($response, $params['id']));
+    $router->put('/api/position/{id}', function($params) use ($response, $request, $positionController) {
+        $_GET['id'] = $params['id'];
+        $positionController->update($response, $request);
+    });
+    $router->delete('/api/position/{id}', function($params) use ($response, $request, $positionController) {
+        $_GET['id'] = $params['id'];
+        $positionController->delete($response, $request);
     });
 
     // Form Type APIs

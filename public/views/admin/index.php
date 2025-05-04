@@ -50,6 +50,11 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
+                        <i class="bi bi-book"></i> <span class="nav-text">Quản lý chức vụ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
                             <i class="bi bi-calendar-week"></i> <span class="nav-text">Chu kỳ</span>
                         </a>
                     </li>

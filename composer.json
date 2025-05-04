@@ -15,7 +15,8 @@
       "Routes\\": "app/Routes/",
       "Services\\" : "app/Services/",
       "Repositories\\" : "app/Repositories/",
-      "Middlewares\\" : "app/Middlewares/"
+      "Middlewares\\" : "app/Middlewares/",
+      "Utils\\" : "app/Utils/"
     }
   }
 }

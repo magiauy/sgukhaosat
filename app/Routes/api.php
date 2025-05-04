@@ -9,6 +9,8 @@ use Controllers\RoleController;
 use Controllers\PermissionController;
 use Controllers\QuestionTypeController;
 use Controllers\DraftController;
+use Controllers\ResultController;
+use Controllers\AnswerController;
 use Services\DraftService;
 
 $request = new Request();
@@ -20,6 +22,8 @@ $roleController = new RoleController();
 $permController = new PermissionController();
 $questionTypeController = new QuestionTypeController();
 $draftController = new DraftController(new DraftService());
+$resultController = new ResultController();
+$answerController = new AnswerController();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['REQUEST_URI'];
@@ -139,6 +143,61 @@ switch (true) {
     // Question Type
     case $method === 'GET' && $path === '/api/question_type':
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $questionTypeController->getAll($res, $req));
+        break;
+        
+    // Result APIs
+    case $method === 'POST' && $path === '/api/result':
+        $resultController->create($response, $request);
+        break;
+    case $method === 'PUT' && str_starts_with($path, '/api/result') && isset($_GET['id']):
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->update($res, $req));
+        break;
+    case $method === 'DELETE' && str_starts_with($path, '/api/result') && isset($_GET['id']):
+        JwtMiddleware::authenticate($request, $response, "DELETE_RESULT", fn($req, $res) => $resultController->delete($res, $req));
+        break;
+    case $method === 'GET' && str_starts_with($path, '/api/result') && isset($_GET['id']):
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->getById($res, $req));
+        break;
+    case $method === 'GET' && $path === '/api/result':
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->getAll($res, $req));
+        break;
+    case $method === 'GET' && str_starts_with($path, '/api/result/form') && isset($_GET['formId']):
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->getByForm($res, $req));
+        break;
+    case $method === 'GET' && str_starts_with($path, '/api/result/user') && isset($_GET['userId']):
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->getByUser($res, $req));
+        break;
+    case $method === 'GET' && str_starts_with($path, '/api/result/count') && isset($_GET['formId']):
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->countByForm($res, $req));
+        break;
+    case $method === 'POST' && $path === '/api/submit-survey':
+        $resultController->submitSurvey($response, $request);
+        break;
+        
+    // Answer APIs
+    case $method === 'POST' && $path === '/api/answer':
+        $answerController->create($response, $request);
+        break;
+    case $method === 'PUT' && str_starts_with($path, '/api/answer') && isset($_GET['id']):
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->update($res, $req));
+        break;
+    case $method === 'DELETE' && $path === '/api/answer':
+        JwtMiddleware::authenticate($request, $response, "DELETE_RESULT", fn($req, $res) => $answerController->delete($res, $req));
+        break;
+    case $method === 'POST' && $path === '/api/answer/get':
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getById($res, $req));
+        break;
+    case $method === 'GET' && $path === '/api/answer':
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getAll($res, $req));
+        break;
+    case $method === 'GET' && str_starts_with($path, '/api/answer/result') && isset($_GET['resultId']):
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getByResult($res, $req));
+        break;
+    case $method === 'GET' && str_starts_with($path, '/api/answer/question') && isset($_GET['questionId']):
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getByQuestion($res, $req));
+        break;
+    case $method === 'GET' && str_starts_with($path, '/api/answer/statistics') && isset($_GET['formId']) && isset($_GET['questionId']):
+        JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getAnswerStatistics($res, $req));
         break;
 
     default:

@@ -39,6 +39,28 @@ switch (true) {
     case ($uri === 'admin/form'):
         require_once __DIR__ . '/../../public/views/admin/form.php';
         break;
+    
+    case ($uri === 'admin/results'):
+        switch (JwtMiddleware::authenticatePage($token, "MANAGE_RESULTS")) {
+            case 200:
+                require_once __DIR__ . '/../../public/views/admin/results_management.php';
+                break;
+            case 403:
+                showErrorPage(403);
+                break;
+            case 401:
+                header('Location: /login');
+                break;
+            default:
+                showErrorPage(500);
+                break;
+        }
+        break;
+    
+    case (preg_match('/^survey\/(\d+)$/', $uri, $matches)):
+        $_GET['id'] = $matches[1];
+        require_once __DIR__ . '/../../public/views/pages/survey_form.php';
+        break;
     case ($uri === '403'):
         showErrorPage(403);
         break;

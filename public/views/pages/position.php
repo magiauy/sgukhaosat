@@ -50,3 +50,9 @@
         </ul>
     </nav>
 </div>
+
+//CREATE TABLE IF NOT EXISTS `position` (
+//  `PositionID` int(11) NOT NULL AUTO_INCREMENT,
+//  `PositionName` varchar(255) NOT NULL,
+//  PRIMARY KEY (`PositionID`)
+//) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

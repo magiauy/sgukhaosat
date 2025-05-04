@@ -1,7 +1,9 @@
+import {getFormId ,getFormStatus} from "../main.js";
+
 function collectQuestionData() {
     return {
         form: {
-            FID: formId,
+            FID: getFormId(),
             FName: document.getElementById('fname').value,
             Note: document.getElementById('note').value,
             Limit: document.getElementById('limit').value,
@@ -9,7 +11,7 @@ function collectQuestionData() {
             MajorID: document.getElementById('majorid').value || null,
             PeriodID: document.getElementById('periodid').value || null,
             File: document.getElementById('file').value,
-            Status: formStatus
+            Status: getFormStatus()
         },
         questions: convertHTMLQuestionToJsonData()
     };

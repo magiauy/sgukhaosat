@@ -41,4 +41,9 @@ class Request
         $this->body = array_merge($this->body, $body);
     }
 
+    public function getFiles()
+    {
+        return $_FILES;
+    }
+
 }

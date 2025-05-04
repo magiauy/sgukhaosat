@@ -9,4 +9,7 @@ interface IAuthService extends IBaseService
     function logout();
     function me();
     function getAllWithoutWhitelist($id);
+
+    function parseEmailsFromExcel(array $file);
+    function createUsersInBulk(array $emails, string $role = 'USER');
 }

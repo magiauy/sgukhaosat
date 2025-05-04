@@ -1,67 +1,86 @@
 <?php
-include __DIR__ . '/../../views/layouts/header.php';
-<<<<<<< HEAD
-?>
-    <head>
+        include __DIR__ . '/../../views/layouts/header.php';
+        use Core\jwt_helper;
+        $token = $_COOKIE['access_token'] ?? null;
+        $secret = require __DIR__ . '/../../../config/JwtConfig.php';
+        if ($token) {
+            $decode = jwt_helper::verifyJWT($token, $secret);
+            if ($decode) {
+                $user = $decode->user ?? null;
+            } else {
+                setcookie('access_token', '', time() - 3600, '/');
+                header('Location: /');
+                exit();
+            }
+        } else {
+            $user = null;
+        }
+        require_once __DIR__ .'/../layouts/nav-bar.php'
+        ?>
         <link rel="stylesheet" href="/public/css/homepage.css">
-    </head>
-    <div>
+        <!-- Hero Section -->
         <section class="hero">
-            <div class="overlay"></div>
-                <h1 class="">Đánh giá chất lượng giảng dạy cho sinh viên Trường Đại Học Sài Gòn</h1>
-                <p>Tiếng nói của bạn, sự thay đổi của chúng tôi</p>
-                <a href="#" class="btn">Danh sách các đánh giá →</a>
-        </section>
-    
-        <section class="main-content">
-            <h2>Cùng nhau tạo nên một môi trường học tập tốt hơn</h2>
-            <h3>Nói lên suy nghĩ, góp phần thay đổi ngôi trường của mình! Chỉ với vài phút,
-                 bạn có thể giúp nhà trường hiểu rõ hơn về trải nghiệm của sinh viên,
-                  từ đó cải thiện chất lượng giảng dạy, cơ sở vật chất, dịch vụ hỗ trợ và nhiều hơn nữa.</h3>
-            <div class="content-item">
-                <img src="/public/images/pie-chart-1.png" alt="Pie Chart 1">
-                <div>
-                    <h3>Góp ý của bạn đều được xem xét</h3>
-                    <p>Chúng tôi luôn lắng nghe và đánh giá cao mọi ý kiến đóng góp từ bạn.</p>
+            <div class="hero-content">
+                <h1>Hệ thống khảo sát chuẩn đầu ra Đại học Sài Gòn</h1>
+                <p class="lead mb-4">Đóng góp ý kiến của bạn để cùng nâng cao chất lượng đào tạo</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/form" class="btn btn-light btn-lg">Tham gia khảo sát</a>
+                    <a href="#about" class="btn btn-outline-light btn-lg">Tìm hiểu thêm</a>
                 </div>
-=======
-use Core\jwt_helper;
-$token = $_COOKIE['access_token'] ?? null;
-$secret = require __DIR__ . '/../../../config/JwtConfig.php';
-if ($token) {
-    $decode = jwt_helper::verifyJWT($token, $secret);
-    if ($decode) {
-        $user = $decode->user ?? null;
-    }else{
-        setcookie('access_token', '', time() - 3600, '/');
-        header('Location: /');
-        exit();
-    }
-} else {
-    $user = null;
-}
-require_once __DIR__ .'/../layouts/nav-bar.php'
+            </div>
+        </section>
 
-?>
-    <!-- Home page content -->
-    <div class="container main-content d-flex flex-column">
-        <div class="row flex-grow-1">
-            <div class="col-md-12">
-                <h1 class="text-center mt-5">Trang chủ</h1>
->>>>>>> d0f9b8e3ba89c6a21afec0e337860ff94d796412
-            </div>
-        
-            <div class="content-item-2">
-                <div>
-                    <h3>Góp ý của bạn giúp chúng tôi phát triển</h3>
-                    <p>Sự đóng góp của bạn là động lực để chúng tôi không ngừng hoàn thiện.</p>
+        <!-- Main Content -->
+        <div class="container" id="about">
+            <div class="row mb-5">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h2 class="section-title">Nâng cao chất lượng đào tạo cùng Đại học Sài Gòn</h2>
+                    <p class="lead">
+                        Chúng tôi trân trọng ý kiến từ cựu sinh viên, đối tác và sinh viên sắp ra trường để không ngừng
+                        cải thiện chương trình đào tạo, đáp ứng nhu cầu thực tiễn của thị trường lao động và xã hội.
+                    </p>
                 </div>
-                <img src="/public/images/pie-chart-1.png" alt="Pie Chart 2" class="image-piechart2">
             </div>
-        
-            <button class="cta-button">Gửi tâm tư của bạn cho chúng tôi</button>
-        </section>
-    </div>
-<?php
-include __DIR__ . '/../../views/layouts/footer.php';
-?>
+
+            <div class="row mb-5">
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="text-center mb-3">
+                            <i class="feature-icon bi bi-mortarboard-fill"></i>
+                        </div>
+                        <h3 class="h4 text-center">Dành cho cựu sinh viên</h3>
+                        <p>Chia sẻ kinh nghiệm thực tế của bạn sau khi tốt nghiệp để giúp chúng tôi điều chỉnh chương trình đào tạo phù hợp hơn với thực tiễn công việc.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="text-center mb-3">
+                            <i class="feature-icon bi bi-building"></i>
+                        </div>
+                        <h3 class="h4 text-center">Dành cho đối tác</h3>
+                        <p>Góp phần định hình năng lực sinh viên tốt nghiệp, đảm bảo nguồn nhân lực chất lượng cao đáp ứng nhu cầu doanh nghiệp và thị trường.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="text-center mb-3">
+                            <i class="feature-icon bi bi-person-workspace"></i>
+                        </div>
+                        <h3 class="h4 text-center">Dành cho sinh viên sắp ra trường</h3>
+                        <p>Đánh giá trải nghiệm học tập của bạn và đóng góp ý kiến để cải thiện chương trình học cho các khóa sau.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+        <?php
+        include __DIR__ . '/../../views/layouts/footer.php';
+        ?>

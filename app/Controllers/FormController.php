@@ -287,18 +287,12 @@ class FormController implements IFormController{
         $data = $req->getBody();
         try {
             $result = $this->formService->addToWhitelist($id, $data);
-            if ($result) {
                 $res->json([
                     'status' => true,
                     'message' => 'Form updated successfully',
                     'data' => $result
                 ]);
-            } else {
-                $res->json([
-                    'status' => false,
-                    'message' => 'Failed to update form'
-                ], 500);
-            }
+
         } catch (\Exception $e) {
             $res->json([
                 'status' => false,
@@ -328,6 +322,32 @@ class FormController implements IFormController{
             $res->json([
                 'status' => false,
                 'message' => 'Failed to retrieve forms',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deleteFromWhitelist($res, $req, mixed $id)
+    {
+        $data = $req->getBody();
+        try {
+            $result = $this->formService->deleteFromWhitelist($id, $data);
+            if ($result) {
+                $res->json([
+                    'status' => true,
+                    'message' => 'Form updated successfully',
+                    'data' => $result
+                ]);
+            } else {
+                $res->json([
+                    'status' => false,
+                    'message' => 'Failed to update form'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            $res->json([
+                'status' => false,
+                'message' => 'Failed to update form',
                 'error' => $e->getMessage()
             ], 500);
         }

@@ -28,7 +28,7 @@ function create($id, $data)
         }
 
         $placeholders = implode(", ", array_fill(0, count($users), "(?, ?)"));
-        $sql = "INSERT INTO whitelist_form (FID, UID) VALUES $placeholders";
+        $sql = "INSERT IGNORE INTO whitelist_form (FID, UID) VALUES $placeholders";
         $stmt = $pdo->prepare($sql);
 
         $params = [];
@@ -38,16 +38,12 @@ function create($id, $data)
                 throw new \Exception("Thiếu thông tin email người dùng");
             }
             $params[] = $uid['email'];      // UID
-            print_r($params);
         }
 
         $stmt->execute($params);
         $rowCount = $stmt->rowCount();
-        if ($rowCount === 0) {
-            throw new \Exception("Không có bản ghi nào được thêm vào danh sách truy cập");
-        }
         $pdo->commit();
-        return true;
+        return $rowCount;
     } catch (\PDOException $e) {
         $pdo->rollBack();
         // Log the error
@@ -75,5 +71,51 @@ function create($id, $data)
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['fid' => $id]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+  function deleteWithData($id, $data)
+    {
+        $pdo = $this->db->getConnection();
+        $pdo->beginTransaction();
+        try {
+            // Ensure we have data to delete
+            if (empty($data) || !is_array($data)) {
+                throw new \Exception("Không có dữ liệu để xóa khỏi danh sách truy cập");
+            }
+
+            $users = $data['users'];
+            if (empty($users)) {
+                throw new \Exception("Không có người dùng để xóa khỏi danh sách truy cập");
+            }
+
+            // Create placeholders for the IN clause - just one ? per email
+            $placeholders = implode(', ', array_fill(0, count($users), '?'));
+            $sql = "DELETE FROM whitelist_form WHERE FID = ? AND UID IN ($placeholders)";
+            $stmt = $pdo->prepare($sql);
+
+            // Create params array with FID as the first parameter
+            $params = [$id];
+            foreach ($users as $uid) {
+                if (!isset($uid['email'])) {
+                    throw new \Exception("Thiếu thông tin email người dùng");
+                }
+                $params[] = $uid['email'];
+            }
+
+            // Execute with all parameters at once
+            $stmt->execute($params);
+            $rowCount = $stmt->rowCount();
+
+            if ($rowCount === 0) {
+                throw new \Exception("Không có bản ghi nào được xóa khỏi danh sách truy cập");
+            }
+
+            $pdo->commit();
+            return true;
+        } catch (\PDOException $e) {
+            $pdo->rollBack();
+            error_log("SQL Error: " . $e->getMessage());
+            throw new \Exception("Database Error: " . $e->getMessage(), 500);
+        }
     }
 }

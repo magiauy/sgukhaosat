@@ -402,10 +402,10 @@ public function update($id, $data)
             }
             foreach ($forms as &$form) {
                 if ($form['Status'] == 0) {
-                    $form['Status'] = 'Chưa công bố';
+                    $form['StatusText'] = 'Chưa công bố';
                     $form['uri'] = 'admin/form/' . $form['FID'] . '/edit?status=draft';
                 } else{
-                    $form['Status'] = 'Đã công bố';
+                    $form['StatusText'] = 'Đã công bố';
                     $form['uri'] = 'admin/form/' . $form['FID'] . '/edit';
                 }
 
@@ -488,13 +488,23 @@ public function update($id, $data)
         if ($result) {
             return $result;
         } else {
-            return null;
+            return 0;
         }
     }
 
     function getFormWhitelist($id)
     {
         $result = $this->whitelistFormRepository->getByFormID($id);
+        if ($result) {
+            return $result;
+        } else {
+            return null;
+        }
+    }
+
+    function deleteFromWhitelist($id, $data)
+    {
+        $result = $this->whitelistFormRepository->deleteWithData($id,$data);
         if ($result) {
             return $result;
         } else {

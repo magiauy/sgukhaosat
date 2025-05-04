@@ -91,7 +91,6 @@ include __DIR__ . '/../../views/layouts/header.php';
             <button class="btn btn-light" title="Xem trước"><i class="fas fa-eye"></i></button>
 
 <!--            <button class="btn btn-light" title="Sao chép liên kết"><i class="fas fa-link"></i></button>-->
-            <button class="btn btn-light" title="Thêm cộng tác viên"><i class="fas fa-user-plus"></i></button>
 
             <!-- Nút lưu -->
             <button class="btn btn-light btn-save" title="Lưu nháp" id="btn-save-draft">

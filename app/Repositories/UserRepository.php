@@ -19,10 +19,10 @@ class UserRepository implements IAuthRepository {
     public function create($data): bool {
         $this->pdo->beginTransaction();
         try {
-                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ? ,?)"));
-                $sql = "INSERT INTO users (email, password, dateCreate, status , roleId) VALUES $placeholders";
+                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ? ,?,?)"));
+                $sql = "INSERT INTO users (email, password, dateCreate, status , roleId, `position`) VALUES $placeholders";
                 $stmt = $this->pdo->prepare($sql);
-                $expectedOrder = ['email', 'password', 'dateCreate', 'status', 'roleId'];
+                $expectedOrder = ['email', 'password', 'dateCreate', 'status', 'roleId','position'];
             $params = [];
             foreach ($data as $row) {
 
@@ -140,4 +140,55 @@ class UserRepository implements IAuthRepository {
     //     return $statement->fetchAll(\PDO::FETCH_ASSOC);
     // }
 
+/**
+ * Get users by email addresses
+ *
+ * @param array $emails List of email addresses
+ * @return array List of user records
+ * @throws Exception
+ */
+public function getUsersByEmails(array $emails): array
+{
+    if (empty($emails)) {
+        return [];
+    }
+
+    // Create placeholders for each email parameter
+    $placeholders = array_map(function($i) {
+        return ":email$i";
+    }, array_keys($emails));
+
+    $placeholdersList = implode(',', $placeholders);
+    $query = "SELECT * FROM users WHERE email IN ($placeholdersList)";
+
+    try {
+        $stmt = $this->pdo->prepare($query);
+        if ($stmt === false) {
+            throw new Exception("Failed to prepare statement");
+        }
+
+        // Bind each email to its corresponding placeholder
+        foreach ($emails as $i => $email) {
+            $stmt->bindValue(":email$i", $email);
+        }
+
+        $stmt->execute();
+        $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Remove sensitive information
+        foreach ($users as &$user) {
+            unset($user['password']);
+        }
+
+        return $users;
+    } catch (Exception $e) {
+        error_log("Error getting users by emails: " . $e->getMessage());
+        throw new Exception("Failed to fetch users: " . $e->getMessage(), 500);
+    }
+}
+
+    function getLastInsertId(): int
+    {
+        return $this->pdo->lastInsertId();
+    }
 }

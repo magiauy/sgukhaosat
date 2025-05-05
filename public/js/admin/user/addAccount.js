@@ -1,6 +1,8 @@
 import { callApi } from "../../apiService.js";
 import { renderListUsers } from "./userAdmin.js";
 
+// import * as XLSX from "xlsx";
+
 export function showAddAccount() {
     document.querySelector("#add-account").onclick = async function () {
         document.querySelector("#content").innerHTML = `
@@ -96,7 +98,7 @@ function addAccount(){
             roleID: role
         };
 
-        console.log(data);
+        // console.log(data);
         try {
             const response = await callApi("/user", "POST", data);
             console.log(response);
@@ -109,7 +111,7 @@ function addAccount(){
 
 //hàm xử lí ấn import file user
 export function importUsers(){
-    document.querySelector("#importFile").onclick = async function(e){
+    document.querySelector("#import-account").onclick = async function(e){
         e.preventDefault();
 
         const inputFile = document.querySelector(".import-user-input");
@@ -145,24 +147,15 @@ export function importUsers(){
             }
 
             console.log(dataArr)
-            // const result = await fetch(`${config.apiUrl}/user`, {
-            //     method: "POST",
-            //     headers:{
-            //         "Content-Type": "application/json"
-            //     },
-            //     body: JSON.stringify(dataArr)
-            // })
-            // const response = await result.json();
+           try {
+                const response = await callApi("/user", "POST", dataArr);
+                renderListUsers();
+                console.log(response);
+           } catch (error) {
+                console.log(error);
+           }
 
-            // if(result.status === 201){
-            //     await renderListUsers();
-            //     alert("Thành công");
-               
-            // }
-            // else {
-            //     alert("Thất bại");
-            //     console.log(response);
-            // }
+        
         }
         reader.readAsArrayBuffer(file);
     }

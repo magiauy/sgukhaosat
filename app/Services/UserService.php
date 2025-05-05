@@ -21,6 +21,8 @@ class UserService implements IAuthService
 
     public function create($data): bool
     {
+        // var_dump($data);
+
         $data['roleID'] = !empty($data['roleID']) ? $data['roleID'] : '1';
         //kiểm tra dữ liệu rỗng
         $options = ['cost' => 8];
@@ -30,9 +32,11 @@ class UserService implements IAuthService
         }
         
         foreach ($data as &$row) {
+            $row['password'] = (string) $row['password'];
             $row['password'] = password_hash($row['password'], PASSWORD_DEFAULT, $options);
             $row['dateCreate'] = $row['dateCreate'] ?? date('Y-m-d H:i:s'); // Gán ngày tạo nếu chưa có
             $row['status'] = $row['status'] ?? 1; // Gán trạng thái mặc định là 1 nếu chưa có
+            var_dump($row);
         }
 
         unset($row);

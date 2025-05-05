@@ -1,16 +1,17 @@
-import {renderContentUser} from "./userAdmin.js";
-import {renderContentRole} from "./roleAdmin.js";
-import {loadSurveyFromAPI} from "./formsManager.js";
+import {renderContentUser} from "./user/userAdmin.js";
+import {renderContentRole} from "./role/roleAdmin.js";
+import {loadSurveyFromAPI} from "../formsManager.js";
 
-import {callApi} from "./apiService.js";
+import {callApi} from "../apiService.js";
+import {initMajor} from "../major.js";
+import {initPeriod} from "../period.js";
+import {initFormType} from "../formType.js";
 
 
 function handleClickOnSidebar() {
     document.getElementById('toggleSidebar').onclick = () => {
         document.getElementById('sidebar').classList.toggle('collapsed');
     };
-
-    
 
     document.querySelectorAll("#sidebar ul li a").forEach((item) => {
         item.onclick = async (e) => {
@@ -22,19 +23,22 @@ function handleClickOnSidebar() {
                     await renderContentUser();
                     break;
                 case "Quản lý ngành":
-                    loadContent("./views/pages/qlnganh.php");
+                    await loadContent('/public/views/pages/major.php');
+                    await initMajor();
                     break;
                 case "Chu kỳ":
-                    loadContent("./views/pages/chuky.php");
+                    await loadContent('/public/views/pages/period.php');
+                    await initPeriod();
                     break;
                 case "Loại khảo sát":
-                    loadContent("./views/pages/loaiks.php");
+                    await loadContent('/public/views/pages/formType.php');
+                    await initFormType();
                     break;
                 case "Phân quyền":
                     renderContentRole();
                     break;
                 case "Khảo sát":
-                    await loadContent(`/pages/survey`);
+                    await loadContent2(`/pages/survey`);
                     await loadSurveyFromAPI(0, 10);
                     break;
                 default:
@@ -54,11 +58,30 @@ function handleClickOnSidebar() {
         }
     })
     }
-async function loadContent(url) {
+async function loadContent2(url) {
 
     const content = await callApi(url)
     document.getElementById('content').innerHTML = content['html'];
 }
+    async function loadContent(url) {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "text/html",
+            }
+        });
+        if (response.ok) {
+            const content = await response.text();
+            document.getElementById('content').innerHTML = content;
+        } else if (response.status === 401) {
+            window.location.href = "/login";
+        } else if (response.status === 403) {
+            window.location.href = "/403";
+        } else {
+            console.error("Failed to load:", url);
+        }
+    }
+    
 
 function loadSurveyInformation(data) {
     if (data) {
@@ -67,18 +90,5 @@ function loadSurveyInformation(data) {
     }
 }
 
-// async function initialize() {
-//     if (await checkAccess('admin')){
-        handleClickOnSidebar()
-//         document.getElementById("loading-overlay").style.display = "none";
-//         document.getElementById("sidebar-container").removeAttribute("style");
-//         document.getElementById("sidebar-container").setAttribute("class", "d-flex flex-row");
-//     }else {
-//         document.getElementById("loading-overlay").style.display = "none";
-//         document.getElementById("sidebar-container").setAttribute("style", "display: none;");
-//     }
-// }
-//
-//
-// initialize();
 
+handleClickOnSidebar()

@@ -122,7 +122,7 @@ include __DIR__ . '/../../views/layouts/header.php';
     </div>
 
 
-    <script src="/public/js/form_pattern.js" type="module"></script>
+    <script src="/public/js/form/main.js" type="module"></script>
 <?php
 include __DIR__ . '/../../views/layouts/footer.php';
 ?>

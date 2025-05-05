@@ -656,3 +656,4 @@ input:checked + .slider:before {
   /* Apply fade in immediately and fade out after 2.5s delay, duration 0.5s each */
   animation: toastFadeIn 0.5s ease forwards, toastFadeOut 0.5s ease 2.5s forwards;
 }
+

@@ -22,6 +22,8 @@ export async function callApi(endpoint, method = "GET", data = null, token = nul
         } else if (response.status === 403) {
             // Handle forbidden access
             window.location.href = "/403";
+        } else if (response.status === 400){
+            console.log('Lỗi người dùng');
         } else {
             throw new Error(`Error: ${response.statusText}`);
         }

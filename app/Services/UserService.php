@@ -21,7 +21,7 @@ class UserService implements IAuthService
 
     public function create($data): bool
     {
-        $data['roleId'] = !empty($data['roleId']) ? $data['roleId'] : 'USER';
+        $data['roleID'] = !empty($data['roleID']) ? $data['roleID'] : '1';
         //kiểm tra dữ liệu rỗng
         $options = ['cost' => 8];
 
@@ -47,7 +47,15 @@ class UserService implements IAuthService
 
     public function delete($id): bool
     {
-        return $this->userRepository->delete($id);
+        if(empty($id)){
+            throw new \Exception("thiếu id", 400);
+        }
+        try {
+            $this->userRepository->delete($id);
+            return true;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 
     public function getById($id)
@@ -70,7 +78,7 @@ class UserService implements IAuthService
             if ($user['user']) {
                 $jwtHelper = new jwt_helper();
                 $secret = require __DIR__ . '/../../config/JwtConfig.php';
-                $roleData = $this->roleService->getById($user['user']['roleId']);
+                $roleData = $this->roleService->getById($user['user']['roleID']);
 //                print_r($roleData);
                 if ($roleData) {
                     $user['role'] = $roleData['role'];

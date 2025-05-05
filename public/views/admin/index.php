@@ -15,14 +15,13 @@ if (!$decode) {
 }
 $user = $decode->user ?? null;
 
+
 include __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>
 
 <link rel="stylesheet" href="/public/css/adminPage.css">
-    <?php
-        $roleClass = 'role-' . $user->roleID;
-    ?>
-    <div id ="sidebar-container" class="d-flex flex-row" <?php echo 'data-roleID =' . $roleClass; ?>>
+
+    <div id="sidebar-container" class="d-flex flex-row"  data-code="<?php echo $user->roleID; ?>">
         <div>
             <nav id="sidebar" class="d-flex flex-column p-3">
                 <button class="btn btn-outline-light mb-3" id="toggleSidebar">
@@ -32,7 +31,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                     <?php 
                         //kiểm tra permission của user để hiện thanh trạng thái có thể truy cập
                         $permissionOfCurrentUser = $decode->permissions;
-                        // var_dump($permissionOfCurrentUser);
+
                         foreach($permissionOfCurrentUser as $perm){
                             switch ($perm->permID){
                                 case 'ACCESS_ROLE_EDITOR':
@@ -89,13 +88,13 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
             </nav>
         </div>
     <!-- Content -->
-        <div id="content">
-            <h1>Dashboard</h1>
-            <p>Welcome to the admin panel!</p>
+        <div id="content" class="container py-4">
+            
+
         </div>
     </div>
 
-<script src="/public/js/sidebarAdmin.js?v=<?php echo time(); ?>" type="module"></script>
+<script src="/public/js//admin/sidebarAdmin.js?v=<?php echo time(); ?>" type="module"></script>
 
 <?php
 include __DIR__ . '/../../views/layouts/footer.php';

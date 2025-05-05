@@ -64,18 +64,9 @@
             public function delete(Response $response, Request $request)
             {
                 try {
-                    $email = $request->getParam("email");
-                    if (!$email) {
-                        $response->json(['error' => 'Email is required'], 400);
-                        return;
-                    }
-
-                    $result = $this->userService->delete($email);
-                    if ($result) {
-                        $response->json(['message' => 'User deleted successfully']);
-                    } else {
-                        $response->json(['error' => 'Failed to delete user'], 500);
-                    }
+                    $emails = $request->getBody();
+                    $this->userService->delete($emails);
+                    $response->json(['message' => 'User deleted successfully']);
                 } catch (\Exception $e) {
                     $response->json(['error' => $e->getMessage()], $e->getCode());
                 }

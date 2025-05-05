@@ -224,7 +224,7 @@ class FormRepository implements IFormRepositoryTransaction{
     function getFormWithWhitelist($email)
     {
         //Lấy toàn bộ FID của người có email này trong bảng whitelist và FID phải có status = 1
-        $sql = "SELECT FID FROM whilelist_form WHERE UID = :Email";
+        $sql = "SELECT FID FROM whitelist_form WHERE UID = :Email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':Email' => $email]);
         $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);

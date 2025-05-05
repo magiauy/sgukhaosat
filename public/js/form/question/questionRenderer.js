@@ -4,7 +4,7 @@ function renderQuestion(question) {
     const descriptionItem = question.children.find(option => option.QTypeID === "DESCRIPTION") || null;
     let html = `<div class="question-item hover-effect flex flex-column align-items-start" ${question.QID ? `id="q${question.QID}" ` : ""}>
     <div class="drag-handle me-2 text-center" style="cursor: move;">
-        <img src="/icons/grip-dots.svg" alt="Grip Dots" style="width: 24px; height: 24px" />
+        <img src="/public/icons/grip-dots.svg" alt="Grip Dots" style="width: 24px; height: 24px" />
     </div>
         <div class="question-content d-flex align-items-start gap-2 mb-1">
           ${question.QContent ? `

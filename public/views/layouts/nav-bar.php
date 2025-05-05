@@ -11,7 +11,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Trang chủ</a>
+                    <a class="nav-link" href="/">Trang chủ</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/form">Khảo sát</a>

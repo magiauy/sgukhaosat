@@ -3,8 +3,6 @@ import { addTitleDescription, addQuestionItem, renderQuestion } from "../questio
 import { clearBrTag} from "../utils/contentHelpers.js";
 import {setupPasteHandlers} from "../utils/editableContent.js";
 
-let formStatus = null;
-
 function showSurvey(surveyHtml) {
   const formContentContainer = document.querySelector('.form-content');
   if (formContentContainer) {
@@ -26,7 +24,6 @@ function initForm(form) {
 }
 
 function renderSurvey(data=null) {
-    if (data) formStatus = data.form.Status;
     let question = data?.questions || [];
     let surveyHtml = "";
 
@@ -136,4 +133,4 @@ function buildDefaultFormHtml() {
 }
 
 
-export { showSurvey, initForm, renderSurvey, formStatus };
+export { showSurvey, initForm, renderSurvey };

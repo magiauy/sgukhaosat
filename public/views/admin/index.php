@@ -28,7 +28,57 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                     <i class="bi bi-list"></i>
                 </button>
                 <ul class="nav flex-column">
-                    <?php 
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-house-door"></i> <span class="nav-text">Thống kê</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-people"></i> <span class="nav-text">Tài khoản</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-bar-chart"></i> <span class="nav-text">Khảo sát</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/results" class="nav-link">
+                            <i class="bi bi-clipboard-data"></i> <span class="nav-text">Kết quả khảo sát</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-bar-chart"></i> <span class="nav-text">Phân quyền</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                        <i class="bi bi-book"></i> <span class="nav-text">Quản lý ngành</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                        <i class="bi bi-book"></i> <span class="nav-text">Quản lý chức vụ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-calendar-week"></i> <span class="nav-text">Chu kỳ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-collection"></i> <span class="nav-text">Loại khảo sát</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-gear"></i> <span class="nav-text">Cài đặt</span>
+                        </a>
+                    </li>
+                    <!-- <?php 
                         //kiểm tra permission của user để hiện thanh trạng thái có thể truy cập
                         $permissionOfCurrentUser = $decode->permissions;
 
@@ -83,7 +133,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                     </li>';
                             }
                         }
-                    ?>
+                    ?> -->
                 </ul>
             </nav>
         </div>

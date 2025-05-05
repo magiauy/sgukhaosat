@@ -56,7 +56,6 @@ class PeriodController {
         if (!$id) return $response->json(['error' => 'ID is required'], 400);
 
         $data = $request->getBody();
-        error_log("Updating period ID $id with: " . json_encode($data)); // debug
         $success = $this->service->update((int)$id, $data);
 
         $response->json([

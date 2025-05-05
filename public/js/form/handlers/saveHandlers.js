@@ -3,7 +3,7 @@ import { callApi } from "../../apiService.js";
 import { showToast } from "../utils/notifications.js";
 import { createElementFromHTML } from "../utils/domHelpers.js";
 import { stopAutoSave } from "../utils/autoSave.js";
-import { formId, formStatus } from "../main.js";
+import { getFormId, getFormStatus } from "../main.js";
 
 function setupSaveHandlers() {
     document.addEventListener('click', async function(event) {
@@ -12,15 +12,15 @@ function setupSaveHandlers() {
 
         const result = collectQuestionData();
 
-        if (formStatus === "0") {
-            const data = await callApi(`/draft?id=${formId}`, "PUT", result);
+        if (getFormStatus() === "0") {
+            const data = await callApi(`/draft?id=${getFormId()}`, "PUT", result);
             if (data['status']) {
                 showToast("Đã lưu !", "success");
             } else {
                 showToast("Lưu thất bại!", "error");
             }
         } else {
-            const data = await callApi(`/admin/form?id=${formId}`, "PUT", result);
+            const data = await callApi(`/admin/form?id=${getFormId()}`, "PUT", result);
             if (data['status']) {
                 showToast("Đã lưu!", "success");
                 syncQuestion(data['data']);

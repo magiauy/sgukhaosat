@@ -24,8 +24,8 @@
     <script src="/public/js/script.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
-<!--    <script src="/public/js/period.js"></script>-->
-<!--    <script src="/public/js/major.js"></script>-->
-<!--    <script src="/public/js/formType.js"></script>-->
+
+    <script src="/public/js/component/loader.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>

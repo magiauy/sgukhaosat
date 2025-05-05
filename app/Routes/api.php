@@ -11,7 +11,10 @@ use Controllers\QuestionTypeController;
 use Controllers\DraftController;
 use Controllers\PeriodController;
 use Controllers\MajorController;
+use Controllers\PositionController;
 use Controllers\FormTypeController;
+use Controllers\ResultController;
+use Controllers\AnswerController;
 use Services\DraftService;
 
 $request = new Request();
@@ -27,7 +30,10 @@ $questionTypeController = new QuestionTypeController();
 $draftController = new DraftController(new DraftService());
 $periodController = new PeriodController();
 $majorController = new MajorController();
+$positionController = new PositionController();
 $formTypeController = new FormTypeController();
+$resultController = new ResultController();
+$answerController = new AnswerController();
 
     // User APIs
 
@@ -36,13 +42,25 @@ $formTypeController = new FormTypeController();
     $router->delete('/api/user', fn() => $controller->delete($response, $request));
     $router->get('/api/getListUsers', fn() => $controller->getAll($response, $request));
     $router->get('/api/user', fn() => $controller->getAll($response, $request));
+    $router->get('/api/userWithoutWhitelist/{id}', fn($params) => $controller->getAllWithoutWhitelist($response, $request, $params['id']));
     $router->get('/api/user', fn() => $controller->getById($response, $request), ['email']);
     $router->post('/api/login', fn() => $controller->login($response, $request));
     $router->post('/api/me', fn() =>
         JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req))
     );
+    // Excel Import APIs
+    $router->post('/api/excel/parse-emails', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $controller->parseEmails($res, $req));
+    });
 
-    // Period APIs
+    $router->post('/api/users/bulk-create', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $controller->bulkCreate($res, $req));
+    });
+
+
+// Period APIs
     $router->post('/api/period', fn() => $periodController->create($response, $request));
     $router->get('/api/period', function() use ($response, $periodController) {
         parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY) ?? '', $queryParams);
@@ -77,6 +95,22 @@ $formTypeController = new FormTypeController();
         $majorController->delete($response, $request);
     });
 
+    // Position APIs
+    $router->post('/api/position', fn() => $positionController->create($response, $request));
+    $router->get('/api/position', fn() => $positionController->getAll($response));
+    $router->get('/api/position/search', function() use ($response,$request, $positionController) {
+        $positionController->search($response, $request);
+    });
+    $router->get('/api/position/{id}', fn($params) => $positionController->getById($response, $params['id']));
+    $router->put('/api/position/{id}', function($params) use ($response, $request, $positionController) {
+        $_GET['id'] = $params['id'];
+        $positionController->update($response, $request);
+    });
+    $router->delete('/api/position/{id}', function($params) use ($response, $request, $positionController) {
+        $_GET['id'] = $params['id'];
+        $positionController->delete($response, $request);
+    });
+
     // Form Type APIs
     $router->post('/api/form-type', fn() => $formTypeController->create($response, $request));
     $router->get('/api/form-type', fn() => $formTypeController->getAll($response));
@@ -92,6 +126,31 @@ $formTypeController = new FormTypeController();
         $_GET['id'] = $params['id'];
         $formTypeController->delete($response, $request);
     });
+
+    // Form Whitelist Management
+    $router->get('/api/forms/{id}/whitelist', function($params) use ($request, $response, $formController) {
+        $_GET['id'] = (int) $params['id'];
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $formController->getFormWhitelist($res, $params['id']));
+    });
+
+    $router->post('/api/forms/{id}/whitelist', function($params) use ($request, $response, $formController) {
+        $_GET['id'] = (int) $params['id'];
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $formController->addToWhitelist($res, $req, $params['id']));
+    });
+
+    $router->put('/api/forms/{id}/whitelist', function($params) use ($request, $response, $formController) {
+        $_GET['id'] = (int) $params['id'];
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $formController->editFromWhitelist($res, $req, $params['id']));
+    });
+    $router->delete('/api/forms/{id}/whitelist', function($params) use ($request, $response, $formController) {
+        $_GET['id'] = (int) $params['id'];
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+            fn($req, $res) => $formController->deleteFromWhitelist($res, $req, $params['id']));
+    });
+
 
 
     // Role APIs
@@ -138,33 +197,81 @@ $formTypeController = new FormTypeController();
         })
     );
 
-    // Admin Form APIs
-    $router->get('/api/admin/form', fn() =>
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getAll($res, $req))
-    );
-    $router->get('/api/form', fn() =>
-        JwtMiddleware::authenticate($request, $response, "", fn($req, $res) => $formController->getByIdForUser($res, $req))
-    , ['id']);
-    $router->post('/api/admin/form', fn() =>
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->create($res, $req))
-    );
-    $router->put('/api/admin/form', fn() =>
-        JwtMiddleware::authenticate($request, $response, "EDIT_FORM", fn($req, $res) => $formController->update($res, $req))
-    , ['id']);
-    $router->get('/api/admin/form/{id}', function($params) use ($request, $response, $formController) {
-        $_GET['id'] = (int) $params['id'];
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getById($res, $req));
-    });
+          // Admin Form APIs
+        $router->get('/api/admin/form', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getAll($res, $req))
+        );
+        $router->get('/api/form', fn() =>
+            JwtMiddleware::authenticate($request, $response, "", fn($req, $res) => $formController->getByIdForUser($res, $req))
+        , ['id']);
+        $router->post('/api/admin/form', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->create($res, $req))
+        );
+        $router->put('/api/admin/form', fn() =>
+            JwtMiddleware::authenticate($request, $response, "EDIT_FORM", fn($req, $res) => $formController->update($res, $req))
+        , ['id']);
+        $router->get('/api/admin/form/{id}', function($params) use ($request, $response, $formController) {
+            $_GET['id'] = (int) $params['id'];
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getById($res, $req));
+        });
 
-    // Form Pagination
-    $router->get('/api/admin/forms/pagination', fn() =>
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getFormWithPagination($req, $res))
-    );
+        // Form Pagination
+        $router->get('/api/admin/forms/pagination', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getFormWithPagination($req, $res))
+        );
 
-    // Question Type
-    $router->get('/api/question_type', fn() =>
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $questionTypeController->getAll($res, $req))
-    );
+        // Question Type
+        $router->get('/api/question_type', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $questionTypeController->getAll($res, $req))
+        );
 
+        // Result APIs
+        $router->post('/api/result', fn() => $resultController->create($response, $request));
+        $router->put('/api/result', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->update($res, $req))
+        , ['id']);
+        $router->delete('/api/result', fn() =>
+            JwtMiddleware::authenticate($request, $response, "DELETE_RESULT", fn($req, $res) => $resultController->delete($res, $req))
+        , ['id']);
+        $router->get('/api/result', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->getById($res, $req))
+        , ['id']);
+        $router->get('/api/result', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->getAll($res, $req))
+        );
+        $router->get('/api/result/form', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->getByForm($res, $req))
+        , ['formId']);
+        $router->get('/api/result/user', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->getByUser($res, $req))
+        , ['userId']);
+        $router->get('/api/result/count', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $resultController->countByForm($res, $req))
+        , ['formId']);
+        $router->post('/api/submit-survey', fn() => $resultController->submitSurvey($response, $request));
+
+        // Answer APIs
+        $router->post('/api/answer', fn() => $answerController->create($response, $request));
+        $router->put('/api/answer', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->update($res, $req))
+        , ['id']);
+        $router->delete('/api/answer', fn() =>
+            JwtMiddleware::authenticate($request, $response, "DELETE_RESULT", fn($req, $res) => $answerController->delete($res, $req))
+        );
+        $router->post('/api/answer/get', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getById($res, $req))
+        );
+        $router->get('/api/answer', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getAll($res, $req))
+        );
+        $router->get('/api/answer/result', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getByResult($res, $req))
+        , ['resultId']);
+        $router->get('/api/answer/question', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getByQuestion($res, $req))
+        , ['questionId']);
+        $router->get('/api/answer/statistics', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getAnswerStatistics($res, $req))
+        , ['formId', 'questionId']);
     // Xử lý routing
     $router->resolve($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

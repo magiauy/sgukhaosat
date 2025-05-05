@@ -1,6 +1,7 @@
 import PaginationComponent from './component/pagination.js';
+import FormSettingsModal from "./modal/formSettingsModal.js";
 
-
+const formSettingsModal = new FormSettingsModal(config);
 async function loadSurveyTable(data) {
 
     if (!data || !data.forms) {
@@ -31,13 +32,12 @@ async function loadSurveyTable(data) {
             <td class="text-center">${item.PeriodID}</td>
             <td class="text-left">${item.Note}</td>
             <td class="text-center">${item.UID}</td>
-            <td class="text-center">${item.Status}</td>
-            <td style="display: flex; justify-content: center; align-items: center; height: 65px">
-<!--                <div class="flex justify-content-sm-between">-->
-<!--                    <button class="btn btn-success custom-button">Chi tiết</button>-->
-<!--                    <button class="btn btn-warning custom-button" href="${item.uri}">Sửa</button>-->
-<!--                </div>-->
-    <a href="${item.uri}" class="btn btn-warning custom-button">Sửa</a>
+            <td class="text-center">${item.StatusText}</td>
+            <td style="display: flex; justify-content: center; align-items: center; gap: 5px; height: 65px">
+                <a href="${item.uri}" class="btn btn-warning custom-button btn-edit-form">Sửa</a>
+                <button class="btn btn-secondary btn-settings custom-button btn-setting-form" data-id="${item.FID}">
+                    <i class="bi bi-gear-fill"></i>
+                </button>
             </td>
         `;
         table.appendChild(row);
@@ -49,14 +49,13 @@ async function loadSurveyTable(data) {
             const row = this.closest('tr');
             const firstTd = row?.querySelector('td');
             if (firstTd) {
-                const text = button.textContent.trim();
                 const fid = firstTd.textContent.trim();
-                const form = data.forms.find(item => item.FID === fid);
-
-                if (text === "Chi tiết") {
-                    fetchSurveyData(firstTd, form);
-                } else if (text === "Sửa") {
+                if (this.classList.contains('btn-edit-form')) {
                     window.location.href = `${config.Url}/admin/form/${fid}/edit`;
+                } else if (this.classList.contains('btn-setting-form')) {
+                    const fid = firstTd.textContent.trim();
+                    const form = data.forms.find(item => item.FID === fid);
+                    await formSettingsModal.open(fid, form);
                 }
             }
         });
@@ -88,6 +87,7 @@ async function loadSurveyTable(data) {
         const existingTooltips = document.querySelectorAll('.tooltip-outside');
         existingTooltips.forEach(tooltip => tooltip.remove());
     }
+
 
 }
 
@@ -162,16 +162,34 @@ function addTooltips() {
     });
 }
 
+export function cleanupModalBackdrops() {
+    // Remove excess modal backdrops
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    if (backdrops.length > 1) {
+        for (let i = 1; i < backdrops.length; i++) {
+            backdrops[i].remove();
+        }
+    }
 
+    // If no modal is open but backdrop exists, remove it
+    const openModals = document.querySelectorAll('.modal.show');
+    if (openModals.length === 0 && backdrops.length > 0) {
+        backdrops[0].remove();
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }
+}
 let currentLimit = 10;
 let isHavePagination = false;
 const pagination = new PaginationComponent({
     containerId: 'pagination',
-    onPageChange: (offset, limit) => {
-        loadSurveyFromAPI(offset, limit);
+    onPageChange: async (offset, limit) => {
+        await loadSurveyFromAPI(offset, limit);
     },
-    onLimitChange: (offset, limit) => {
-        loadSurveyFromAPI(offset, limit);
+    onLimitChange: async (offset, limit) => {
+        await loadSurveyFromAPI(offset, limit);
     },
     rowsPerPageText: 'Rows per page'
 });
+

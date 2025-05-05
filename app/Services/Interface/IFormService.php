@@ -9,4 +9,12 @@ interface IFormService extends IBaseService
     function createDraft( $userId);
 
     function getByIdForUser($id);
+
+    function editFromWhitelist($id, $data);
+
+    function addToWhitelist($id, $data);
+
+    function getFormWhitelist($id);
+    function deleteFromWhitelist($id, $data);
+
 }

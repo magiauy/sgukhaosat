@@ -27,5 +27,12 @@ class PermissionController implements IBaseController{
             $response->json(['Error' => $th->getMessage()], 500);
         } 
     }
-    function getAll(Response $response, Request $request){}
+    function getAll(Response $response, Request $request){
+        try {
+            $perm = $this->permService->getAll();
+            $response->json(['Message' => 'Successfully', 'data' => $perm]);
+        } catch (\Throwable $th) {
+            $response->json(['Error' => $th->getMessage()], 500);
+        } 
+    }
 }

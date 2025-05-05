@@ -23,38 +23,33 @@ class RoleService implements IBaseService
         $this->user = new UserRepository();
     }
 
-    // $data vào: {
-    //     "roleID": ""
-    //     "permissions": []
-    // }
-    function create($data)
-    {
+   
+    function create($data){
         try {
             $pdo = Database::getInstance()->getConnection();
             $pdo->beginTransaction();
 
-            $this->validPermission($data);
-            print_r("ok");
-
-            //Nếu permission và roleID đều hợp lệ
-            if(empty($data['roleID']) || empty($data['roleName'])){
-                throw new \Exception('Missing data', 400);
+            if(empty($data['roleName'])){
+                throw new \Exception('Thiếu tên vai trò', 400);
             }
+            if(empty($data['permissions'])){
+                throw new \Exception('Thiếu quyền', 400);
+            }
+
             try {
                 $this->roleRepository->create($data, $pdo);
             } catch (\Throwable $th) {
-                throw new \Exception("Error when create role", 400);
-            }
-           
-            if(!empty($data['permission'])){
-                try {
-                    $this->rolePermRepository->create($data, $pdo);
-                } catch (\Throwable $th) {
-                    throw new \Exception("Error when create permission for role", 400);
-                }
+                throw new \Exception("Lỗi khi tạo vai trò", 400);
             }
 
-            // Nếu cả hai đều thành công, commit transaction
+            $role = $this->roleRepository->getByName($data['roleName']);
+            try {
+                $data['roleID'] = $role['roleID'];
+                $this->rolePermRepository->create($data, $pdo);
+            } catch (\Throwable $th) {
+                throw new \Exception("Lỗi khi tạo quyền cho vai trò", 400);
+            }
+            
             $pdo->commit();
         } catch (\Throwable $th) {
             $pdo->rollBack();
@@ -63,30 +58,19 @@ class RoleService implements IBaseService
            
     }
 
-    // $data vào: {
-    //     "roleID": ""
-    //     "permissions": []
-    // }
-    // $id = $data['roleID];
+    
     function update($id, $data)
     {
         $pdo = Database::getInstance()->getConnection();
         $pdo->beginTransaction();
-        if(empty($id)){
+        if(empty($id) || empty($data['permissions'])){
             throw new \Exception("Thiếu dữ liệu", 400);
         }
 
         try {
-            try {
-                $this->rolePermRepository->delete($id, $pdo);
-            } catch (\Throwable $th) {
-                throw new \Exception("Error when delete role_perm", 500);
-            }
-            try {
-                $this->rolePermRepository->create($data, $pdo);  
-            } catch (\Throwable $th) {
-                throw new \Exception("Error when create role_perm", 500);
-            }
+            $this->roleRepository->update($id, $data, $pdo);
+            $this->rolePermRepository->delete([$id], $pdo);
+            $this->rolePermRepository->create($data, $pdo); 
             $pdo->commit();
         } catch (\Throwable $th) {
             $pdo->rollBack();
@@ -99,11 +83,21 @@ class RoleService implements IBaseService
     {
         $pdo = Database::getInstance()->getConnection();
         if(!$id){
-            throw new \Exception('Missing data', 400);            
+            throw new \Exception('Thiếu roleID', 400);            
         }
-        $rolePerm = $this->rolePermRepository->delete($id, $pdo);
-        $user = $this->user->deleteByRoleID($id);
-        $role = $this->roleRepository->delete($id, $pdo);
+        try {
+            $rolePerm = $this->rolePermRepository->delete($id, $pdo);
+            $usersList = $this->user->getByRoleID($id);
+            if(count($usersList) !== 0){
+                foreach($usersList as $user){
+                    $emailsList[] = $user['email']; //thêm các email vào mảng
+                }
+                $this->user->updateRoleID($emailsList, 1);
+            }
+            $this->roleRepository->delete($id, $pdo);
+        } catch (\Throwable $th) {
+            throw $th;
+        }      
     }
 
     function getById($id)
@@ -111,28 +105,29 @@ class RoleService implements IBaseService
         // $pdo = Database::getInstance()->getConnection();
         try {
             $role = $this->roleRepository->getById($id);
-            if ($role) {
-                $permissions = $this->rolePermRepository->getById($id);
-                return [
-                    'role' => $role,
-                    'permissions' => $permissions
-                ];
-            } else {
-                throw new \Exception('Role not found');
-            }
-        }catch (\Exception $exception){
-            return [
-                'error' => $exception->getMessage()
-            ];
+        } catch (\Throwable $th){
+            throw $th;
         }
+        try {
+            $permissions = $this->rolePermRepository->getById($id);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        return [
+            'role' => $role,
+            'permissions' => $permissions
+        ];
     }
 
     function getAll(): array
     {      
         $roleArr = $this->roleRepository->getAll();
         foreach($roleArr as &$role){
-            $permission = $this->rolePermRepository->getById($role['roleID']);
-            $role['permission'] = array_column($permission, 'permID');
+            // var_dump($role['roleID']);
+            $permissions = $this->rolePermRepository->getById($role['roleID']);
+            
+            $role['permissions'] = $permissions;
         }
         unset($role);
         return $roleArr;

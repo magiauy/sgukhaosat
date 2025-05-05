@@ -36,9 +36,10 @@ $resultController = new ResultController();
 $answerController = new AnswerController();
 
     // User APIs
+
     $router->post('/api/user', fn() => $controller->create($response, $request));
     $router->put('/api/user', fn() => $controller->update($response, $request), ['email']);
-    $router->delete('/api/user', fn() => $controller->delete($response, $request), ['email']);
+    $router->delete('/api/user', fn() => $controller->delete($response, $request));
     $router->get('/api/getListUsers', fn() => $controller->getAll($response, $request));
     $router->get('/api/user', fn() => $controller->getAll($response, $request));
     $router->get('/api/userWithoutWhitelist/{id}', fn($params) => $controller->getAllWithoutWhitelist($response, $request, $params['id']));
@@ -156,10 +157,14 @@ $answerController = new AnswerController();
     $router->post('/api/role', fn() => $roleController->create($response, $request));
     $router->put('/api/role/id', fn() => $roleController->update($response, $request));
     $router->delete('/api/role/id', fn() => $roleController->delete($response, $request));
-    $router->get('/api/role/id', fn() => $roleController->getById($response, $request));
+    $router->get('/api/role/{id}', function($params) use ($request, $response, $roleController) {
+        $_GET['id'] = (int) $params['id'];
+        $roleController->getById($response, $request);
+    });
     $router->get('/api/role', fn() => $roleController->getAll($response, $request));
 
     // Permission APIs
+    $router->get('/api/permission', fn() => $permController->getAll($response, $request));
     $router->post('/api/permission/id', fn() => $permController->getById($response, $request));
 
     // Draft APIs

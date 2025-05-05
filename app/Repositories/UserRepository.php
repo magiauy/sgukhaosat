@@ -17,6 +17,7 @@ class UserRepository implements IAuthRepository {
      * @throws Throwable
      */
     public function create($data): bool {
+        // var_dump($data);
         $this->pdo->beginTransaction();
         try {
                 $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ? ,?,?)"));
@@ -64,21 +65,25 @@ class UserRepository implements IAuthRepository {
         return $stmt->rowCount() === 1;
     }
     
-
-    public function delete($id): bool{
-        $sql = "DELETE FROM users WHERE email = :email";
+    public function delete($emails): bool {
+        $placeholders = [];
+        $params = [];
+    
+        foreach ($emails as $index => $email) {
+            $key = ":email$index";
+            $placeholders[] = $key;
+            $params[$key] = $email;
+        }
+    
+        $inClause = implode(', ', $placeholders);
+        $sql = "DELETE FROM users WHERE email IN ($inClause)";
+    
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['email' => $id]);
-        return $stmt->rowCount();
+        $stmt->execute($params);
+    
+        return $stmt->rowCount() > 0;
     }
-
-    public function deleteByRoleID($id): bool{
-        $sql = "DELETE FROM users WHERE roleID = :id";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['id' => $id]);
-        return $stmt->rowCount();
-    }
-
+    
 
     public function getById($id){
         $sql = "SELECT * FROM users WHERE email = :email";
@@ -129,16 +134,41 @@ class UserRepository implements IAuthRepository {
     {
         return new \Error("Not implemented");
     }
+    
+    
+    public function getByRoleID($id){ //$id là mảng các roleID
+        // var_dump($id);
+        $sql = "SELECT * FROM users WHERE roleID in (:roleID)";
+        $stmt = $this->pdo->prepare($sql);
+        $id = implode(', ', array_values($id));
+        // var_dump($id);
+        $stmt->execute(['roleID' => $id]);
+        $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        // var_dump($data);
+        return $data;
+    }
 
-    // public function getListUsers(): array{
-    //     $sql = "SELECT *
-    //             FROM users, roles
-    //             WHERE users.roleId = roles.roleId;";
-    //     $statement = $this->pdo->prepare($sql);
-    //     $statement->execute();
-    //     // print_r($statement->fetchAll(\PDO::FETCH_ASSOC));
-    //     return $statement->fetchAll(\PDO::FETCH_ASSOC);
-    // }
+    public function deleteByRoleID($id): bool{
+        $sql = "DELETE FROM users WHERE roleID in (:id)";
+        $id = implode(', ', array_values($id));
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount();
+    }
+
+    public function updateRoleID($emailsList, $roleID){
+        try {
+            $placeholders = implode(',', array_fill(0, count($emailsList), '?'));
+            $sql = "UPDATE users SET roleID = ? WHERE email in ($placeholders)";
+            $params = array_merge([$roleID], $emailsList);
+            // var_dump($params);
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->rowCount();
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
 
 /**
  * Get users by email addresses

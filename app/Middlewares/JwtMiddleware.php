@@ -21,7 +21,7 @@ class JwtMiddleware
     public static function authenticate(Request $request, Response $response, $permission , $next): void
     {
         try {
-            $token = $_COOKIE['access_token'] ?? null;
+            $token = $_COOKIE['access_token'] ?? null;            
             if ($token) {
                 $token = str_replace('Bearer ', '', $token);
             }

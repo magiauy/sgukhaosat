@@ -20,11 +20,11 @@ class jwt_helper
             return null;
         }
     }
-    static function createPageJWT($permission, $secret) {
-        $payload = [
-            "permission" => $permission,
-            "exp" => time() + 60 //seconds
-        ];
-        return JWT::encode($payload, $secret, 'HS256');
-    }
+    // static function createPageJWT($permission, $secret) {
+    //     $payload = [
+    //         "permission" => $permission,
+    //         "exp" => time() + 60 //seconds
+    //     ];
+    //     return JWT::encode($payload, $secret, 'HS256');
+    // }
 }

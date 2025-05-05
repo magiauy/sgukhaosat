@@ -16,6 +16,10 @@ class RoleController implements IBaseController{
     }
 
     
+    // data từ frontend: {
+    //     "roleName": ""
+    //     "permissions": []
+    // }
     public function create(Response $response, Request $request){
         try {  
             $data = $request->getBody();
@@ -26,36 +30,42 @@ class RoleController implements IBaseController{
         }
     }
 
+    // $data từ frontend: {
+    //     "roleID": ""
+    //     "roleName": ""
+    //     "permissions": []
+    // }
     public function update(Response $response, Request $request){
         try {
            $data = $request->getBody();
-           $this->roleService->update($data['roleID'], $data);
-           $response->json(['Message' => "Updated successfully"], 200);
+           $this->roleService->update($data['roleID'], $data); 
+           $response->json(['message' => "Updated successfully"], 200);
         }catch (\Throwable $e){
             $response->json(['error ' => $e->getMessage()], $e->getCode() ? $e->getCode() : 500);
         }
     }
 
+    // $data từ frontend: {
+    //     "roleID": []
     public function delete(Response $response, Request $request){
         try {
             $data = $request->getBody();
             $id = $data['roleID'];
-            $role = $this->roleService->delete($id);
-            $response->json(['Message: ' => 'Deleted successfully']);
+            $this->roleService->delete($id);
+            $response->json(['message: ' => 'Deleted successfully']);
         }catch (\Throwable $e){
-            $response->json(['error' => $e->getMessage()], 500);
+            $response->json(['error' => $e->getMessage()]);
         }
     }
 
         
     public function getById(Response $response, Request $request){
         try {
-            $data = $request->getBody();
-            $id = $data['roleID'];
+            $id = $request->getParam('id');
             $role = $this->roleService->getById($id);
             $response->json([
-                'Message' => 'Successfully',
-                'Data' => $role
+                'message' => 'Successfully',
+                'data' => $role
             ]);
         }catch (\Throwable $th){
             $response->json(['Error' => $th->getMessage()], $th->getCode());
@@ -64,7 +74,9 @@ class RoleController implements IBaseController{
 
     public function getAll(Response $response, Request $request){
         try {
+         
             $role = $this->roleService->getAll();
+          
             $response->json([
                 'message' => 'Successfully',
                 'data' => $role

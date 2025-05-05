@@ -1,11 +1,11 @@
-import {renderContentUser} from "./userAdmin.js";
-import {renderContentRole} from "./roleAdmin.js";
-import {loadSurveyFromAPI} from "./formsManager.js";
-import {callApi} from "./apiService.js";
-import {initMajor} from "./major.js";
-import {initPeriod} from "./period.js";
-import {initFormType} from "./formType.js";
-import {initPosition} from "./position.js";
+import {renderContentUser} from "./user/userAdmin.js";
+import {renderContentRole} from "./role/roleAdmin.js";
+import {loadSurveyFromAPI} from "../formsManager.js";
+import {callApi} from "../apiService.js";
+import {initMajor} from "../major.js";
+import {initPeriod} from "../period.js";
+import {initFormType} from "../formType.js";
+import {initPosition} from "../position.js";
 
 function handleClickOnSidebar() {
     document.getElementById('toggleSidebar').onclick = () => {

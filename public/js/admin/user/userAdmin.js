@@ -47,7 +47,7 @@ export async function  renderContentUser(){
                         
                         <!-- Phần button import -->
                         <div>
-                            <button type="button" class="btn btn-primary import-user">
+                            <button type="button" class="btn btn-primary import-user" id="import-account">
                                 <i class="bi bi-upload"></i> Import
                             </button>
                         </div>

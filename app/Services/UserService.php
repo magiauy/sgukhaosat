@@ -99,9 +99,9 @@ class UserService implements IAuthService
                 $secret = require __DIR__ . '/../../config/JwtConfig.php';
                 
                 // Debug log - remove in production
-                error_log("Secret loaded, fetching role ID: " . $user['user']['roleId']);
+                error_log("Secret loaded, fetching role ID: " . $user['user']['roleID']);
                 
-                $roleData = $this->roleService->getById($user['user']['roleId']);
+                $roleData = $this->roleService->getById($user['user']['roleID']);
                 
                 // Debug log - remove in production
                 error_log("Role data fetched: " . ($roleData ? "success" : "failed"));

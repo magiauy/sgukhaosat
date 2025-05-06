@@ -15,6 +15,14 @@ function handleClickOnSidebar() {
     document.querySelectorAll("#sidebar ul li a").forEach((item) => {
         item.onclick = async (e) => {
             e.preventDefault();
+            document.querySelectorAll("#sidebar ul li a").forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Add active class to the clicked link
+            const linkElement = e.target.closest('a');
+            linkElement.classList.add('active');
+
             const text = e.target.textContent.trim();
 
             switch (text) {

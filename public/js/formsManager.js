@@ -54,7 +54,7 @@ async function loadSurveyTable(data) {
                     window.location.href = `${config.Url}/admin/form/${fid}/edit`;
                 } else if (this.classList.contains('btn-setting-form')) {
                     const fid = firstTd.textContent.trim();
-                    const form = data.forms.find(item => item.FID === fid);
+                    const form = data.forms.find(item => item.FID == fid);
                     await formSettingsModal.open(fid, form);
                 }
             }

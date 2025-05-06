@@ -73,9 +73,29 @@ class FormController implements IFormController{
 
     }
 
-    function delete(Response $response, Request $request)
+    function delete(Response $response, Request $request): void
     {
-        // TODO: Implement delete() method.
+        $id = $request->getParam('id');
+        try {
+            $result = $this->formService->delete($id);
+            if ($result) {
+                $response->json([
+                    'status' => true,
+                    'message' => 'Form deleted successfully',
+                ]);
+            }else{
+                $response->json([
+                    'status' => false,
+                    'message' => 'Failed to delete form'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => 'Failed to delete form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     function getByIdForUser(Response $response,Request $request){
@@ -348,6 +368,41 @@ class FormController implements IFormController{
             $res->json([
                 'status' => false,
                 'message' => 'Failed to update form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function duplicate(Response $response, Request $request)
+    {
+//        $id = $request->getParam('id');
+        $path = explode('/', $_SERVER['REQUEST_URI']);
+        $path = array_filter($path);
+        $path = array_values($path); // Re-index the array
+
+        // For a path like /api/admin/form/227/duplicate
+        // $path[3] should contain the ID (227)
+        $id = $path[3] ?? null;
+        $email = $request->getBody()['user']->email ?? null;
+
+        try {
+            $result = $this->formService->duplicate($id, $email);
+            if ($result) {
+                $response->json([
+                    'status' => true,
+                    'message' => 'Form duplicated successfully',
+                    'data' => $result
+                ]);
+            } else {
+                $response->json([
+                    'status' => false,
+                    'message' => 'Failed to duplicate form'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => 'Failed to duplicate form',
                 'error' => $e->getMessage()
             ], 500);
         }

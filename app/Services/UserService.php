@@ -251,6 +251,7 @@ class UserService implements IAuthService
 
             $batchData[] = [
                 'email' => $email,
+                'fullName' => explode('@', $email)[0],
                 'password' => password_hash($password, PASSWORD_DEFAULT, ['cost' => 8]),
                 'dateCreate' => date('Y-m-d H:i:s'),
                 'status' => 1,

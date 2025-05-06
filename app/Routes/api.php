@@ -214,7 +214,10 @@ $answerController = new AnswerController();
             $_GET['id'] = (int) $params['id'];
             JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getById($res, $req));
         });
-
+        $router->delete('/api/admin/form/{id}', fn() =>
+            JwtMiddleware::authenticate($request, $response, "DELETE_FORM", fn($req, $res) => $formController->delete($res, $req)));
+        $router->post('/api/admin/form/{id}/duplicate', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->duplicate($res, $req)));
         // Form Pagination
         $router->get('/api/admin/forms/pagination', fn() =>
             JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getFormWithPagination($req, $res))

@@ -281,9 +281,22 @@ public function update($id, $data)
 
 
 
-    function delete($id)
+    function delete($id) : bool
     {
-        // TODO: Implement delete() method.
+        $pdo = Database::getInstance()->getConnection();
+        try {
+            $pdo->beginTransaction();
+            $this->formRepository->delete($id, $pdo);
+            $this->draftRepository->deleteByFormID($id, $pdo);
+            $this->questionRepository->deleteByFormID($id, $pdo);
+            $pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw new Exception("Lỗi khi xóa form: " . $e->getMessage(), 500, $e);
+        }
     }
 
     /**
@@ -511,4 +524,72 @@ public function update($id, $data)
             return null;
         }
     }
+
+function duplicate($id, $userId)
+{
+    try {
+        error_log("Duplicating form with ID: $id for user: $userId");
+        $form = $this->formRepository->getById(['id' => $id, 'email' => $userId]);
+        if (!$form) {
+            throw new Exception("Không tìm thấy form với ID: $id", 404);
+        }
+
+        $pdo = Database::getInstance()->getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            // Make a copy of the form data and set the new user ID
+            $newForm = $form;
+            unset($newForm['FID']); // Remove the original form ID
+            $newForm['UID'] = $userId;
+            $newForm['FName'] = $newForm['FName'] . ' (Bản sao)';
+            $newForm['Status'] = 0; // Always create as draft
+
+            // Create the new form
+            $newFormId = $this->formRepository->create($newForm, $pdo);
+            if (!$newFormId) {
+                throw new Exception("Lỗi tạo bản sao form với ID: $id", 500);
+            }
+
+            // Handle questions based on original form's status
+            if ($form['Status'] == 0) {
+                // For draft forms, copy the draft content
+                $draft = $this->draftRepository->getByFormID($form['FID']);
+                if (!$draft || empty($draft)) {
+                    throw new Exception("Không tìm thấy nội dung bản nháp cho form với ID: $id", 404);
+                }
+
+                $draftContent = $draft[0]['DraftContent'];
+            } else {
+                // For published forms, get questions and convert to draft format
+                $questions = $this->questionRepository->getByFormId($form['FID']);
+                if (!$questions || empty($questions)) {
+                    throw new Exception("Không tìm thấy câu hỏi cho form với ID: $id", 404);
+                }
+
+                $draftContent = json_encode($questions);
+            }
+
+            // Create new draft with the content
+            $this->draftRepository->create([
+                'UID' => $userId,
+                'DraftContent' => $draftContent,
+                'FID' => $newFormId,
+            ], $pdo);
+
+            $pdo->commit();
+            return [
+                'formId' => $newFormId,
+                'message' => 'Form đã được sao chép thành công'
+            ];
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+    } catch (Exception $e) {
+        throw new Exception("Lỗi khi sao chép form: " . $e->getMessage(), 500, $e);
+    }
+}
 }

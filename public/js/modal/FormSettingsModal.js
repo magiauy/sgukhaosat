@@ -117,16 +117,10 @@ export default class FormSettingsModal {
                                                                 <input type="text" class="form-control form-control-sm"
                                                                     id="userSearchInput" placeholder="Tìm kiếm email/tên..." />
                                                                 <div class="d-flex align-items-center gap-2">
-                                                                    <select class="form-select form-select-sm" id="userRoleFilter">
+                                                                    <select class="form-select form-select-sm" id="userPositionFilter">
                                                                         <option value="">-- Tất cả vai trò --</option>
-                                                                        <option value="student">Sinh viên</option>
-                                                                        <option value="alumni">Cựu sinh viên</option>
-                                                                        <option value="faculty">Giảng viên</option>
-                                                                        <option value="staff">Nhân viên</option>
-                                                                        <option value="business">Doanh nghiệp</option>
-                                                                        <option value="guest">Khách mời</option>
                                                                     </select>
-                                                                    <button class="btn btn-sm btn-outline-secondary" id="resetUserFilters">
+                                                                    <button class="btn btn-sm btn-outline-secondary" id="refresh">
                                                                         <i class="bi bi-arrow-clockwise fw-bold fs-5"></i>
                                                                     </button>
                                                                 </div>
@@ -241,7 +235,7 @@ export default class FormSettingsModal {
                 availableUsersList.innerHTML = '';
                 users.forEach(user => {
                     const row = document.createElement('tr');
-                    row.dataset.role = user.role || 'student'; // Add role data attribute
+                    row.dataset.position = user.position; // Add role data attribute
                     row.innerHTML = `
                         <td class="text-center">
                             <input type="checkbox" class="form-check-input user-checkbox" value="${user.id}"
@@ -300,7 +294,8 @@ export default class FormSettingsModal {
         }
     }
 
-    setupHandlers(formId) {
+    async setupHandlers(formId) {
+        await this.loadPositionsForSelect();
         // Form settings handlers
         document.getElementById('saveStatusBtn').addEventListener('click', async () => {
             const status = document.getElementById('formStatusSelect').value;
@@ -308,11 +303,11 @@ export default class FormSettingsModal {
         });
 
         document.getElementById('deleteFormBtn').addEventListener('click', async () => {
-            await confirmDeleteForm(formId);
+            await this.confirmDeleteForm(formId);
         });
 
         document.getElementById('duplicateFormBtn').addEventListener('click', async () => {
-            await duplicateForm(formId);
+            await this.duplicateForm(formId);
         });
 
         // Whitelist handlers
@@ -321,15 +316,16 @@ export default class FormSettingsModal {
 
     setupWhitelistHandlers(formId) {
         // Role filter handler
-        document.getElementById('userRoleFilter').addEventListener('change', () => {
+        document.getElementById('userPositionFilter').addEventListener('change', () => {
             this.filterUsersByRoleAndText();
         });
 
         // Reset filters
-        document.getElementById('resetUserFilters').addEventListener('click', () => {
+        document.getElementById('refresh').addEventListener('click', async () => {
             document.getElementById('userSearchInput').value = '';
-            document.getElementById('userRoleFilter').selectedIndex = 0;
-            this.filterUsersByRoleAndText();
+            document.getElementById('userPositionFilter').selectedIndex = 0;
+            await this.loadAvailableUsers(formId);
+            await this.loadWhitelistedUsers(formId);
         });
 
         // Search input for users list
@@ -350,7 +346,7 @@ export default class FormSettingsModal {
 
         // Select all available users
         document.getElementById('selectAllUsers').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('#availableUsersList .user-checkbox');
+            const checkboxes = document.querySelectorAll('#availableUsersList tr:not([style*="display: none"]) .user-checkbox');
             checkboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
             });
@@ -358,7 +354,7 @@ export default class FormSettingsModal {
 
         // Select all whitelisted users
         document.getElementById('selectAllWhitelist').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('#whitelistedUsersList .whitelist-checkbox');
+            const checkboxes = document.querySelectorAll('#whitelistedUsersList tr:not([style*="display: none"]) .whitelist-checkbox');
             checkboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
             });
@@ -481,13 +477,13 @@ export default class FormSettingsModal {
     // Filter by role and text
     filterUsersByRoleAndText() {
         const searchText = document.getElementById('userSearchInput').value.toLowerCase();
-        const selectedRole = document.getElementById('userRoleFilter').value;
+        const selectedRole = document.getElementById('userPositionFilter').value;
 
         const rows = document.querySelectorAll('#availableUsersList tr');
 
         rows.forEach(row => {
             const userData = row.textContent.toLowerCase();
-            const userRole = row.dataset.role || '';
+            const userRole = row.dataset.position || '';
 
             const matchesSearch = !searchText || userData.includes(searchText);
             const matchesRole = !selectedRole || userRole === selectedRole;
@@ -495,6 +491,7 @@ export default class FormSettingsModal {
             row.style.display = (matchesSearch && matchesRole) ? '' : 'none';
         });
     }
+
 
     // Add multiple users to whitelist
     async addMultipleToWhitelist(formId, users) {
@@ -565,6 +562,74 @@ export default class FormSettingsModal {
             this.showToast('error', 'Lỗi khi xóa người dùng khỏi danh sách');
         }
     }
+    async loadPositionsForSelect() {
+        try {
+            const result = await callApi("/position", "GET");
+
+            if (!result.status || !result.data) {
+                this.showToast('error', 'Không thể tải danh sách vị trí');
+                return;
+            }
+
+
+            // Get the select element
+            const positionSelect = document.getElementById('userPositionFilter');
+
+            // Clear existing options
+            positionSelect.innerHTML = '';
+            positionSelect.appendChild(new Option('-- Tất cả vai trò --', ''));
+
+
+
+            // Add positions to dropdown
+            result.data.forEach(position => {
+                const option = document.createElement('option');
+                option.value = position.PositionID;
+                option.textContent = position.PositionName;
+                positionSelect.appendChild(option);
+            });
+
+            positionSelect.value = ''; // Reset to default option
+
+        } catch (error) {
+            console.error("Error loading positions:", error);
+            this.showToast('error', 'Không thể tải danh sách vị trí');
+        }
+    }
+
+    async confirmDeleteForm(formId){
+        const result = await Swal.fire({
+            title: 'Xóa biểu mẫu',
+            text: "Bạn có chắc chắn muốn xóa biểu mẫu này không?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (result.isConfirmed) {
+            await this.deleteForm(formId);
+            console.log("Confirmed delete form:", formId);
+        }
+    }
+
+    async duplicateForm(formId){
+        const result = await Swal.fire({
+            title: 'Nhân bản biểu mẫu',
+            text: "Bạn có chắc chắn muốn nhân bản biểu mẫu này không?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Nhân bản',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (result.isConfirmed) {
+            await this.duplicate(   formId);
+            console.log("Confirmed duplicate form:", formId);
+        }
+    }
+
+
 
     // Helper method to show toast notifications
     showToast(type, message) {
@@ -578,5 +643,75 @@ export default class FormSettingsModal {
             timer: 3000,
             timerProgressBar: true
         });
+    }
+
+    async deleteForm(formId) {
+
+        try {
+
+            const result = await callApi(`/admin/form/${formId}`, 'DELETE');
+
+            if (!result.status) {
+                this.showToast('error', result.message || 'Không thể xóa biểu mẫu');
+                return;
+            }
+
+            // Success message
+            this.showToast('success', 'Đã xóa biểu mẫu thành công');
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('formSettingsModal'));
+            modal.hide();
+
+            // Reload the page or update the UI as needed
+            window.location.reload();
+        } catch (error) {
+            console.error("Error deleting form:", error);
+            this.showToast('error', 'Lỗi khi xóa biểu mẫu');
+        }
+
+    }
+
+    async duplicate(formId) {
+        try {
+            const result = await callApi(`/admin/form/${formId}/duplicate`, 'POST');
+
+            if (!result.status) {
+                this.showToast('error', result.message || 'Không thể nhân bản biểu mẫu');
+                return;
+            }
+
+            // Success message
+            this.showToast('success', 'Đã nhân bản biểu mẫu thành công');
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('formSettingsModal'));
+            modal.hide();
+            const action = await Swal.fire({
+                title: 'Nhân bản thành công!',
+                text: 'Biểu mẫu đã được nhân bản thành công',
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: 'Đi đến biểu mẫu mới',
+                cancelButtonText: 'Ở lại trang hiện tại'
+            });
+
+            // Handle user's choice
+            if (action.isConfirmed && result.data && result.data.formId) {
+                // Navigate to the new form
+                window.location.href = `${this.config.Url}/admin/form/${result.data.formId}/edit?status=draft`;
+            } else {
+                // Reload the table to show the new form in the list
+                const formsManagerModule = await import('../formsManager.js');
+                await formsManagerModule.loadSurveyFromAPI(0, 10); // Reload first page with default limit
+                this.showToast('success', 'Đã cập nhật danh sách biểu mẫu');
+            }
+            // Reload the page or update the UI as needed
+
+        } catch (error) {
+            console.error("Error duplicating form:", error);
+            this.showToast('error', 'Lỗi khi nhân bản biểu mẫu');
+        }
+
     }
 }

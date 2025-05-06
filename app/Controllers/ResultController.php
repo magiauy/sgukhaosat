@@ -208,6 +208,7 @@ class ResultController implements IBaseController
             $data = $request->getBody();
             
             if (empty($data['formId']) || empty($data['userId']) || empty($data['answers'])) {
+                error_log("ResultController::submitSurvey - Missing required fields: " . json_encode($data));
                 throw new \Exception("Form ID, User ID, and answers are required", 400);
             }
             

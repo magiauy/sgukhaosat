@@ -141,7 +141,7 @@ class UserService implements IAuthService
             if ($e->getCode() == 401) {
                 throw new Exception($e->getMessage(), 401);
             } else {
-                throw new Exception("Lỗi đăng nhập: " . $e->getMessage(), $e->getCode() ?: 500);
+                throw new Exception("Lỗi đăng nhập: " . $e->getMessage(), (int) ($e->getCode() ?: 500));
             }
         } catch (\Throwable $e) {
             error_log("Unexpected login error: " . $e->getMessage());

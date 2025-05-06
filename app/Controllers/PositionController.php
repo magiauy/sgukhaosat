@@ -13,7 +13,9 @@ class PositionController {
     }
 
     public function getAll(Response $response) {
-        $response->json(['data' => $this->service->getAll()]);
+        $response->json(['data' => $this->service->getAll(),
+                            'message' => 'Lấy danh sách chức vụ thành công',
+                            'status' => true]);
     }
 
     public function getById(Response $response, $id) {

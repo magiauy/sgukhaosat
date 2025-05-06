@@ -20,10 +20,10 @@ class UserRepository implements IAuthRepository {
         // var_dump($data);
         $this->pdo->beginTransaction();
         try {
-                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ? ,?,?)"));
-                $sql = "INSERT INTO users (email, password, dateCreate, status , roleId, `position`) VALUES $placeholders";
+                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ? ,?,?,?)"));
+                $sql = "INSERT INTO users (email, password, dateCreate, status , roleId, `position`,fullName) VALUES $placeholders";
                 $stmt = $this->pdo->prepare($sql);
-                $expectedOrder = ['email', 'password', 'dateCreate', 'status', 'roleId','position'];
+                $expectedOrder = ['email', 'password', 'dateCreate', 'status', 'roleId','position','fullName'];
             $params = [];
             foreach ($data as $row) {
 
@@ -188,8 +188,9 @@ public function getUsersByEmails(array $emails): array
     }, array_keys($emails));
 
     $placeholdersList = implode(',', $placeholders);
-    $query = "SELECT * FROM users WHERE email IN ($placeholdersList)";
-
+$query = "SELECT u.*, p.PositionName AS positionName FROM users u 
+              LEFT JOIN position p ON u.position = p.PositionID 
+              WHERE u.email IN ($placeholdersList)";
     try {
         $stmt = $this->pdo->prepare($query);
         if ($stmt === false) {

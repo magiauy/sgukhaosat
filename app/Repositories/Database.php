@@ -14,7 +14,7 @@ class Database
         $config = require __DIR__ . '/../../config/Database.php';
     
         try {
-            error_log("Attempting database connection to {$config['host']}:{$config['port']}, database: {$config['dbname']}, user: {$config['username']}");
+//            error_log("Attempting database connection to {$config['host']}:{$config['port']}, database: {$config['dbname']}, user: {$config['username']}");
             
             $this->pdo = new PDO(
                 "mysql:host={$config['host']};port={$config['port']};dbname={$config['dbname']}",

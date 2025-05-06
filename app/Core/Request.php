@@ -46,4 +46,17 @@ class Request
         return $_FILES;
     }
 
+//    public function getPathParam(string $string)
+//    {
+//        $path = explode('/', $_SERVER['REQUEST_URI']);
+//        $path = array_filter($path);
+//        $key = array_search($string, $path);
+//        error_log("Key: " . $key);
+//        error_log("Path: " . json_encode($path));
+//        if ($key !== false && isset($path[$key + 1])) {
+//            return $path[$key + 1];
+//        }
+//        return null;
+//    }
+
 }

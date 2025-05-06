@@ -17,4 +17,6 @@ interface IFormService extends IBaseService
     function getFormWhitelist($id);
     function deleteFromWhitelist($id, $data);
 
+    function duplicate($id, $userId);
+
 }

@@ -21,10 +21,10 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
 
 <link rel="stylesheet" href="/public/css/adminPage.css">
 
-    <div id="sidebar-container" class="d-flex flex-row"  data-code="<?php echo $user->roleID; ?>">
+    <div id="sidebar-container" class="d-flex flex-row">
         <div>
             <nav id="sidebar" class="d-flex flex-column p-3">
-                <button class="btn btn-outline-light mb-3" id="toggleSidebar">
+                <button class="btn btn-outline-primary mb-3" id="toggleSidebar">
                     <i class="bi bi-list"></i>
                 </button>
                 <ul class="nav flex-column">
@@ -78,62 +78,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                             <i class="bi bi-gear"></i> <span class="nav-text">Cài đặt</span>
                         </a>
                     </li>
-                    <!-- <?php 
-                        //kiểm tra permission của user để hiện thanh trạng thái có thể truy cập
-                        $permissionOfCurrentUser = $decode->permissions;
 
-                        foreach($permissionOfCurrentUser as $perm){
-                            switch ($perm->permID){
-                                case 'ACCESS_ROLE_EDITOR':
-                                    echo '
-                                        <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="bi bi-bar-chart"></i> <span class="nav-text">Phân quyền</span>
-                                            </a>
-                                        </li>';
-                                break;
-                                case 'MANAGE_FORMS':
-                                    echo '
-                                        <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="bi bi-bar-chart"></i> <span class="nav-text">Khảo sát</span>
-                                            </a>
-                                        </li>';
-                                break;
-                                case 'MANAGE_USERS':
-                                    echo '
-                                        <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="bi bi-people"></i> <span class="nav-text">Tài khoản</span>
-                                            </a>
-                                        </li>';
-                                break;
-                                case 'MANAGE_MAJOR':
-                                    echo '
-                                    <li class="nav-item">
-                                        <a href="#" class="nav-link">
-                                        <i class="bi bi-book"></i> <span class="nav-text">Quản lý ngành</span>
-                                        </a>
-                                    </li>';
-                                break;
-                                case 'MANAGE_PERIOD':
-                                    echo '
-                                    <li class="nav-item">
-                                        <a href="#" class="nav-link">
-                                        <i class="bi bi-calendar-week"></i> <span class="nav-text">Chu kỳ</span>
-                                        </a>
-                                    </li>';
-                                break;
-                                case 'MANAGE_FORMS_TYPE':
-                                    echo '
-                                    <li class="nav-item">
-                                        <a href="#" class="nav-link">
-                                        <i class="bi bi-collection"></i> <span class="nav-text">Loại khảo sát</span>
-                                        </a>
-                                    </li>';
-                            }
-                        }
-                    ?> -->
                 </ul>
             </nav>
         </div>
@@ -144,7 +89,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
         </div>
     </div>
 
-<script src="/public/js//admin/sidebarAdmin.js?v=<?php echo time(); ?>" type="module"></script>
+<script src="/public/js/admin/sidebarAdmin.js?v=<?php echo time(); ?>" type="module"></script>
 
 <?php
 include __DIR__ . '/../../views/layouts/footer.php';

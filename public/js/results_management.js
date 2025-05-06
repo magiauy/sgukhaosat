@@ -94,6 +94,7 @@ function loadFormDetails(formId) {
     fetch(`/api/admin/form/${formId}`)
         .then(response => {
             if (!response.ok) {
+                resetDashboard();
                 throw new Error('Failed to load form details');
             }
             return response.json();

@@ -108,7 +108,8 @@ class UserService implements IAuthService
                 $secret = require __DIR__ . '/../../config/JwtConfig.php';
                 
                 // Debug log - remove in production
-                error_log(\json_encode($user));
+
+
                 error_log("Secret loaded, fetching role ID: " . $user['user']['roleID']);
                 
                 $roleData = $this->roleService->getById($user['user']['roleID']);
@@ -147,7 +148,7 @@ class UserService implements IAuthService
             if ($e->getCode() == 401) {
                 throw new Exception($e->getMessage(), 401);
             } else {
-                throw new Exception("Lỗi đăng nhập: " . $e->getMessage(), $e->getCode() ?: 500);
+                throw new Exception("Lỗi đăng nhập: " . $e->getMessage(), (int) ($e->getCode() ?: 500));
             }
         } catch (\Throwable $e) {
             error_log("Unexpected login error: " . $e->getMessage());
@@ -258,6 +259,7 @@ class UserService implements IAuthService
             
             $batchData[] = [
                 'email' => $email,
+                'fullName' => explode('@', $email)[0],
                 'password' => password_hash($password, PASSWORD_DEFAULT, ['cost' => 8]),
                 'dateCreate' => date('Y-m-d H:i:s'),
                 'status' => 1,

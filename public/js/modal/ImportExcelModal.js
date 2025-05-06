@@ -1,5 +1,7 @@
 // Import Excel Modal Class
 import { cleanupModalBackdrops } from "../formsManager.js";
+import {callApi} from "../apiService.js";
+
 export default class ImportExcelModal {
     constructor(config) {
         this.config = config;
@@ -139,9 +141,9 @@ export default class ImportExcelModal {
                                                     <table class="table table-sm table-hover mb-0">
                                                         <thead>
                                                             <tr>
-                                                                <th>Email</th>
-                                                                <th>Tên</th>
-                                                                <th>Vai trò</th>
+                                                                <th style="width: 70%">Email</th>
+                                                                <!--<th>Tên</th>-->
+                                                                <th style="width: 30%">Vai trò</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="existingEmailsList">
@@ -164,13 +166,7 @@ export default class ImportExcelModal {
                                                   <div class="p-2 border-bottom d-flex justify-content-between align-items-center">
                                                     <div class="d-flex align-items-center gap-2" style="width: 50%;">
                                                       <label class="form-label mb-0 text-nowrap">Vai trò:</label>
-                                                      <select class="form-select form-select-sm" id="bulkRoleSelect">
-                                                        <option value="student">Sinh viên</option>
-                                                        <option value="alumni">Cựu sinh viên</option>
-                                                        <option value="faculty">Giảng viên</option>
-                                                        <option value="staff">Nhân viên</option>
-                                                        <option value="business">Doanh nghiệp</option>
-                                                        <option value="guest">Khách mời</option>
+                                                      <select class="form-select form-select-sm" id="bulkPositionSelect">
                                                       </select>
                                                     </div>
                                                     <button class="btn btn-success btn-sm ms-2" id="createAccountsBtn">
@@ -206,7 +202,8 @@ export default class ImportExcelModal {
             </div>
         `;
     }
-    setupHandlers() {
+    async setupHandlers() {
+        await this.loadPositionsForSelect();
 
         // Parse Excel button handler
         document.getElementById('parseExcelBtn').addEventListener('click', () => {
@@ -367,8 +364,8 @@ export default class ImportExcelModal {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${user.email}</td>
-                    <td>${user.name || '-'}</td>
-                    <td>${this.translateRole(user.role) || '-'}</td>
+<!--                    <td>${user.name || '-'}</td>-->
+                    <td>${(user.positionName) || '-'}</td>
                 `;
                 existingList.appendChild(row);
             });
@@ -398,7 +395,7 @@ export default class ImportExcelModal {
                 return;
             }
 
-            const role = document.getElementById('bulkRoleSelect').value;
+            const position = document.getElementById('bulkPositionSelect').value;
             this.showToast('info', 'Đang tạo tài khoản...');
 
             const response = await fetch(`${this.config.apiUrl}/users/bulk-create`, {
@@ -408,7 +405,7 @@ export default class ImportExcelModal {
                 },
                 body: JSON.stringify({
                     emails: this.newEmails,
-                    position: role
+                    position: position
                 })
             });
 
@@ -480,17 +477,38 @@ export default class ImportExcelModal {
             this.showToast('error', 'Lỗi khi thêm vào danh sách truy cập');
         }
     }
+    async loadPositionsForSelect() {
+        try {
+            const result = await callApi("/position", "GET");
 
-    translateRole(role) {
-        const roles = {
-            'student': 'Sinh viên',
-            'alumni': 'Cựu sinh viên',
-            'faculty': 'Giảng viên',
-            'staff': 'Nhân viên',
-            'business': 'Doanh nghiệp',
-            'guest': 'Khách mời'
-        };
-        return roles[role] || role;
+            if (!result.status || !result.data) {
+                this.showToast('error', 'Không thể tải danh sách vị trí');
+                return;
+            }
+
+
+            // Get the select element
+            const positionSelect = document.getElementById('bulkPositionSelect');
+
+            // Clear existing options
+            positionSelect.innerHTML = '';
+
+            console.log(result.data);
+            // Add positions to dropdown
+            result.data.forEach(position => {
+                const option = document.createElement('option');
+                option.value = position.PositionID;
+                option.textContent = position.PositionName;
+                positionSelect.appendChild(option);
+            });
+            // Select first position as default if available
+            if (result.data.length > 0) {
+                positionSelect.value = result.data[0].PositionID;
+            }
+        } catch (error) {
+            console.error("Error loading positions:", error);
+            this.showToast('error', 'Không thể tải danh sách vị trí');
+        }
     }
 
     showToast(type, message) {

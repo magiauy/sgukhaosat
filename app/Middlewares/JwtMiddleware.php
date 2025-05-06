@@ -56,7 +56,6 @@ class JwtMiddleware
 
             }// Store user data in request for later use
             $request->addBody((array)$decoded);
-            error_log('User data: ' . json_encode($request->getBody()));
             $next($request, $response);
         } catch (\Exception $e) {
             $response ->json([

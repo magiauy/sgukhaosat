@@ -29,10 +29,11 @@ export default class FormSettingsModal {
 
         // Update form name and status
         const formNameElement = modalElement.querySelector('.form-name');
+        // console.log(form);
         formNameElement.textContent = `Form #${formId}: ${form.FName}`;
 
         const statusSelect = document.getElementById('formStatusSelect');
-        console.log(form)
+        // console.log(form)
         statusSelect.value = form.Status;
 
         // Load whitelist data

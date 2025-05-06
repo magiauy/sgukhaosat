@@ -1,6 +1,9 @@
 import { callApi } from "../../apiService.js";
 import { showAddAccount, importUsers } from "./addAccount.js";
 import { deleteAccount } from "./deleteAccount.js";
+import { showDetail } from "./detailAccount.js";
+import { filterAccount } from "./filterAccount.js";
+import { searchAccount } from "./searchAccount.js";
 
 
 async function addRoleNameForUsers(users){
@@ -19,69 +22,46 @@ async function addRoleNameForUsers(users){
 //hàm render ra nội dung submenu tài khoản
 export async function  renderContentUser(){
     document.querySelector("#content").innerHTML = `
-        <!-- Header Card -->
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body text-center py-4">
-                <h3 class="mb-0 fw-bold text-primary">Quản lý tài khoản</h3>
-            </div>
-        </div>
-
-        <!-- Main Content Card -->
-        <div class="card shadow-sm border-0 content-account">
+         <!-- Main Content Card -->
+        <div class="card shadow border-0 content-account rounded-3">
             <div class="card-body p-0" id="container-account">
                 
                 <!-- Action Buttons Section -->
                 <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
-                    <div class="d-flex align-items-center gap-2">
-                        <!-- Phần input file -->
-                        <div class="me-2">
-                            <input type="file" class="form-control import-user-input" accept=".xlsx, .xls" name="importFile" id="importFile">
-                        </div>
-                        
-                        <!-- Phần select role -->
-                        <div class="me-2">
-                            <select class="form-select role-select" required>
-                                
-                            </select>
-                        </div>
-                        
-                        <!-- Phần button import -->
-                        <div>
-                            <button type="button" class="btn btn-primary import-user" id="import-account">
-                                <i class="bi bi-upload"></i> Import
-                            </button>
-                        </div>
+                    <div>  
+                        <button type="button" class="btn btn-primary import-user rounded-pill px-4 py-2 min-width-150" id="import-account">
+                            <i class="bi bi-upload me-2"></i> Import
+                        </button>
                     </div>
 
-                    
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-danger" id="delete-account">
-                            <i class="bi bi-trash"></i> Xóa tài khoản
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-outline-danger rounded-pill px-4 py-2 min-width-150" id="delete-account">
+                            <i class="bi bi-trash me-2"></i> Xóa tài khoản
                         </button>
-                        <button class="btn btn-primary add-user-button" id="add-account">
-                            <i class="bi bi-plus-circle"></i> Thêm tài khoản
+                        <button class="btn btn-primary rounded-pill px-4 py-2 min-width-150 add-user-button" id="add-account">
+                            <i class="bi bi-plus-circle me-2"></i> Thêm tài khoản
                         </button>
                     </div>
                 </div>
 
                  <!-- Filter Section -->
-                <div class="p-4 border-bottom">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0 fw-bold">Bộ lọc tìm kiếm</h5>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm delete-filter-user">
-                                <i class="bi bi-x-circle"></i> Xóa lọc
+                <div class="p-4 border-bottom bg-light bg-opacity-50 mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0 fw-bold text-primary">Bộ lọc</h5>
+                        <div class="d-flex gap-3">
+                            <button class="btn btn-outline-secondary delete-filter-user rounded-pill px-3 py-2 min-width-120">
+                                <i class="bi bi-x-circle me-1"></i> Xóa lọc
                             </button>
-                            <button class="btn btn-primary btn-sm filter-user">
-                                <i class="bi bi-funnel"></i> Áp dụng
+                            <button id="filter-button" class="btn btn-primary filter-user rounded-pill px-3 py-2 min-width-120">
+                                <i class="bi bi-funnel me-1"></i> Áp dụng
                             </button>
                         </div>
                     </div>
                     
-                    <div class="row g-3">
+                    <div class="row g-4">
                         <div class="col-md-3 col-sm-6">
                             <div class="form-floating">
-                                <select class="form-select role-select" id="role-select">
+                                <select class="form-select role-select rounded-3 input-height-60" id="role-select">
                                     <option value="all" selected>Tất cả</option>
                                     <!-- Các vai trò sẽ được thêm vào đây -->
                                 </select>
@@ -91,10 +71,10 @@ export async function  renderContentUser(){
                         
                         <div class="col-md-3 col-sm-6">
                             <div class="form-floating">
-                                <select class="form-select status-select" id="status-select">
+                                <select class="form-select status-select rounded-3 input-height-60" id="status-select">
                                     <option value="all" selected>Tất cả</option>
                                     <option value="1">Đang hoạt động</option>
-                                    <option value="0">Đã bị khóa</option>
+                                    <option value="0">Đã khóa</option>
                                 </select>
                                 <label for="status-select">Tình trạng</label>
                             </div>
@@ -102,56 +82,112 @@ export async function  renderContentUser(){
                         
                         <div class="col-md-3 col-sm-6">
                             <div class="form-floating">
-                                <input type="date" class="form-control date-create" id="from-date-create">
-                                <label for="date-create">Từ</label>
+                                <input type="date" class="form-control date-create rounded-3 input-height-60" id="from-date-create">
+                                <label for="from-date-create">Từ</label>
                             </div>
                         </div>
                         
                          <div class="col-md-3 col-sm-6">
                             <div class="form-floating">
-                                <input type="date" class="form-control date-create" id="to-date-create">
-                                <label for="date-create">Đến</label>
+                                <input type="date" class="form-control date-create rounded-3 input-height-60" id="to-date-create">
+                                <label for="to-date-create">Đến</label>
                             </div>
                         </div>
                        
                     </div>
                 </div>
+
+                 <div class="p-4 border-bottom mt-3">
+                    <div class="row g-4">
+                        <div class="col-md-9 col-sm-8">
+                            <div class="form-floating">
+                                <input type="text" class="form-control rounded-3 input-height-60" id="email-search" placeholder="Nhập email cần tìm">
+                                <label for="email-search">Tìm kiếm theo email</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-4">
+                            <div class="d-grid h-100">
+                                <button class="btn btn-primary rounded-3 h-100 px-4 py-2" id="search-button">
+                                    <i class="bi bi-search me-2"></i> Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Table Section -->
-                <div class="table-responsive">
+                <div class="table-responsive mt-3">
                     <table class="table table-hover mb-0 align-middle">
                         <thead class="bg-light">
                             <tr>
-                                <th width="40" class="text-center">
+                                <th width="40" class="text-center p-3">
                                     <div class="form-check">
                                         <input type="checkbox" class="form-check-input choose-all-user" id="choose-all-user">
                                     </div>
                                 </th>
-                                <th>Email</th>
-                                <th>Họ tên</th>
-                                <th>Vai trò</th>
-                                <th>Ngày tạo</th>
-                                <th>Tình trạng</th>
-                                <th class="text-center">Hành động</th>
+                                <th class="p-3">Email</th>
+                                <th class="p-3">Họ tên</th>
+                                <th class="p-3">Vai trò</th>
+                                <th class="p-3">Ngày tạo</th>
+                                <th class="p-3">Tình trạng</th>
+                                <th class="text-center p-3">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="user-table-body">
                             <!-- Dữ liệu mẫu -->
-                           
-                          
+                            <tr>
+                                <td class="text-center p-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input">
+                                    </div>
+                                </td>
+                                <td class="p-3">admin@gmail.com</td>
+                                <td class="p-3">null</td>
+                                <td class="p-3"><span class="badge bg-secondary py-2 px-3">Administrator</span></td>
+                                <td class="p-3">2025-04-02 06:11:31</td>
+                                <td class="p-3"><span class="badge bg-primary py-2 px-3">Hoạt động</span></td>
+                                <td class="text-center p-3">
+                                    <button class="btn btn-outline-primary btn-sm rounded-circle p-2 action-btn">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm rounded-circle p-2 action-btn ms-2">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-center p-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input">
+                                    </div>
+                                </td>
+                                <td class="p-3">nguyenhuuhoa@gmail.com</td>
+                                <td class="p-3">null</td>
+                                <td class="p-3"><span class="badge bg-info py-2 px-3">Regular User</span></td>
+                                <td class="p-3">2025-05-05 17:25:14</td>
+                                <td class="p-3"><span class="badge bg-primary py-2 px-3">Hoạt động</span></td>
+                                <td class="text-center p-3">
+                                    <button class="btn btn-outline-primary btn-sm rounded-circle p-2 action-btn">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm rounded-circle p-2 action-btn ms-2">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
                 
                 <!-- Pagination Section -->
-                <div class="p-3 border-top d-flex justify-content-between align-items-center">
+                <div class="p-4 border-top d-flex justify-content-between align-items-center bg-light bg-opacity-25 mt-3">
                     <div>
-                        <span class="text-muted fs-sm">Hiển thị 1-10 trong tổng số 25 tài khoản</span>
+                        <span class="text-muted">Hiển thị 1-10 trong tổng số 25 tài khoản</span>
                     </div>
                     <nav aria-label="Page navigation">
-                        <ul class="pagination pagination-sm mb-0">
+                        <ul class="pagination mb-0">
                             <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                <a class="page-link rounded-start px-3" href="#" tabindex="-1" aria-disabled="true">Trước</a>
                             </li>
                             <li class="page-item active" aria-current="page">
                                 <a class="page-link" href="#">1</a>
@@ -159,7 +195,7 @@ export async function  renderContentUser(){
                             <li class="page-item"><a class="page-link" href="#">2</a></li>
                             <li class="page-item"><a class="page-link" href="#">3</a></li>
                             <li class="page-item">
-                                <a class="page-link" href="#">Sau</a>
+                                <a class="page-link rounded-end px-3" href="#">Sau</a>
                             </li>
                         </ul>
                     </nav>
@@ -179,10 +215,13 @@ export async function  renderContentUser(){
         })
     })
 
-    await renderListUsers();
-    deleteAccount();
+    await renderListUsers(null);
+   
     showAddAccount();
     importUsers();
+    filterAccount();
+    searchAccount();
+   
     // handleClickFilter();
     // handleImportUsers();
     // handleSearchEmail(users.data);
@@ -190,45 +229,28 @@ export async function  renderContentUser(){
     // handleDeleteUserButton();
 
 
-    // Chức năng xử lý checkbox
-    const chooseAllCheckbox = document.getElementById('choose-all-user');
-    const userCheckboxes = document.querySelectorAll('.user-checkbox');
-    // console.log(userCheckboxes);
     
-    // Xử lý sự kiện khi click vào checkbox "chọn tất cả"
-    chooseAllCheckbox.addEventListener('change', function() {
-        userCheckboxes.forEach(checkbox => {
-            // console.log(checkbox);
-            checkbox.checked = this.checked;
-        });
-    });
-
-    userCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const allChecked = Array.from(userCheckboxes).every(cb => cb.checked);
-            chooseAllCheckbox.checked = allChecked;
-        });
-    });
     
 }
 
 
 //hàm render ra list user
-export async function renderListUsers(){
-    let users = [];
-    try {
-        const response = await callApi(`/user`);
-        users = response.data;
-        // console.log(users);
-    } catch (error) {
-        console.log("lỗi khi lấy users", error);
-        return;
+export async function renderListUsers(users){
+    if(!users){
+        try {
+            const response = await callApi(`/user`);
+            users = response.data;
+            // console.log(users);
+        } catch (error) {
+            console.log("lỗi khi lấy users", error);
+            return;
+        }
     }
+
     await addRoleNameForUsers(users);
-    console.log(users);
 
     if(users.length === 0){
-        document.querySelector(".container-account table tbody").innerHTML = "Không có dữ liệu";
+        document.querySelector("#user-table-body").innerHTML = "Không có dữ liệu";
         return;
     }
 
@@ -261,15 +283,13 @@ export async function renderListUsers(){
                 </td>
                 <td>
                     <div class="d-flex justify-content-center gap-1">
-                        <button class="btn btn-sm btn-outline-primary edit-account">
+                        <button class="btn btn-sm btn-outline-primary detail-account" data-id=${user.email}>
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger delete-account">
+                        <button class="btn btn-sm btn-outline-danger delete-account delete-account-i" data-id=${user.email}>
                             <i class="bi bi-trash"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-success detail-account">
-                            <i class="bi bi-unlock"></i>
-                        </button>
+                     
                     </div>
                 </td>
             </tr>
@@ -278,7 +298,29 @@ export async function renderListUsers(){
 
     document.querySelector("#user-table-body").innerHTML = bodyTable;
 
-    handleClickMore(users);
+    // Chức năng xử lý checkbox
+    const chooseAllCheckbox = document.getElementById('choose-all-user');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    
+    
+    // Xử lý sự kiện khi click vào checkbox "chọn tất cả"
+    chooseAllCheckbox.addEventListener('change', function() {
+        userCheckboxes.forEach(checkbox => {
+            // console.log(checkbox);
+            checkbox.checked = this.checked;
+        });
+    });
+
+    userCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const allChecked = Array.from(userCheckboxes).every(cb => cb.checked);
+            chooseAllCheckbox.checked = allChecked;
+        });
+    });
+
+
+    deleteAccount();
+    showDetail();
 }
 
 //hàm xử lí việc ấn xem thông tin
@@ -436,162 +478,8 @@ function handleClickMore(data){
     })
 }
 
-//hàm xử lí việc ấn button lọc
-function handleClickFilter(){
-    document.querySelector(".filter-user").onclick = async function(){
-        const roleId = document.querySelector(".role-select").value;
-        const status = document.querySelector(".status-select").value;
-        const dateCreate = new Date(document.querySelector(".date-create").value).getTime();
-        const now = new Date().getTime();
-        
-        try {
-            const response = await fetch(`${config.apiUrl}/user`);
-            const users = await response.json();
-    
-            const listFiltered = users.data.filter((user) => {
-                const userDate = new Date(user.dateCreate).getTime();
-                return (
-                    (user.roleId === roleId || roleId === "all")
-                    && (user.status === parseInt(status) || status === "all")
-                    && ((userDate >= dateCreate && userDate <= now) || isNaN(dateCreate))
-                );
-            })
 
-            await renderListUsers(listFiltered);
-        } catch (error) {
-            console.log(error);   
-        }
-    }
 
-    //khi ấn xóa lọc
-    document.querySelector(".delete-filter-user").onclick = async function () {
-        await renderContentUser();
-    }
-}
-
-//hàm xử lý việc click thêm tài khoản thủ công
-function handleAddUserButton(){
-    document.querySelector(".add-user-button").onclick = () => {
-        document.querySelector("#content").innerHTML = `
-            <form>
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email-add" placeholder="Nhập email" required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-control" id="password-add" placeholder="Nhập mật khẩu" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100 add-user">Thêm tài khoản</button>
-            </form>
-        `
-        document.querySelector(".add-user").onclick = async function(e){
-            e.preventDefault();
-            const email = document.querySelector("#email-add").value;
-            const password = document.querySelector("#password-add").value;
-
-            if(email === "" || password === "") return;
-
-            const data = {
-                email,
-                password
-            }
-            
-            try {
-                const result = await fetch(`${config.apiUrl}/user`, {
-                    method: 'POST',
-                    headers:{
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-                const response = await result.json();
-                const status = result.status;
-                if(status === 201){
-                    console.log('thành công');
-                }
-                else{
-                    console.log("thất bại: " + response.message);
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        }
-    }
-}
-
-//hàm xử lý việc xóa user, arrUser là mảng các email
-async function handleDelete(arrUser){
-    if(arrUser.length === 0) return;
-
-    await Promise.all(arrUser.map((email) => {
-        return fetch(`${config.apiUrl}/user?email=${email}`, {
-            method: 'DELETE',
-            headers:{
-                'Content-type': 'application/json'
-            }
-        }).then(response => {
-            return response.json();
-        }).catch(error => {
-            console.log(error.message);
-            return { error: error.message };
-        })
-    }))
-    .then(responseArray => console.log(responseArray));
-    
-    await renderListUsers();
-}
-
-//hàm xử lí việc xóa tài khoản
-function handleDeleteUserButton(){
-    //xử lí việc click button xóa tài khoản
-    document.querySelector(".delete-user-button").onclick = () => {
-        let arr = [];
-        document.querySelectorAll(".container-account table input").forEach((item) => {
-            if(item.checked){
-                if(item.dataset.key){
-                    arr.push(item);
-                }
-            }
-        });
-        const arrKey = arr.map(item => item.dataset.key);
-        handleDelete(arrKey);
-    };
-}
-
-//hàm xử lý khi ấn nút chỉnh sửa và lưu thông tin
-function handleClickSaveChanges(oldEmail){
-    document.querySelector(".update-info-account").onclick = async function(){
-        const email = document.querySelector("#email").value;
-        const password = document.querySelector("#password").value;
-        const phone = document.querySelector("#phone").value;
-        const roleId = document.querySelector("#roleName").value;
-        const status = document.querySelector("#status").value;
-        const data = {
-            email,
-            password,
-            phone,
-            roleId,
-            status
-        }
-
-        const result = await fetch(`${config.apiUrl}/user?email=${oldEmail}`,{
-            method: 'PUT',
-            headers:{
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
-        const response = await result.json();
-        const statusCode = result.status;
-
-        if (statusCode === 200) { 
-            alert("thành công");
-        } else {
-            alert("thất bại");
-        }
-    }
-}
 
 
 

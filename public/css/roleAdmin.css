@@ -1,0 +1,24 @@
+/* Đặt chiều rộng tối đa cho modal */
+.modal-xl {
+    max-width: 90%;
+}
+
+/* Tạo khoảng cách giữa các checkbox */
+.form-check {
+    margin-bottom: 10px;
+}
+
+/* Căn chỉnh nội dung trong card */
+.card {
+    min-height: 150px;
+}
+
+/* Tạo khoảng cách giữa các quyền cấp trung */
+.card-body {
+    padding: 10px;
+}
+
+/* Tạo khoảng cách giữa các quyền con */
+#permissionsAccordion .row.g-3 {
+    margin-top: 10px;
+}

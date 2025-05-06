@@ -51,16 +51,15 @@ class UserRepository implements IAuthRepository {
     }
 
     public function update($id, $data): bool { 
-        $sql = "UPDATE users SET  roleId = :roleId, phone = :phone, 
-                password = :password, status = :status 
+        $sql = "UPDATE users SET roleID = :roleID, phone = :phone, 
+                status = :status 
                 WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'roleId' => $data['roleId'],
+            'roleID' => $data['roleID'],
             'phone' => $data['phone'],
             'email' => $id,
-            'status' => $data['status'],
-            'password' => $data['password'],
+            'status' => $data['status']
         ]);
         return $stmt->rowCount() === 1;
     }
@@ -220,5 +219,22 @@ public function getUsersByEmails(array $emails): array
     function getLastInsertId(): int
     {
         return $this->pdo->lastInsertId();
+    }
+
+    public function resetPassword($email, $newPassword)
+    {
+        $sql = "UPDATE users SET password = :password WHERE email = :email";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'password' => $newPassword,
+            'email' => $email,
+        ]);
+    }
+
+    public function updateRoleIDForDelete($ids){
+        $sql = "UPDATE users SET roleID = 'USER' WHERE roleID in (:roleID)";
+        $stmt = $this->pdo->prepare($sql);
+        $ids = implode(', ', array_values($ids));
+        $stmt->execute(['roleID' => $ids]);
     }
 }

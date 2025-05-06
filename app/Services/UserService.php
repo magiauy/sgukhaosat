@@ -36,13 +36,16 @@ class UserService implements IAuthService
         if (!is_array(reset($data))) {
             $data = [$data];
         }
-        
+        // error_log(json_encode($data));
+        // $data = createUsersInBulk($data);
+        // error_log($data);
+
         foreach ($data as &$row) {
-            $row['password'] = (string) $row['password'];
+            // $row['password'] = (string) $row['password'];
             $row['password'] = password_hash($row['password'], PASSWORD_DEFAULT, $options);
             $row['dateCreate'] = $row['dateCreate'] ?? date('Y-m-d H:i:s'); // Gán ngày tạo nếu chưa có
             $row['status'] = $row['status'] ?? 1; // Gán trạng thái mặc định là 1 nếu chưa có
-            var_dump($row);
+            // var_dump($row);
         }
 
         unset($row);
@@ -52,9 +55,11 @@ class UserService implements IAuthService
 
     public function update($id,$data): bool
     {
+        
         return $this->userRepository->update($id,$data);
     }
 
+    //id là mảng
     public function delete($id): bool
     {
         if(empty($id)){
@@ -103,9 +108,10 @@ class UserService implements IAuthService
                 $secret = require __DIR__ . '/../../config/JwtConfig.php';
                 
                 // Debug log - remove in production
-                error_log("Secret loaded, fetching role ID: " . $user['user']['roleId']);
+                error_log(\json_encode($user));
+                error_log("Secret loaded, fetching role ID: " . $user['user']['roleID']);
                 
-                $roleData = $this->roleService->getById($user['user']['roleId']);
+                $roleData = $this->roleService->getById($user['user']['roleID']);
                 
                 // Debug log - remove in production
                 error_log("Role data fetched: " . ($roleData ? "success" : "failed"));
@@ -242,19 +248,20 @@ class UserService implements IAuthService
      */
     public function createUsersInBulk(array $emails, string $role = 'USER'): array
     {
+        // error_log("Creating users in bulk: " . json_encode($emails));
         $batchData = [];
         $emailsForLookup = [];
 
         // Prepare batch data for all users at once
         foreach ($emails as $email) {
             $password = PasswordUtils::generateDefaultPassword($email);
-
+            
             $batchData[] = [
                 'email' => $email,
                 'password' => password_hash($password, PASSWORD_DEFAULT, ['cost' => 8]),
                 'dateCreate' => date('Y-m-d H:i:s'),
                 'status' => 1,
-                'roleId' => 'USER',
+                'roleID' => 'USER',
                 'position' => $role,
             ];
 
@@ -279,5 +286,21 @@ class UserService implements IAuthService
         }
 
         return [];
+    }
+
+    public function resetPassword($email)
+    {
+        // Generate a new password
+        $newPassword = PasswordUtils::generateDefaultPassword($email);
+        
+        $options = ['cost' => 8];
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT, $options);
+        error_log("Mật khẩu mới: " . $hashedPassword);
+        // Update the user's password in the database
+        try {
+            $this->userRepository->resetPassword($email, $hashedPassword);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 }

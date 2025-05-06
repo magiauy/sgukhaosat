@@ -1,342 +1,388 @@
 import { callApi } from '../../apiService.js';
 import { renderContentRole } from './roleAdmin.js';
 
-//hàm render giao diện thêm vai trò
-export function showAddRoleUI() {
+export function showPopupAddRole() {
     document.querySelector('#add-role-button').onclick = async function() {
+        let permissions = [];
         try {
-            // Fetch permissions data
             const response = await callApi('/permission');
-            const permissions = response.data;
-            
-            // Organize permissions hierarchy
-            const topLevelPermissions = permissions.filter(perm => perm.parent_permission_code === null);
-            const midLevelPermissions = permissions.filter(perm => 
-                topLevelPermissions.some(top => top.permission_code === perm.parent_permission_code)
-            );
-            
-            // Render the form UI
-            renderAddRoleForm();
-            
-            // Populate permissions structure
-            renderPermissionsStructure(topLevelPermissions, midLevelPermissions, permissions);
-            
-            // Set up event listeners for checkbox behavior
-            setupCheckboxBehavior();
-            
-            // Add form submission handler
-            setupFormSubmission(topLevelPermissions);
-            
+            permissions = response.data;
         } catch (error) {
-            console.error("Error loading permissions:", error);
-            showErrorMessage("Không thể tải dữ liệu quyền. Vui lòng thử lại sau.");
+            console.error("Lỗi khi lấy tất cả quyền:", error);
         }
+        
+       // Tạo modal với giao diện dọc
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal fade" id="addRoleModal" tabindex="-1" aria-labelledby="addRoleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="addRoleModalLabel">
+                                Tạo vai trò mới
+                            </h5>
+                            <button id="close-button" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form id="add-role-form">
+                                <!-- Layout dọc -->
+                                <div class="row g-3">
+                                    <!-- Phần tên vai trò -->
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label for="roleName" class="form-label fw-semibold">Tên vai trò <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="roleName" placeholder="Nhập tên vai trò...">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label for="roleID" class="form-label fw-semibold">ID vai trò <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="roleID" placeholder="Nhập ID vai trò...">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Phần phân quyền -->
+                                    <div class="col-12">
+                                        <div class="permissions-section">
+                                            <label class="form-label fw-semibold mb-2">Phân quyền</label>
+                                            <div class="border rounded p-3 bg-light">
+                                                <div class="accordion" id="permissionsAccordion">
+                                                    <!-- Quyền cấp cao sẽ được thêm vào đây -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="close-popup" type="button" class="btn btn-outline-secondary">
+                                Hủy bỏ
+                            </button>
+                            <button type="button" id="save-role" class="btn btn-primary">
+                                Lưu vai trò
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        
+        // Hiển thị modal
+        const addRoleModal = new bootstrap.Modal(document.getElementById('addRoleModal'));
+        addRoleModal.show();
+
+        // Tổ chức cấu trúc quyền
+        const permRoot = permissions.find(perm => perm.permParent === null);
+        
+        const topLevelPermissions = permissions.filter(perm => perm.permParent === permRoot.permID);
+        const midLevelPermissions = permissions.filter(perm => 
+            topLevelPermissions.some(top => top.permID === perm.permParent)
+        );
+        const leafLevelPermissions = permissions.filter(perm =>
+            midLevelPermissions.some(mid => mid.permID === perm.permParent) 
+        );
+        
+        // Render cấu trúc quyền
+        renderPermissionsStructure(topLevelPermissions, midLevelPermissions, leafLevelPermissions);
+        closePopup();
+
+        createRole();
+            
     };
 }
 
-export function renderAddRoleForm() {
-    document.querySelector('#content').innerHTML = `       
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card shadow-lg rounded-3 border-0 mb-4">
-                    <div class="card-header bg-white py-3 border-0">
-                        <h4 class="text-center fw-bold text-primary mb-0">
-                            <i class="fas fa-user-tag me-2"></i>Tạo vai trò mới
-                        </h4>
+
+export function renderPermissionsStructure(topLevelPermissions, midLevelPermissions, leafLevelPermissions) {
+    const container = document.querySelector("#permissionsAccordion");
+    container.innerHTML = "";
+
+    // Thêm CSS inline nếu cần
+    const style = document.createElement('style');
+    style.textContent = `
+        .permission-checkbox {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+        .permission-label {
+            margin-left: 8px;
+            flex-grow: 1;
+        }
+        .permission-item,
+        .leaf-permission-item {
+            display: flex;
+            align-items: center;
+            min-height: 32px;
+            padding: 4px 8px;
+        }
+        .form-check {
+            display: flex;
+            align-items: center;
+        }
+    `;
+    document.head.appendChild(style);
+
+    topLevelPermissions.forEach((topPerm) => {
+        const accordionId = `accordion-${topPerm.permID}`;
+        const accordionItem = document.createElement('div');
+        accordionItem.className = 'accordion-item mb-3 border-0';
+
+        const childPermissions = midLevelPermissions.filter(mid => mid.permParent === topPerm.permID)
+            .flatMap(mid => leafLevelPermissions.filter(leaf => leaf.permParent === mid.permID));
+
+        accordionItem.innerHTML = `
+        <h4 class="accordion-header" id="heading-${topPerm.permID}">
+            <div class="d-flex align-items-center w-100 py-2">
+                <div class="form-check ms-3">
+                    <input class="form-check-input permission-checkbox top-level-checkbox" type="checkbox" 
+                           id="perm-${topPerm.permID}" data-level="top" 
+                           data-id="${topPerm.permID}">
+                </div>
+                <button class="accordion-button collapsed shadow-none flex-grow-1 bg-light rounded" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#${accordionId}" 
+                        aria-expanded="false" aria-controls="${accordionId}">
+                    <div class="d-flex justify-content-between w-100 align-items-center pe-2">
+                        <span class="fw-semibold">${topPerm.permName}</span>
+                        <span class="badge bg-primary rounded-pill">${childPermissions.length} quyền</span>
                     </div>
-                    
-                    <div class="card-body p-4">
-                        <form id="add-role-form">
-                            <!-- Tên vai trò -->
-                            <div class="mb-4">
-                                <label for="roleName" class="form-label fw-semibold">Tên vai trò</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="fas fa-user-shield text-primary"></i>
-                                    </span>
-                                    <input type="text" class="form-control border-start-0 ps-0" 
-                                           id="roleName" placeholder="Nhập tên vai trò" required>
-                                </div>
-                                <div class="form-text text-muted">Tên vai trò nên ngắn gọn và mô tả chức năng</div>
-                            </div>
-
-                            <!-- Chọn quyền -->
-                            <div class="permissions-section mt-4">
-                                <label class="form-label fw-semibold mb-3">
-                                    <i class="fas fa-key me-2 text-primary"></i>Chọn quyền cho vai trò này
-                                </label>
-                                
-                                <div class="alert alert-info py-2 px-3 d-flex align-items-center mb-3">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    <small>Chọn các quyền phù hợp với vai trò. Bạn có thể chọn cả nhóm hoặc từng quyền riêng lẻ.</small>
-                                </div>
-
-                                <div class="permissions-container" id="permissions-container">
-                                    <!-- Permissions will be added here dynamically -->
-                                </div>
-                            </div>
-
-                            <div class="d-grid gap-2 mt-4">
-                                <button id="save-role" type="submit" class="btn btn-primary py-2">
-                                    <i class="fas fa-save me-2"></i>Tạo vai trò
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary py-2" id="cancel-button">
-                                    <i class="fas fa-times me-2"></i>Hủy
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                </button>
+            </div>
+        </h4>
+        <div id="${accordionId}" class="accordion-collapse collapse" 
+             aria-labelledby="heading-${topPerm.permID}" data-bs-parent="#permissionsAccordion">
+            <div class="accordion-body p-0 pt-2">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3 p-2" id="group-${topPerm.permID}">
+                    <!-- Mid-level permissions will be added here -->
                 </div>
             </div>
         </div>
-    `;
-}
-
-export function renderPermissionsStructure(topLevelPermissions, midLevelPermissions, allPermissions) {
-    const container = document.querySelector("#permissions-container");
-    
-    topLevelPermissions.forEach((topPerm) => {
-        // Create accordion item for each top-level permission
-        const accordionId = `accordion-${topPerm.permission_code}`;
-        
-        const accordionItem = document.createElement('div');
-        accordionItem.className = 'accordion-item border mb-3 rounded-3 shadow-sm';
-        accordionItem.innerHTML = `
-            <h2 class="accordion-header" id="heading-${topPerm.permission_code}">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                        data-bs-target="#${accordionId}" aria-expanded="false" 
-                        aria-controls="${accordionId}">
-                    <div class="form-check mb-0 w-100">
-                        <input class="form-check-input top-level-permission" type="checkbox" 
-                               id="perm-${topPerm.permission_code}" 
-                               data-code="${topPerm.permission_code}">
-                        <label class="form-check-label fw-semibold ms-2" for="perm-${topPerm.permission_code}">
-                            ${topPerm.name}
-                        </label>
-                    </div>
-                </button>
-            </h2>
-            <div id="${accordionId}" class="accordion-collapse collapse" 
-                 aria-labelledby="heading-${topPerm.permission_code}">
-                <div class="accordion-body pt-0">
-                    <div class="row permission-group mt-3" id="group-${topPerm.permission_code}">
-                        <!-- Mid-level permissions will be added here -->
-                    </div>
-                </div>
-            </div>
         `;
-        
+
         container.appendChild(accordionItem);
-        
-        // Add mid-level permissions for this top-level permission
+
+        // Thêm mid-level permissions
         const relevantMidPerms = midLevelPermissions.filter(
-            midPerm => midPerm.parent_permission_code === topPerm.permission_code
+            midPerm => midPerm.permParent === topPerm.permID
         );
-        
-        const midPermContainer = accordionItem.querySelector(`#group-${topPerm.permission_code}`);
-        
+
+        const midPermContainer = accordionItem.querySelector(`#group-${topPerm.permID}`);
+
         relevantMidPerms.forEach((midPerm) => {
-            const midPermCard = document.createElement('div');
-            midPermCard.className = 'col-lg-3 col-md-4 col-sm-6 mb-3';
-            midPermCard.innerHTML = `
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-header bg-light py-2 px-3">
+            const midPermCol = document.createElement('div');
+            midPermCol.className = 'col';
+
+            const relevantLeafPerms = leafLevelPermissions.filter(
+                leafPerm => leafPerm.permParent === midPerm.permID
+            );
+
+            midPermCol.innerHTML = `
+            <div class="card h-100 border-0 shadow-sm rounded">
+                <div class="card-header bg-white py-2 border-bottom">
+                    <div class="permission-item">
                         <div class="form-check">
-                            <input class="form-check-input mid-level-permission" type="checkbox" 
-                                   id="perm-${midPerm.permission_code}" 
-                                   data-code="${midPerm.permission_code}" 
-                                   data-parent="${midPerm.parent_permission_code}">
-                            <label class="form-check-label fw-semibold" for="perm-${midPerm.permission_code}">
-                                ${midPerm.name}
+                            <input class="form-check-input permission-checkbox mid-level-checkbox" type="checkbox" 
+                                   id="perm-${midPerm.permID}" data-level="mid" 
+                                   data-id="${midPerm.permID}" data-parent="${midPerm.permParent}"
+                                   disabled>
+                            <label class="permission-label fw-medium" for="perm-${midPerm.permID}">
+                                ${midPerm.permName}
                             </label>
                         </div>
                     </div>
-                    <div class="card-body p-2" id="leaf-${midPerm.permission_code}">
+                </div>
+                <div class="card-body p-2">
+                    <div class="d-flex flex-column gap-1" id="leaf-group-${midPerm.permID}">
                         <!-- Leaf permissions will be added here -->
                     </div>
                 </div>
+            </div>
             `;
-            
-            midPermContainer.appendChild(midPermCard);
-            
-            // Add leaf permissions for this mid-level permission
-            const leafPerms = allPermissions.filter(
-                leafPerm => leafPerm.parent_permission_code === midPerm.permission_code
-            );
-            
-            const leafContainer = midPermCard.querySelector(`#leaf-${midPerm.permission_code}`);
-            
-            leafPerms.forEach((leafPerm) => {
+
+            midPermContainer.appendChild(midPermCol);
+
+            // Thêm leaf permissions
+            const leafContainer = midPermCol.querySelector(`#leaf-group-${midPerm.permID}`);
+
+            relevantLeafPerms.forEach((leafPerm) => {
                 const leafItem = document.createElement('div');
-                leafItem.className = 'form-check mb-2';
+                leafItem.className = 'leaf-permission-item';
+
                 leafItem.innerHTML = `
-                    <input class="form-check-input leaf-permission" type="checkbox" 
-                           id="perm-${leafPerm.permission_code}" 
-                           data-code="${leafPerm.permission_code}" 
-                           data-parent="${leafPerm.parent_permission_code}">
-                    <label class="form-check-label small" for="perm-${leafPerm.permission_code}">
-                        ${leafPerm.name}
+                <div class="form-check">
+                    <input class="form-check-input permission-checkbox leaf-level-checkbox" type="checkbox" 
+                           id="perm-${leafPerm.permID}" data-level="leaf" 
+                           data-id="${leafPerm.permID}" data-parent="${leafPerm.permParent}"
+                           disabled>
+                    <label class="form-check-label permission-label" for="perm-${leafPerm.permID}">
+                        ${leafPerm.permName}
                     </label>
+                </div>
                 `;
-                
+
                 leafContainer.appendChild(leafItem);
             });
         });
     });
 
-// Thêm event listener cho top-level checkboxes để điều khiển accordion
-document.addEventListener('DOMContentLoaded', function() {
-    // Sự kiện click cho các accordion button
-    document.addEventListener('click', function(event) {
-        // Ngăn việc mở/đóng accordion khi click vào button trừ khi checkbox được check
-        if (event.target.classList.contains('accordion-button') || 
-            event.target.closest('.accordion-button')) {
-            const button = event.target.classList.contains('accordion-button') ? 
-                event.target : event.target.closest('.accordion-button');
-            const checkbox = button.querySelector('.top-level-permission');
-            
-            if (!checkbox.checked) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-        }
-    }, true);
+    setupCheckboxHandlers();
+}
 
-    // Xử lý khi thay đổi trạng thái checkbox
-    const topLevelCheckboxes = document.querySelectorAll('.top-level-permission');
-    topLevelCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const permCode = this.dataset.code;
-            const accordionId = `accordion-${permCode}`;
-            const accordionElement = document.getElementById(accordionId);
+  
+function setupCheckboxHandlers() {
+    // Xử lý checkbox cấp cao nhất
+    document.querySelectorAll('.top-level-checkbox').forEach(topCheckbox => {
+        topCheckbox.addEventListener('change', function() {
+        const isChecked = this.checked;
+        const topId = this.dataset.id;
+        
+        // Bật/tắt tất cả checkbox con
+        const midCheckboxes = document.querySelectorAll(`.mid-level-checkbox[data-parent="${topId}"]`);
+        midCheckboxes.forEach(midCheckbox => {
+            midCheckbox.disabled = !isChecked;
+            midCheckbox.checked = isChecked;
             
-            if (this.checked) {
-                // Mở accordion khi checkbox được check
-                const bsCollapse = new bootstrap.Collapse(accordionId);
-                bsCollapse.show();
-            } else {
-                // Đóng accordion khi checkbox bị bỏ check
-                const bsCollapse = new bootstrap.Collapse(accordionId);
-                bsCollapse.hide();
-            }
+            // Bật/tắt checkbox leaf level
+            const midId = midCheckbox.dataset.id;
+            const leafCheckboxes = document.querySelectorAll(`.leaf-level-checkbox[data-parent="${midId}"]`);
+            leafCheckboxes.forEach(leafCheckbox => {
+            leafCheckbox.disabled = !isChecked;
+            leafCheckbox.checked = isChecked;
             });
         });
+        });
+        
+        // Ngăn sự kiện click lan ra accordion button
+        topCheckbox.addEventListener('click', e => e.stopPropagation());
+    });
+
+    // Xử lý checkbox cấp trung
+    document.querySelectorAll('.mid-level-checkbox').forEach(midCheckbox => {
+        midCheckbox.addEventListener('change', function() {
+        const isChecked = this.checked;
+        const midId = this.dataset.id;
+        
+        // Bật/tắt tất cả checkbox leaf level
+        const leafCheckboxes = document.querySelectorAll(`.leaf-level-checkbox[data-parent="${midId}"]`);
+        leafCheckboxes.forEach(leafCheckbox => {
+            leafCheckbox.disabled = !isChecked;
+            leafCheckbox.checked = isChecked;
+        });
+        
+        // Kiểm tra trạng thái checkbox cấp cao
+        updateParentCheckboxState(this);
+        });
+        
+        midCheckbox.addEventListener('click', e => e.stopPropagation());
+    });
+
+    // Xử lý checkbox cấp lá
+    document.querySelectorAll('.leaf-level-checkbox').forEach(leafCheckbox => {
+        leafCheckbox.addEventListener('change', function() {
+        updateParentCheckboxState(this);
+        });
+        
+        leafCheckbox.addEventListener('click', e => e.stopPropagation());
     });
 }
 
-export function setupCheckboxBehavior() {
-    // When mid-level permission is checked/unchecked
-    document.querySelectorAll('.mid-level-permission').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const midCode = this.dataset.code;
-            const parentCode = this.dataset.parent;
-            const isChecked = this.checked;
-            
-            // Set all leaf permissions to the same state
-            document.querySelectorAll(`.leaf-permission[data-parent="${midCode}"]`).forEach(leafCheckbox => {
-                leafCheckbox.checked = isChecked;
-            });
-            
-            // Check parent state
-            updateParentCheckbox(parentCode);
-        });
-    });
+function updateParentCheckboxState(checkbox) {
+const level = checkbox.dataset.level;
+
+if (level === 'leaf') {
+    // Cập nhật trạng thái checkbox mid level
+    const midId = checkbox.dataset.parent;
+    const midCheckbox = document.querySelector(`.mid-level-checkbox[data-id="${midId}"]`);
+    const leafCheckboxes = document.querySelectorAll(`.leaf-level-checkbox[data-parent="${midId}"]`);
     
-    // When leaf-level permission is checked/unchecked
-    document.querySelectorAll('.leaf-permission').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const parentCode = this.dataset.parent;
-            updateParentCheckbox(parentCode);
-        });
-    });
+    const allChecked = Array.from(leafCheckboxes).every(cb => cb.checked);
+    const someChecked = Array.from(leafCheckboxes).some(cb => cb.checked);
+    
+    midCheckbox.checked = allChecked;
+    midCheckbox.indeterminate = someChecked && !allChecked;
+    
+    // Tiếp tục cập nhật lên top level
+    updateParentCheckboxState(midCheckbox);
+} 
+else if (level === 'mid') {
+    // Cập nhật trạng thái checkbox top level
+    const topId = checkbox.dataset.parent;
+    const topCheckbox = document.querySelector(`.top-level-checkbox[data-id="${topId}"]`);
+    const midCheckboxes = document.querySelectorAll(`.mid-level-checkbox[data-parent="${topId}"]`);
+    
+    const allChecked = Array.from(midCheckboxes).every(cb => cb.checked);
+    const someChecked = Array.from(midCheckboxes).some(cb => cb.checked || cb.indeterminate);
+    
+    topCheckbox.checked = allChecked;
+    topCheckbox.indeterminate = someChecked && !allChecked;
+}
 }
 
-function updateParentCheckbox(parentCode) {
-    // For mid-level parent
-    const midChildren = document.querySelectorAll(`.leaf-permission[data-parent="${parentCode}"]`);
-    const midCheckbox = document.querySelector(`#perm-${parentCode}`);
-    
-    if (midChildren.length > 0) {
-        const allChecked = Array.from(midChildren).every(child => child.checked);
-        const someChecked = Array.from(midChildren).some(child => child.checked);
+
+async function createRole() {
+    document.querySelector("#save-role").onclick = async function(e) {
+        e.preventDefault();
         
-        midCheckbox.checked = someChecked;
-        midCheckbox.indeterminate = someChecked && !allChecked;
+        let roleName = document.querySelector('#roleName').value;
+        let roleID = document.querySelector('#roleID').value;
+        let permissions = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.getAttribute('data-id'));
         
-        // Update top-level parent if needed
-        if (midCheckbox.dataset.parent) {
-            updateParentCheckbox(midCheckbox.dataset.parent);
+        if(permissions.length === 0){
+            alert("Vui lòng chọn quyền");
+            return;
         }
+
+        if(roleName.trim() === ""){
+            alert("Tên vai trò không được để trống");
+            return;
+        }
+
+        if(!isUppercaseAlphaOnly(roleID)){
+            alert("ID vai trò chỉ được chứa chữ cái in hoa và không có dấu");
+            return;
+        };
+
+        let data = {
+            roleName: roleName,
+            roleID: roleID,
+            permissions: permissions
+        };
+        // console.log(data);
+
+        try {
+            const response = await callApi('/role', 'POST', data);
+            console.log(response);
+            document.querySelector("#addRoleModal").remove();
+            document.querySelector(".modal-backdrop").remove();
+            renderContentRole();
+           
+        } catch (error) {
+            console.error("Lỗi khi tạo vai trò:", error);
+        }
+    }
+  
+    
+       
+}
+
+export function closePopup(){
+    document.querySelector("#close-popup").onclick = function(e){
+        e.preventDefault();
+        console.log(123);
+        document.querySelector("#addRoleModal").remove();
+        document.querySelector(".modal-backdrop").remove();
+    }
+
+    document.querySelector("#close-button").onclick = function(e){
+        e.preventDefault();
+        document.querySelector("#addRoleModal").remove();
+        document.querySelector(".modal-backdrop").remove();
     }
 }
 
-function setupFormSubmission(topLevelPermissions) {
-    document.getElementById('add-role-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get role name
-        const roleName = document.getElementById('roleName').value.trim();
-        
-        if (!roleName) {
-            alert("Vui lòng nhập tên vai trò");
-            return;
-        }
-
-        let check = false;
-        topLevelPermissions.forEach(topPerm => {
-            const inputTop = document.querySelector(`#perm-${topPerm.permission_code}`);
-            if(inputTop.checked){
-                document.querySelectorAll(`#group-${topPerm.permission_code} input[type=checkbox]`).forEach((input) => {
-                    if(input.checked){
-                        check = true;
-                    }
-                })
-            }
-        })
-        if(!check){
-            alert("Vui lòng chọn quyền phù hợp");
-            return;
-        }
-        
-      
-        // Collect all selected permissions
-        const selectedPermissions = [];
-        document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-            if (checkbox.dataset.code) {
-                selectedPermissions.push(checkbox.dataset.code);
-            }
-        });
-        
-        if (selectedPermissions.length === 0) {
-            alert("Vui lòng chọn ít nhất một quyền cho vai trò");
-            return;
-        }
-
-        // Prepare data for API
-        const roleData = {
-            roleName: roleName,
-            permissions: selectedPermissions
-        };
-        
-        // // Submit role data to API
-        saveRole(roleData);
-    });
-    
-    // Cancel button handler
-    document.getElementById('cancel-button').addEventListener('click', function() {
-        // Go back to roles list or do something else
-        renderContentRole();
-    });
-}
-
-function saveRole(roleData) {
-    // Call API to save role
-    callApi('/role', 'POST', roleData)
-        .then(response => {
-            alert(`Vai trò "${roleData.roleName}" đã được tạo thành công!`);
-            renderContentRole();
-        })
-        .catch(error => {
-            console.error("Error saving role:", error);
-        });
+export function isUppercaseAlphaOnly(str) {
+    // Regex: chỉ cho phép A-Z (chữ in hoa, không dấu)
+    const regex = /^[A-Z]+$/;
+    return regex.test(str);
 }

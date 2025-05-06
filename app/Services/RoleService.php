@@ -29,26 +29,13 @@ class RoleService implements IBaseService
             $pdo = Database::getInstance()->getConnection();
             $pdo->beginTransaction();
 
-            if(empty($data['roleName'])){
-                throw new \Exception('Thiếu tên vai trò', 400);
+            if(empty($data['roleName']) || empty($data['permissions'])){
+                throw new \Exception('Thiếu dữ liệu', 400);
             }
-            if(empty($data['permissions'])){
-                throw new \Exception('Thiếu quyền', 400);
-            }
-
-            try {
-                $this->roleRepository->create($data, $pdo);
-            } catch (\Throwable $th) {
-                throw new \Exception("Lỗi khi tạo vai trò", 400);
-            }
-
-            $role = $this->roleRepository->getByName($data['roleName']);
-            try {
-                $data['roleID'] = $role['roleID'];
-                $this->rolePermRepository->create($data, $pdo);
-            } catch (\Throwable $th) {
-                throw new \Exception("Lỗi khi tạo quyền cho vai trò", 400);
-            }
+            $data['acceptDelete'] = 1;
+            
+            $this->roleRepository->create($data, $pdo);
+            $this->rolePermRepository->create($data, $pdo);
             
             $pdo->commit();
         } catch (\Throwable $th) {
@@ -68,6 +55,7 @@ class RoleService implements IBaseService
         }
 
         try {
+            $data['updated_at'] = date('Y-m-d H:i:s');
             $this->roleRepository->update($id, $data, $pdo);
             $this->rolePermRepository->delete([$id], $pdo);
             $this->rolePermRepository->create($data, $pdo); 
@@ -82,18 +70,12 @@ class RoleService implements IBaseService
     function delete($id)
     {
         $pdo = Database::getInstance()->getConnection();
-        if(!$id){
-            throw new \Exception('Thiếu roleID', 400);            
+        if(empty($id)){
+            throw new \Exception('Thiếu dữ liệu', 400);            
         }
         try {
             $rolePerm = $this->rolePermRepository->delete($id, $pdo);
-            $usersList = $this->user->getByRoleID($id);
-            if(count($usersList) !== 0){
-                foreach($usersList as $user){
-                    $emailsList[] = $user['email']; //thêm các email vào mảng
-                }
-                $this->user->updateRoleID($emailsList, 1);
-            }
+            $this->user->updateRoleIDForDelete($id); //$id đang là mảng
             $this->roleRepository->delete($id, $pdo);
         } catch (\Throwable $th) {
             throw $th;
@@ -102,13 +84,9 @@ class RoleService implements IBaseService
 
     function getById($id)
     {
-        // $pdo = Database::getInstance()->getConnection();
+        // $pdo = Database::getInstance()->getConnection();  
         try {
             $role = $this->roleRepository->getById($id);
-        } catch (\Throwable $th){
-            throw $th;
-        }
-        try {
             $permissions = $this->rolePermRepository->getById($id);
         } catch (\Throwable $th) {
             throw $th;

@@ -6,7 +6,9 @@ export function deleteAccount(){
         const arrID = Array.from(document.querySelectorAll(".user-checkbox:checked")).map((checkbox) => {
             return checkbox.getAttribute("data-id");
         });
-        // console.log(arrID); 
+        if(arrID.length === 0) {
+            return;
+        }
        try {
             const response = await callApi("/user", "DELETE", arrID);
             console.log(response);
@@ -16,4 +18,18 @@ export function deleteAccount(){
        }
 
     }
+
+    document.querySelectorAll(".delete-account-i").forEach((i) => {
+        i.onclick = async () => {
+            const id = i.getAttribute("data-id");
+            try {
+                const response = await callApi("/user", "DELETE", [id]);
+                console.log(response);
+                renderListUsers();
+            } catch (error) {
+                console.log(error);
+            }
+
+        }
+    })
 }

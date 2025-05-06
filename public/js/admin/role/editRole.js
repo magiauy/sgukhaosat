@@ -1,108 +1,140 @@
 import { callApi } from "../../apiService.js";
-import { renderAddRoleForm } from "./addRole.js";
-import { renderPermissionsStructure } from "./addRole.js";
-import { setupCheckboxBehavior } from "./addRole.js";
+import { closePopup, renderPermissionsStructure } from "./addRole.js";
 import { renderContentRole } from "./roleAdmin.js";
 
-export function showEditRoleUI(){
-    document.querySelectorAll('.edit-role').forEach((btn) => {
-        // console.log(btn);
-        btn.onclick = async function(){
-            let roleID = btn.getAttribute('data-code');
-            let response = await callApi(`/role/${roleID}`, 'GET');
-            let role = response.data;
-            let permissions = []
+
+export function showEditRole(){
+    document.querySelectorAll(".edit-role").forEach((button) => {
+        button.onclick = async (e) => {
+            e.preventDefault();
+            const roleID = button.getAttribute("data-code");
+            const response = await callApi(`/role/${roleID}`);
+            const role = response.data;
+            // console.log(role);
+
+
+            let permissions = [];
             try {
-                // Fetch permissions data
                 const response = await callApi('/permission');
                 permissions = response.data;
             } catch (error) {
-                alert("Lỗi khi lấy tất cả quyền");
-                return;
+                console.error("Lỗi khi lấy tất cả quyền:", error);
             }
-                
-            // Organize permissions hierarchy
-            const topLevelPermissions = permissions.filter(perm => perm.parent_permission_code === null);
+            
+            // Tạo modal với giao diện dọc
+            document.body.insertAdjacentHTML('beforeend', `
+                <div class="modal fade" id="addRoleModal" tabindex="-1" aria-labelledby="addRoleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="addRoleModalLabel">
+                                    Tạo vai trò mới
+                                </h5>
+                                <button id="close-button" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <form id="add-role-form">
+                                    <!-- Layout dọc -->
+                                    <div class="row g-3">
+                                        <!-- Phần tên vai trò -->
+                                        <div class="col-12">
+                                            <div class="mb-3">
+                                                <label for="roleName" class="form-label fw-semibold">Tên vai trò <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="roleName" placeholder="Nhập tên vai trò...">
+                                            </div>
+                                        </div>
+    
+                                        <div class="col-12">
+                                            <div class="mb-3">
+                                                <label for="roleID" class="form-label fw-semibold">ID vai trò <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="roleID" placeholder="Nhập ID vai trò..." disabled>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Phần phân quyền -->
+                                        <div class="col-12">
+                                            <div class="permissions-section">
+                                                <label class="form-label fw-semibold mb-2">Phân quyền</label>
+                                                <div class="border rounded p-3 bg-light">
+                                                    <div class="accordion" id="permissionsAccordion">
+                                                        <!-- Quyền cấp cao sẽ được thêm vào đây -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="close-popup" type="button" class="btn btn-outline-secondary">
+                                    Hủy bỏ
+                                </button>
+                                <button type="button" id="save-role" class="btn btn-primary">
+                                    Lưu vai trò
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            
+            
+            // Hiển thị modal
+            const addRoleModal = new bootstrap.Modal(document.getElementById('addRoleModal'));
+            addRoleModal.show();
+    
+            // Tổ chức cấu trúc quyền
+            const permRoot = permissions.find(perm => perm.permParent === null);
+            
+            const topLevelPermissions = permissions.filter(perm => perm.permParent === permRoot.permID);
             const midLevelPermissions = permissions.filter(perm => 
-                topLevelPermissions.some(top => top.permission_code === perm.parent_permission_code)
+                topLevelPermissions.some(top => top.permID === perm.permParent)
+            );
+            const leafLevelPermissions = permissions.filter(perm =>
+                midLevelPermissions.some(mid => mid.permID === perm.permParent) 
             );
             
-            // Render the form UI
-            renderAddRoleForm();
-            
-            // Populate permissions structure
-            renderPermissionsStructure(topLevelPermissions, midLevelPermissions, permissions);
-            
-            // Set up event listeners for checkbox behavior
-            setupCheckboxBehavior();
-
-            // console.log(role);
-            let roleName = role.role;
-            roleName = roleName.roleName;
-
-            document.querySelector('#roleName').value = roleName;
-            role.permissions.forEach(permission => {
-                const checkbox = document.querySelector(`#perm-${permission.permID}`);
+            // Render cấu trúc quyền
+            renderPermissionsStructure(topLevelPermissions, midLevelPermissions, leafLevelPermissions);
+            //gán giá trị 
+            document.getElementById("roleName").value = role.role.roleName;
+            document.getElementById("roleID").value = role.role.roleID;
+            role.permissions.forEach((perm) => {
+                console.log(perm.permID);
+                const checkbox = document.querySelector(`#perm-${perm.permID}`);
                 if (checkbox) {
                     checkbox.checked = true;
+                    checkbox.disabled = false;
                 }
             });
-            document.querySelector("#save-role").innerHTML = "Cập nhật quyền";
 
-            handleUpdate(topLevelPermissions, roleID);
-                
+            
+            closePopup();
+            saveRole(roleID);
         }
     })
 }
 
-
-function handleUpdate(topLevelPermissions, roleID) {
-    document.querySelector("#save-role").onclick = async function(e){
+async function saveRole(roleID) {
+    document.querySelector("#save-role").onclick = async (e) => {
         e.preventDefault();
-
-        let roleName = document.querySelector('#roleName').value;
-        let permissions = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.getAttribute('data-code'));
+        const roleName = document.getElementById("roleName").value;
+        const selectedPermissions = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.getAttribute("data-id"));
         
-        if(permissions.length === 0){
-            alert("Vui lòng chọn quyền");
-            return;
-        }
-
-        let data = {
-            roleID: roleID,
+        const data = {
             roleName: roleName,
-            permissions: permissions
+            roleID: roleID,
+            permissions: selectedPermissions
         };
-
-        let check = false;
-        topLevelPermissions.forEach(topPerm => {
-            const inputTop = document.querySelector(`#perm-${topPerm.permission_code}`);
-            if(inputTop.checked){
-                document.querySelectorAll(`#group-${topPerm.permission_code} input[type=checkbox]`).forEach((input) => {
-                    if(input.checked){
-                        check = true;
-                    }
-                })
-            }
-        })
-        if(!check){
-            alert("Vui lòng chọn quyền phù hợp");
-            console.log("Vui lòng chọn quyền phù hợp");
-            return;
-        }
-        
-
+        console.log(data);
         try {
-            let response = await callApi(`/role/id`, 'PUT', data);
+            const response = await callApi(`/role/id`, 'PUT', data);
             console.log(response);
+            document.querySelector("#addRoleModal").remove();
+            document.querySelector(".modal-backdrop").remove();
+            renderContentRole();
         } catch (error) {
-            console.error("Error updating role:", error);
+            console.error("Lỗi khi cập nhật vai trò:", error.response); 
         }
-    }
-
-    // console.log(document.querySelector("#cancel-button"))
-    document.querySelector("#cancel-button").onclick = function(e){
-        e.preventDefault();
-        renderContentRole();
     }
 }

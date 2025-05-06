@@ -15,20 +15,23 @@ class RoleRepository implements IBaseRepositoryTransaction
 
     function create($data, \PDO $pdo): bool
     {
-        $sql = 'INSERT INTO roles (roleName) VALUES (:roleName)';
+        $sql = 'INSERT INTO roles (roleID, roleName, acceptDelete) VALUES (:roleID, :roleName, :acceptDelete)';
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            'roleName' => $data['roleName']
+            'roleID' => $data['roleID'],
+            'roleName' => $data['roleName'],
+            'acceptDelete' => $data['acceptDelete']
         ]);
         return $stmt->rowCount() === 1;
     }
 
     function update($id, $data, \PDO $pdo){
-        $sql = 'UPDATE roles SET roleName = :roleName WHERE roleID = :id';
+        $sql = 'UPDATE roles SET roleName = :roleName, updated_at = :updated_at WHERE roleID = :roleID';
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             'roleName' => $data['roleName'],
-            'id' => $id
+            'updated_at' => $data['updated_at'],
+            'roleID' => $data['roleID']
         ]);
         return $stmt->rowCount() === 1;
     }

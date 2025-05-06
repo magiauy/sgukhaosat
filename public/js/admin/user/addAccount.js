@@ -1,96 +1,134 @@
 import { callApi } from "../../apiService.js";
 import { renderListUsers } from "./userAdmin.js";
+import ImportExcelAccount from "../../modal/ImportExcelAccount.js";
 
 // import * as XLSX from "xlsx";
 
 export function showAddAccount() {
     document.querySelector("#add-account").onclick = async function () {
-        document.querySelector("#content").innerHTML = `
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Thêm Tài Khoản Mới</h5>
+        document.body.insertAdjacentHTML("beforeend",  `
+        <div id="popup-add-account" style="display: flex; position: fixed; top: 0; left: 0; 
+            width: 100vw; height: 100vh; background: rgba(0,0,0,0.6);
+            align-items: center; justify-content: center; z-index: 9999;
+            animation: fadeIn 0.3s ease-in-out;">
+            
+            <div style="background: white; border-radius: 8px; min-width: 400px; max-width: 90%;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden;
+                transform: translateY(0); animation: slideIn 0.3s ease-out;">
+                
+                <!-- Header -->
+                <div style="background: #4361ee; color: white; padding: 15px 20px; 
+                    display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 600;">Thêm Tài Khoản Mới</h3>
+                    <button id="close-popup" style="background: none; border: none; color: white; 
+                        font-size: 20px; cursor: pointer; padding: 0; display: flex;">✕</button>
                 </div>
-                <div class="card-body">
-                    <form id="add-account-form">
-                        <div class="mb-3">
-                            <label for="email-add" class="form-label fw-bold">Email</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input type="email" class="form-control" id="email-add" placeholder="Nhập email" required>
+                
+                <!-- Form content -->
+                <div style="padding: 20px;">
+                    <form id="add-account-form" style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Email field -->
+                        <div>
+                            <label for="account-email" style="display: block; margin-bottom: 6px; 
+                                font-weight: 500; color: #333;">Email:</label>
+                            <div style="position: relative;">
+                                
+                                <input type="email" id="account-email" required 
+                                    style="width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #ddd; 
+                                    border-radius: 6px; font-size: 15px; box-sizing: border-box;
+                                    transition: border-color 0.2s; outline: none;"
+                                    placeholder="Nhập địa chỉ email"
+                                    onFocus="this.style.borderColor='#4361ee'" 
+                                    onBlur="this.style.borderColor='#ddd'">
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="password-add" class="form-label fw-bold">Mật khẩu</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" class="form-control" id="password-add" placeholder="Nhập mật khẩu" required>
-                                <button class="btn btn-outline-secondary toggle-password" type="button">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                        <!-- Password field -->
+                        <div>
+                            <label for="account-password" style="display: block; margin-bottom: 6px; 
+                                font-weight: 500; color: #333;">Mật khẩu:</label>
+                            <div style="position: relative;">
+                               
+                                <input type="password" id="account-password" required 
+                                    style="width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #ddd;
+                                    border-radius: 6px; font-size: 15px; box-sizing: border-box;
+                                    transition: border-color 0.2s; outline: none;"
+                                    placeholder="Nhập mật khẩu"
+                                    onFocus="this.style.borderColor='#4361ee'" 
+                                    onBlur="this.style.borderColor='#ddd'">
+                               
                             </div>
                         </div>
                         
-                        <div class="mb-4">
-                            <label for="role-add" class="form-label fw-bold">Vai trò</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
-                                <select class="form-select" id="role-select" required>
-                                    
+                        <!-- Role selection -->
+                        <div>
+                            <label for="account-role" style="display: block; margin-bottom: 6px;
+                                font-weight: 500; color: #333;">Vai trò:</label>
+                            <div style="position: relative;">
+                              
+                                <select id="account-role" 
+                                    style="width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #ddd;
+                                    border-radius: 6px; font-size: 15px; box-sizing: border-box; 
+                                    appearance: none; background-color: white;
+                                    background-image: url('data:image/svg+xml;utf8,<svg fill=\"%236b7280\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24px\" height=\"24px\"><path d=\"M7 10l5 5 5-5z\"/></svg>');
+                                    background-repeat: no-repeat; background-position: right 10px center;
+                                    transition: border-color 0.2s; outline: none;"
+                                    onFocus="this.style.borderColor='#4361ee'" 
+                                    onBlur="this.style.borderColor='#ddd'">
+                                   
                                 </select>
                             </div>
                         </div>
-                        
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary add-user" id="add-account-submit">
-                                <i class="fas fa-plus-circle me-2"></i>Thêm tài khoản
-                            </button>
-                            <button type="button" class="btn btn-secondary" id="cancel-add">
-                                <i class="fas fa-times-circle me-2"></i>Hủy
-                            </button>
-                        </div>
                     </form>
                 </div>
+                
+                <!-- Footer with buttons -->
+                <div style="padding: 15px 20px; border-top: 1px solid #eee; 
+                    display: flex; justify-content: flex-end; gap: 10px; background-color: #f9fafb;">
+                    <button id="cancel-account" 
+                        style="padding: 10px 16px; border: 1px solid #ddd; background: white;
+                        border-radius: 6px; cursor: pointer; font-weight: 500; color: #4b5563;
+                        transition: all 0.2s;"
+                        onMouseOver="this.style.backgroundColor='#f3f4f6'" 
+                        onMouseOut="this.style.backgroundColor='white'">
+                        Hủy
+                    </button>
+                    <button id="add-account-submit" 
+                        style="padding: 10px 16px; border: none; background: #4361ee;
+                        border-radius: 6px; cursor: pointer; font-weight: 500; color: white;
+                        transition: all 0.2s;"
+                        onMouseOver="this.style.backgroundColor='#3a56d4'" 
+                        onMouseOut="this.style.backgroundColor='#4361ee'">
+                        Thêm tài khoản
+                    </button>
+                </div>
             </div>
-        `;
+        </div>
+        `);
 
         try {
             let response = await callApi("/role");
             let roles = response.data;
-            console.log(roles);
+            // console.log(roles);
             roles.forEach(role => {
-                document.querySelector("#role-select").innerHTML += `<option value="${role.roleID}">${role.roleName}</option>`;
+                document.querySelector("#account-role").innerHTML += `<option value="${role.roleID}">${role.roleName}</option>`;
             });
         } catch (error) {
             console.log(error);
             return;
         }
 
-        document.querySelector(".toggle-password").addEventListener("click", function() {
-            const passwordInput = document.querySelector("#password-add");
-            const icon = this.querySelector("i");
-            
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                icon.classList.remove("fa-eye");
-                icon.classList.add("fa-eye-slash");
-            } else {
-                passwordInput.type = "password";
-                icon.classList.remove("fa-eye-slash");
-                icon.classList.add("fa-eye");
-            }
-        });
-
         addAccount();
+        closePopup();
     }
 }
 
 function addAccount(){
     document.querySelector("#add-account-submit").onclick = async function(e){
         e.preventDefault();
-        const email = document.querySelector("#email-add").value;
-        const password = document.querySelector("#password-add").value;
-        const role = document.querySelector("#role-select").value;
+        const email = document.querySelector("#account-email").value;
+        const password = document.querySelector("#account-password").value;
+        const role = document.querySelector("#account-role").value;
 
         const data = {
             email: email,
@@ -102,10 +140,23 @@ function addAccount(){
         try {
             const response = await callApi("/user", "POST", data);
             console.log(response);
-            renderListUsers();
+            document.querySelector("#popup-add-account").remove();
+            document.querySelector("#add-account").click();
         } catch (error) {
             console.log(error);
         }
+    }
+}
+
+function closePopup(){
+    document.querySelector("#close-popup").onclick = () => {
+        document.querySelector("#popup-add-account").remove();
+        renderListUsers();
+    }
+
+    document.querySelector("#cancel-account").onclick = () => {
+        document.querySelector("#popup-add-account").remove();
+        renderListUsers();
     }
 }
 
@@ -113,50 +164,7 @@ function addAccount(){
 export function importUsers(){
     document.querySelector("#import-account").onclick = async function(e){
         e.preventDefault();
-
-        const inputFile = document.querySelector(".import-user-input");
-        const file = inputFile.files[0];
-        if(!file)  return;
-
-        const result = await fetch(`${config.apiUrl}/user`);
-        const response = await result.json();
-        const dataUser = response.data;
-
-        // console.log(dataUser);
-        const reader = new FileReader();
-        reader.onload = async function (e){
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: "array" });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const dataArr = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
-
-            
-            //kiểm tra email nào bị trùng với database
-            let usersExisted = [];
-            dataArr.forEach((newUser) => {
-                const value = dataUser.find(oldUser => oldUser["email"] === newUser["email"]);
-                if(value !== undefined) usersExisted.push(value);
-            })
-            if(usersExisted.length > 0){
-                alert("Kiểm tra console log f12");
-                usersExisted.forEach((user) => {
-                    console.log(user["email"]); // xử lí email bị trùng ở đây
-                })
-                return;
-            }
-
-            console.log(dataArr)
-           try {
-                const response = await callApi("/user", "POST", dataArr);
-                renderListUsers();
-                console.log(response);
-           } catch (error) {
-                console.log(error);
-           }
-
-        
-        }
-        reader.readAsArrayBuffer(file);
+        const importAccount = new ImportExcelAccount(config);
+        importAccount.open();
     }
-}
+} 

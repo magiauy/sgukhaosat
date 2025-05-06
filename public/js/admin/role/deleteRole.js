@@ -7,9 +7,13 @@ export function handleDeleteRole(){
         btn.onclick = async function(){
             let roleID = btn.getAttribute('data-code');
             // console.log(roleID);
-            let response = await callApi(`/role/id`, 'DELETE', {roleID: [roleID]});
-            alert('Xóa vai trò thành công');
-            renderContentRole();
+            try {
+                let response = await callApi(`/role/id`, 'DELETE', [roleID]);
+                console.log(response);
+                renderContentRole();
+            } catch (error) {
+                console.log("Lỗi khi xóa vai trò:", error);
+            }
         }
     })
 }
@@ -20,7 +24,7 @@ export function handleDeleteSelectedRoles() {
         const selectedRoleIds = Array.from(document.querySelectorAll('.role-checkbox:checked'))
             .map(cb => cb.getAttribute('data-id'));
         try {
-            let response = await callApi(`/role/id`, 'DELETE', { roleID: selectedRoleIds });
+            let response = await callApi(`/role/id`, 'DELETE', selectedRoleIds);
             // console.log(response);
             renderContentRole();
         } catch (error) {

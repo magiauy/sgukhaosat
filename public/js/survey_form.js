@@ -43,7 +43,7 @@ async function getCurrentUser() {
             const userInfo = reData.data.user;
             return userInfo.email || null;
         } else {
-            // console.error('User data structure:', data);
+            // alert('User data not found in response');
             throw new Error('User data not found in response');
         }
     }
@@ -69,7 +69,6 @@ function loadSurveyForm(formId) {
          
                 displayFormDetails(data.data.form);
                 
-            
                 renderQuestions(data.data.questions);
             } else {
                 throw new Error(data.message || 'Failed to load form data');

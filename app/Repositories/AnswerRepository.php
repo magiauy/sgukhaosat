@@ -34,6 +34,7 @@ class AnswerRepository implements IAnswerRepository
     {
         try {
             if (empty($answers)) {
+                error_log("AnsRepository::getBulkCreate - No answers provided for result ID: {$resultId}");
                 return true; 
             }
 
@@ -53,7 +54,7 @@ class AnswerRepository implements IAnswerRepository
             $sql = "INSERT INTO answer (RID, QID, AContent) VALUES " . implode(', ', $values);
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
-            
+            error_log("AnsRepository::getBulkCreate - Inserted " . $stmt->rowCount() . " answers for result ID: {$resultId}");
             return true;
         } catch (\PDOException $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode());

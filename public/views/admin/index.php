@@ -144,7 +144,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
         </div>
     </div>
 
-<script src="/public/js//admin/sidebarAdmin.js?v=<?php echo time(); ?>" type="module"></script>
+<script src="/public/js/admin/sidebarAdmin.js?v=<?php echo time(); ?>" type="module"></script>
 
 <?php
 include __DIR__ . '/../../views/layouts/footer.php';

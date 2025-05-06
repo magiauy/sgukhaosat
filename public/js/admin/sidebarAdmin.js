@@ -1,4 +1,4 @@
-import {renderContentUser} from "./userAdmin.js";
+import {renderContentUser} from "./user/userAdmin.js";
 import {renderContentRole} from "./roleAdmin.js";
 import {loadSurveyFromAPI} from "./formsManager.js";
 import {callApi} from "./apiService.js";

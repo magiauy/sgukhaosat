@@ -1,5 +1,7 @@
 import PaginationComponent from './component/pagination.js';
 import FormSettingsModal from "./modal/formSettingsModal.js";
+import {callApi} from "./apiService.js";
+import {showSwalToast} from "./form/utils/notifications.js";
 
 const formSettingsModal = new FormSettingsModal(config);
 async function loadSurveyTable(data) {
@@ -27,10 +29,14 @@ async function loadSurveyTable(data) {
             <td class="text-left tooltip-trigger" data-tooltip="${item.FName}">
                 ${limitLineBreaks(item.FName, 2,41)}
                 </td>
-            <td class="text-center">${item.TypeID}</td>
-            <td class="text-center">${item.MajorID}</td>
-            <td class="text-center">${item.PeriodID}</td>
-            <td class="text-left">${item.Note}</td>
+            <td class="text-center">${item.TypeName}</td>
+            <td class="text-center tooltip-trigger" data-tooltip="${item.MajorName}">
+                ${limitLineBreaks(item.MajorName, 2, 20)}
+            </td>
+            <td class="text-center">${item.PeriodName}</td>
+            <td class="text-left tooltip-trigger" data-tooltip="${item.Note}">
+                ${limitLineBreaks(item.Note, 2, 41)}
+            </td>
             <td class="text-center">${item.UID}</td>
             <td class="text-center">${item.StatusText}</td>
             <td style="display: flex; justify-content: center; align-items: center; gap: 5px; height: 65px">
@@ -64,15 +70,9 @@ async function loadSurveyTable(data) {
     const btnAddForm = document.querySelector('.btn-add-form');
     if (btnAddForm) {
         btnAddForm.addEventListener('click', async function () {
-            const res = await fetch(`${config.apiUrl}/draft`, {
-                method: 'POST',
-
-            });
-            if (res.ok) {
-                const data = await res.json();
+            const data = await callApi(`/draft`, 'POST');
                 const url = data['url'];
                 window.location.href = `${config.Url}${url}`;
-            }
         });
     }
 
@@ -92,6 +92,8 @@ async function loadSurveyTable(data) {
 }
 
 function limitLineBreaks(text, maxLineBreaks,maxWidth) {
+    if (!text) return 'null';
+
     const lines = text.split('\n');
     const limitedLines = lines.slice(0, maxLineBreaks).join('\n');
     return limitedLines.length > maxWidth ? limitedLines.substring(0, maxWidth) + ' ...' : limitedLines;
@@ -99,9 +101,31 @@ function limitLineBreaks(text, maxLineBreaks,maxWidth) {
 export async function loadSurveyFromAPI(offset, limit) {
     try {
         currentLimit = limit;
-        const res = await fetch(`${config.apiUrl}/admin/forms/pagination?offset=${offset}&limit=${limit}`);
-        const data = await res.json();
+        let data ;
+        if (isFilter){
+             data = await callApi(`/admin/forms/pagination?offset=${offset}&limit=${limit}&isFilter=true`, 'POST',{
+                filter: {
+                    FName: document.getElementById('search-form')?.value || '',
+                    TypeID: document.getElementById('form-type-select')?.value || 'all',
+                    MajorID: document.getElementById('major-select')?.value || 'all',
+                    PeriodID: document.getElementById('period-select')?.value || 'all'
+                }
+            });
+
+        }else {
+             data = await callApi(`/admin/forms/pagination?offset=${offset}&limit=${limit}`);
+        }
+        if (!data['status']) {
+            showSwalToast('Không tìm thấy khảo sát nào', 'error');
+            return;
+        }
+
         await loadSurveyTable(data['data']);
+
+        if (isFirstLoad) {
+            setupFilterInputs();
+            isFirstLoad = false;
+        }
 
         pagination.render({
             currentPage: data['data']['currentPage'],
@@ -109,6 +133,7 @@ export async function loadSurveyFromAPI(offset, limit) {
             limit: limit,
             totalItems: data['data']['totalItems']
         });
+
     } catch (error) {
         console.error("Failed to load survey data:", error);
     }
@@ -180,8 +205,81 @@ export function cleanupModalBackdrops() {
         document.body.style.paddingRight = '';
     }
 }
+// Event listeners for filter inputs
+function setupFilterInputs() {
+    const searchInput = document.getElementById('search-form');
+    const formTypeSelect = document.getElementById('form-type-select');
+    const majorSelect = document.getElementById('major-select');
+    const periodSelect = document.getElementById('period-select');
+
+    const dataType = callApi(`/form-type`, 'GET');
+    const dataMajor = callApi(`/major`, 'GET');
+    const dataPeriod = callApi(`/period`, 'GET');
+
+    dataType.then(data => {
+        if (data && data.data) {
+            const typeSelect = document.getElementById('form-type-select');
+            typeSelect.innerHTML = `<option value="all">Loại khảo sát</option>`;
+            data.data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.FTypeID;
+                option.textContent = item.FTypeName;
+                typeSelect.appendChild(option);
+            });
+        }
+    });
+    dataMajor.then(data => {
+        if (data && data.data) {
+            const majorSelect = document.getElementById('major-select');
+            majorSelect.innerHTML = `<option value="all">Ngành</option>`;
+            data.data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.MajorID;
+                option.textContent = item.MajorName;
+                majorSelect.appendChild(option);
+            });
+        }
+    });
+    dataPeriod.then(data => {
+        if (data && data.data) {
+            const periodSelect = document.getElementById('period-select');
+            periodSelect.innerHTML = `<option value="all">Giai đoạn</option>`;
+            data.data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.periodID;
+                option.textContent = item.startYear + ' - ' + item.endYear;
+                periodSelect.appendChild(option);
+            });
+        }
+    });
+    const btnFilter = document.querySelector('.btn-filter');
+    if (btnFilter) {
+        btnFilter.addEventListener('click', async function () {
+            isFilter = true;
+            const offset = 0;
+            await loadSurveyFromAPI(offset, currentLimit);
+        });
+    }
+    const btnReset = document.querySelector('.btn-reset');
+    if (btnReset) {
+        btnReset.addEventListener('click', async function () {
+            isFilter = false;
+            searchInput.value = '';
+            formTypeSelect.value = 'all';
+            majorSelect.value = 'all';
+            periodSelect.value = 'all';
+            const offset = 0;
+            await loadSurveyFromAPI(offset, currentLimit);
+        });
+    }
+
+}
+
+
 let currentLimit = 10;
 let isHavePagination = false;
+let isFilter = false;
+let isFirstLoad = true;
 const pagination = new PaginationComponent({
     containerId: 'pagination',
     onPageChange: async (offset, limit) => {
@@ -192,4 +290,5 @@ const pagination = new PaginationComponent({
     },
     rowsPerPageText: 'Rows per page'
 });
+
 

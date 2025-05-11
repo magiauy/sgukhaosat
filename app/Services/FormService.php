@@ -197,7 +197,9 @@ public function update($id, $data)
             $tempDeleteList[] = $removedQ;
         }
 
+
         // Perform updates
+
         foreach ($tempUpdateList as $updateQ) {
             $this->questionRepository->update($updateQ['QID'], $updateQ, $pdo);
         }
@@ -254,41 +256,43 @@ public function update($id, $data)
     }
 
 
-    function normalizeForComparison($question) {
-        $normalized = [
-            'QID' => $question['QID'] ?? '',
-            'QContent' => $question['QContent'] ?? '',
-            'QTypeID' => $question['QTypeID'] ?? '',
-            'children' => []
-        ];
+function normalizeForComparison($question) {
+    $normalized = [
+        'QID' => isset($question['QID']) ? (int)$question['QID'] : '',
+        'QContent' => $question['QContent'] ?? '',
+        'QTypeID' => $question['QTypeID'] ?? '',
+        'children' => []
+    ];
 
-        if (!empty($question['children']) && is_array($question['children'])) {
-            foreach ($question['children'] as $child) {
-                $normalized['children'][] = [
-                    'QContent' => $child['QContent'] ?? '',
-                    'QTypeID' => $child['QTypeID'] ?? '',
-                ];
-            }
-
-            // Sắp xếp theo QContent (hoặc QIndex nếu bạn muốn ổn định hơn)
-            usort($normalized['children'], function ($a, $b) {
-                return strcmp($a['QContent'], $b['QContent']);
-            });
+    if (!empty($question['children']) && is_array($question['children'])) {
+        foreach ($question['children'] as $child) {
+            $normalized['children'][] = [
+                'QContent' => $child['QContent'] ?? '',
+                'QTypeID' => $child['QTypeID'] ?? '',
+                'QID' => isset($child['QID']) ? (int)$child['QID'] : '',
+            ];
         }
 
-        return $normalized;
+        // Sắp xếp theo QContent (hoặc QIndex nếu bạn muốn ổn định hơn)
+        usort($normalized['children'], function ($a, $b) {
+            return strcmp($a['QContent'], $b['QContent']);
+        });
     }
 
+    return $normalized;
+}
 
 
     function delete($id) : bool
+
     {
+        if (!isset($id) || empty($id)) {
+            throw new Exception("ID không hợp lệ.", 400);
+        }
         $pdo = Database::getInstance()->getConnection();
         try {
             $pdo->beginTransaction();
             $this->formRepository->delete($id, $pdo);
-            $this->draftRepository->deleteByFormID($id, $pdo);
-            $this->questionRepository->deleteByFormID($id, $pdo);
             $pdo->commit();
             return true;
         } catch (Exception $e) {
@@ -451,8 +455,9 @@ public function update($id, $data)
             }
             return $forms;
         } catch (Exception $e) {
-            throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
-        }
+            throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(),
+                            is_numeric($e->getCode()) ? (int)$e->getCode() : 500,
+                            $e);        }
     }
 
     function getByIdForUser($id)
@@ -466,9 +471,11 @@ public function update($id, $data)
             if (!$questions) {
                 throw new Exception("Không tìm thấy câu hỏi cho form với ID: $id", 404);
             }
+
+
             return [
                 'form' => $forms,
-                'questions' => $questions
+                'questions' => $this->sortQuestion($questions)
             ];
         } catch (Exception $e) {
             throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
@@ -592,4 +599,43 @@ function duplicate($id, $userId)
         throw new Exception("Lỗi khi sao chép form: " . $e->getMessage(), 500, $e);
     }
 }
+
+    function getFormWithSearchPagination($offset, $limit, $userId, $fName, $typeID, $majorID, $periodID)
+    {
+        try {
+            $forms = $this->formRepository->getFormWithSearchPagination($offset, $limit, $userId, $fName, $typeID, $majorID, $periodID);
+            $totalRecords = $this->formRepository->countFormsWithSearchPagination($userId, $fName, $typeID, $majorID, $periodID);
+            $currentPage = (int)($offset / $limit) + 1;
+            $totalPages = (int)ceil($totalRecords / $limit);
+            if (!$forms) {
+                throw new Exception("Không tìm thấy form nào", 404);
+            }
+            foreach ($forms as &$form) {
+                if ($form['Status'] == 0) {
+                    $form['StatusText'] = 'Chưa công bố';
+                    $form['uri'] = 'admin/form/' . $form['FID'] . '/edit?status=draft';
+                } else{
+                    $form['StatusText'] = 'Đã công bố';
+                    $form['uri'] = 'admin/form/' . $form['FID'] . '/edit';
+                }
+
+                if ($form['isPublic'] == 0) {
+                    $form['isPublic'] = 'Riêng tư';
+                } else {
+                    $form['isPublic'] = 'Công khai';
+                }
+
+            }
+            unset($form); // Break the reference with the last element
+            return [
+                'currentPage' => $currentPage,
+                'totalPages'  => $totalPages,
+                'totalItems' => $totalRecords,
+                'limit'       => $limit,
+                'forms'       => $forms
+            ];
+        } catch (Exception $e) {
+            throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
+        }
+    }
 }

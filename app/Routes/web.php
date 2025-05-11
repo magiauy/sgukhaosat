@@ -60,7 +60,6 @@ function authMiddleware($permission, $callback) {
     return function() use ($token, $permission, $callback) {
         $result = JwtMiddleware::authenticatePage($token, $permission);
         switch ($result) {
-// >>>>>>> 55338ccaed1b35e753b249510ba3983dae5e5c1e
             case 200:
                 return $callback();
             case 403:
@@ -86,9 +85,9 @@ $router->get('/login', function() {
 });
 
 // Admin routes with auth middleware
-$router->get('/admin', authMiddleware("ACCESS_ADMIN", function() {
+$router->get('/admin',  function() {
     require_once __DIR__ . '/../../public/views/admin/index.php';
-}));
+});
 
 $router->get('/admin/form', function() {
     require_once __DIR__ . '/../../public/views/admin/form.php';

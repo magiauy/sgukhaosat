@@ -1,19 +1,27 @@
 <?php
 include __DIR__ . '/../../views/layouts/header.php';
 
-use Core\jwt_helper;
-$token = $_COOKIE['access_token'] ?? null;
-if (!$token) {
-    header('Location: /login');
-    exit();
+use Core\AuthHelper;
+
+$data = AuthHelper::verifyUserToken();
+
+$user = $data['user'] ?? null;
+$permissions = $data['permissions'] ?? null;
+// Check if user has ACCESS_ADMIN permission
+error_log('User permissions: ' . json_encode($permissions));
+$hasAdminAccess = false;
+foreach ($permissions ?? [] as $permission) {
+    if (isset($permission->permID) && $permission->permID === 'ACCESS_ADMIN') {
+        $hasAdminAccess = true;
+        break;
+    }
 }
-$secret = require __DIR__ . '/../../../config/JwtConfig.php';
-$decode = jwt_helper::verifyJWT($token,$secret);
-if (!$decode) {
-    header('Location: /login');
-    exit();
+// If user doesn't have admin access, redirect to 403 page
+if (!$hasAdminAccess) {
+    header('Location: /403');
+    exit;
 }
-$user = $decode->user ?? null;
+
 
 
 include __DIR__ . '/../../views/layouts/nav-bar.php';

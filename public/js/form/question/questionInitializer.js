@@ -18,7 +18,16 @@ function initQuestion() {
     setupSortables();
     setupEventHandlers();
     populateSelect();
-
+// Add this to your JavaScript code
+        document.body.addEventListener('change', function(event) {
+            if (event.target && event.target.id === 'required') {
+                // When checkbox state changes, set a data attribute on the parent question div
+                const questionItem = event.target.closest('.question-item');
+                if (questionItem) {
+                    questionItem.dataset.required = event.target.checked;
+                }
+            }
+        });
 }
 
 // Keep data loading functions
@@ -49,6 +58,7 @@ async function loadQuestionTypes() {
 
 async function loadTypesForm() {
     // Implementation remains
+
 }
 
 async function loadMajor() {

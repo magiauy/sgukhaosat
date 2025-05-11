@@ -1,15 +1,37 @@
 import {getFormId ,getFormStatus} from "../main.js";
+import {showSwalToast} from "../utils/notifications.js";
 
 function collectQuestionData() {
+    // Check for missing required select fields
+    const typeId = document.getElementById('typeid').value;
+    const majorId = document.getElementById('majorid').value;
+    const periodId = document.getElementById('periodid').value;
+
+    // Check if any required field is empty
+    if (!typeId) {
+        showSwalToast( 'Vui lòng chọn loại biểu mẫu', 'error');
+        return null;
+    }
+
+    if (!majorId) {
+        showSwalToast('Vui lòng chọn khối ngành', 'error');
+        return null;
+    }
+
+    if (!periodId) {
+        showSwalToast( 'Vui lòng chọn niên khóa', 'error');
+        return null;
+    }
+
     return {
         form: {
             FID: getFormId(),
             FName: document.getElementById('fname').value,
             Note: document.getElementById('note').value,
             Limit: document.getElementById('limit').value,
-            TypeID: document.getElementById('typeid').value || null,
-            MajorID: document.getElementById('majorid').value || null,
-            PeriodID: document.getElementById('periodid').value || null,
+            TypeID: typeId,
+            MajorID: majorId,
+            PeriodID: periodId,
             File: document.getElementById('file').value,
             Status: getFormStatus()
         },
@@ -28,11 +50,14 @@ function convertHTMLQuestionToJsonData(){
     questionContainer.querySelectorAll('.question-item').forEach((questionItem, qIdx) => {
         const questionIndex = qIdx + 1;
         const type = questionItem.querySelector('.form-select').value;
+        const requiredCheckbox = questionItem.querySelector('.required-checkbox');
+        const isRequired = requiredCheckbox ? (requiredCheckbox.checked ? 1 : 0) : 0;
         const question = {
             QID: questionItem.id.replace('q', ''),
             QContent: questionItem.querySelector('.editable-content').innerText,
             QTypeID: type,
             QIndex: questionIndex.toString(),
+            QRequired: isRequired,
             children: []
         };
 

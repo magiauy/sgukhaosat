@@ -1,31 +1,8 @@
 <?php
+use Core\AuthHelper;
 
-use Core\jwt_helper;
-
-$token = $_COOKIE['access_token'] ?? null;
-$secret = require __DIR__ . '/../../../config/JwtConfig.php';
-
-// Redirect nếu không có token
-if (!$token) {
-    header('Location: /login');
-    exit();
-}
-
-// Decode JWT
-$token = str_replace('Bearer ', '', $token);
-$decode = jwt_helper::verifyJWT($token, $secret);
-
-if (!$decode) {
-    http_response_code(401);
-    header('Location: /login');
-    exit();
-}
-
-$user = $decode->user ?? null;
-
-
-
-
+$data = AuthHelper::verifyUserToken();
+$user = $data['user'] ?? null;
 include __DIR__ . '/../../views/layouts/header.php';
 include __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>

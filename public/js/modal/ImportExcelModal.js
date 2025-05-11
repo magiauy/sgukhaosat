@@ -317,13 +317,7 @@ export default class ImportExcelModal {
             const formData = new FormData();
             formData.append('excelFile', file);
 
-            const response = await fetch(`${this.config.apiUrl}/excel/parse-emails`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
+            const result = await callApi(`/excel/parse-emails`, 'POST',null,formData);
             if (!result.status) {
                 this.showToast('error', result.message || 'Không thể xử lý file Excel');
                 return;
@@ -398,18 +392,11 @@ export default class ImportExcelModal {
             const position = document.getElementById('bulkPositionSelect').value;
             this.showToast('info', 'Đang tạo tài khoản...');
 
-            const response = await fetch(`${this.config.apiUrl}/users/bulk-create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    emails: this.newEmails,
-                    position: position
-                })
+            const result = await callApi(`/users/bulk-create`,'POST', {
+                emails: this.newEmails,
+                position: position
             });
 
-            const result = await response.json();
 
             if (!result.status) {
                 this.showToast('error', result.message || 'Không thể tạo tài khoản');
@@ -441,15 +428,7 @@ export default class ImportExcelModal {
 
             const users = this.allEmails.map(email => ({ email }));
 
-            const response = await fetch(`${this.config.apiUrl}/forms/${this.formId}/whitelist`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ users })
-            });
-
-            const result = await response.json();
+            const result = await callApi(`/forms/${this.formId}/whitelist`,'POST', {users});
 
             if (!result.status) {
                 this.showToast('error', result.message || 'Không thể thêm vào danh sách truy cập');

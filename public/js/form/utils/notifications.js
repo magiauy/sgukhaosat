@@ -12,4 +12,19 @@ function showToast(message, type) {
     }, 3000);
 }
 
-export { showToast };
+function showSwalToast( message,type) {
+    Swal.fire({
+        icon: type,
+        title: type === 'success' ? 'Thành công' :
+               type === 'info' ? 'Thông báo' :
+               type === 'warning' ? 'Cảnh báo' : 'Lỗi',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+}
+
+export { showToast, showSwalToast };

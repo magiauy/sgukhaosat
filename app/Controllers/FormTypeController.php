@@ -17,7 +17,7 @@ class FormTypeController {
     }
 
     public function getById(Response $response, $id) {
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
+        if (!$id) $response->json(['error' => 'ID is required'], 400);
     
         $FType = $this->service->getById($id);
     
@@ -39,10 +39,13 @@ class FormTypeController {
         $formTypeName = $data['FTypeName'] ?? null;
 
         if (!$formTypeID || !$formTypeName) {
-            return $res->json(['message' => 'Dữ liệu không hợp lệ'], 400);
+             $res->json(['message' => 'Dữ liệu không hợp lệ','status'=>false]);
         }
         if ($this->service->isFTypeIDExists($formTypeID)) {
-            return $res->json(['message' => 'Loại khảo sát đã tồn tại. Vui lòng chọn mã loại khảo sát khác.'], 400);
+            $res->json([
+                'message' => 'Loại khảo sát đã tồn tại. Vui lòng chọn mã loại khảo sát khác.',
+                'status' => false
+            ]);
         }
 
         $this->service->create([
@@ -50,26 +53,37 @@ class FormTypeController {
             'FTypeName' => $formTypeName
         ]);
 
-        return $res->json(['message' => 'Tạo loại form thành công'], 201);
+        $res->json([
+            'message' => 'Tạo loại form thành công',
+            'status' => true
+        ]);
     }
 
     public function update(Response $response, Request $request) {
         $id = $request->getParam("id");
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
+        if (!$id) $response->json([
+            'error' => 'ID is required',
+            'status' => false
+        ]);
 
         $data = $request->getBody();
         $success = $this->service->update($id, $data);
         $response->json([
-            'message' => $success ? 'Cập nhật loại khảo sát thành công' : 'Cập nhật thất bại'
+            'message' => $success ? 'Cập nhật loại khảo sát thành công' : 'Cập nhật thất bại',
+            'status' => $success
         ]);
     }
 
     public function delete(Response $response, Request $request) {
         $id = $request->getParam("id");
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
+        if (!$id) $response->json([
+            'error' => 'ID is required',
+            'status' => false
+        ]);
         $success = $this->service->delete($id);
         $response->json([
-            'message' => $success ? 'Xóa loại khảo sát thành công' : 'Xóa thất bại'
+            'message' => $success ? 'Xóa loại khảo sát thành công' : 'Xóa thất bại',
+            'status' => $success
         ]);
     }
     
@@ -101,4 +115,4 @@ class FormTypeController {
     }
     
 }
-?>
+

@@ -11,6 +11,7 @@ function setupSaveHandlers() {
         if (!btnSave) return;
 
         const result = collectQuestionData();
+        if (result === null) return;
 
         if (getFormStatus() === "0") {
             const data = await callApi(`/draft?id=${getFormId()}`, "PUT", result);
@@ -37,6 +38,7 @@ function setupSubmitHandler() {
         if (!btnSubmit) return;
 
         const result = collectQuestionData();
+        if (result === null) return;
         const data = await callApi(`/admin/form`, "POST", result);
 
         if (data['status']) {

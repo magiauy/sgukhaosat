@@ -77,7 +77,23 @@ class FormController implements IFormController{
     {
         $id = $request->getParam('id');
         try {
-            $result = $this->formService->delete($id);
+            if (empty($id)) {
+                $response->json([
+                    'status' => false,
+                    'message' => 'ID is required'
+                ], 400);
+                return;
+            }
+
+            if (!$this->formService->checkPermission($id, $request->getBody()['user']->email)) {
+                $response->json([
+                    'status' => false,
+                    'message' => 'Permission denied'
+                ], 403);
+                return;
+            }
+
+            $result = $this->formService->delete($id, $request->getBody()['user']->email);
             if ($result) {
                 $response->json([
                     'status' => true,
@@ -213,6 +229,46 @@ class FormController implements IFormController{
             return null;
         }
     }
+    function getFormWithSearchPagination(Request $request, Response $response)
+    {
+        $body = $request->getBody();
+        $offset = $request->getParam('offset');
+        $limit = $request->getParam('limit');
+        $userId = $body['user']->email ?? null;
+
+        // Extract filter values from the request body
+        $filter = $body['filter'] ?? [];
+        $fName = $filter['FName'] ?? '';
+        $typeID = $filter['TypeID'] === 'all' ? null : $filter['TypeID'] ?? null;
+        $majorID = $filter['MajorID'] === 'all' ? null : $filter['MajorID'] ?? null;
+        $periodID = $filter['PeriodID'] === 'all' ? null : $filter['PeriodID'] ?? null;
+        error_log("Filter values: " . json_encode($filter));
+
+        try {
+            $forms = $this->formService->getFormWithSearchPagination($offset, $limit, $userId, $fName, $typeID, $majorID, $periodID);
+            if ($forms) {
+                $response->json([
+                    'status' => true,
+                    'message' => 'Forms retrieved successfully',
+                    'data' => $forms
+                ]);
+            } else {
+                $response->json([
+                    'status' => false,
+                    'message' => 'No forms found'
+                ]);
+            }
+            return ;
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => 'Failed to retrieve forms',
+                'error' => $e->getMessage()
+            ]);
+            return ;
+        }
+    }
+
 
     function getFormWithPagination(Request $request, Response $response)
     {

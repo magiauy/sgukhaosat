@@ -29,26 +29,16 @@ class RoleService implements IBaseService
             $pdo = Database::getInstance()->getConnection();
             $pdo->beginTransaction();
 
-            if(empty($data['roleName'])){
-                throw new \Exception('Thiếu tên vai trò', 400);
+            if(empty($data['roleName']) || empty($data['permissions'])){
+                throw new \Exception('Thiếu dữ liệu', 400);
             }
-            if(empty($data['permissions'])){
-                throw new \Exception('Thiếu quyền', 400);
-            }
+            $data['acceptDelete'] = 1;
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $data['updated_at'] = date('Y-m-d H:i:s');
 
-            try {
-                $this->roleRepository->create($data, $pdo);
-            } catch (\Throwable $th) {
-                throw new \Exception("Lỗi khi tạo vai trò", 400);
-            }
-
-            $role = $this->roleRepository->getByName($data['roleName']);
-            try {
-                $data['roleID'] = $role['roleID'];
-                $this->rolePermRepository->create($data, $pdo);
-            } catch (\Throwable $th) {
-                throw new \Exception("Lỗi khi tạo quyền cho vai trò", 400);
-            }
+            
+            $this->roleRepository->create($data, $pdo);
+            $this->rolePermRepository->create($data, $pdo);
             
             $pdo->commit();
         } catch (\Throwable $th) {
@@ -68,6 +58,7 @@ class RoleService implements IBaseService
         }
 
         try {
+            $data['updated_at'] = date('Y-m-d H:i:s');
             $this->roleRepository->update($id, $data, $pdo);
             $this->rolePermRepository->delete([$id], $pdo);
             $this->rolePermRepository->create($data, $pdo); 
@@ -81,34 +72,27 @@ class RoleService implements IBaseService
 
     function delete($id)
     {
-        $pdo = Database::getInstance()->getConnection();
-        if(!$id){
-            throw new \Exception('Thiếu roleID', 400);            
+        if(empty($id)){
+            throw new \Exception('Thiếu dữ liệu', 400);            
         }
         try {
-            $rolePerm = $this->rolePermRepository->delete($id, $pdo);
-            $usersList = $this->user->getByRoleID($id);
-            if(count($usersList) !== 0){
-                foreach($usersList as $user){
-                    $emailsList[] = $user['email']; //thêm các email vào mảng
-                }
-                $this->user->updateRoleID($emailsList, 1);
-            }
+            $pdo = Database::getInstance()->getConnection();
+            $pdo->beginTransaction();
+            $this->rolePermRepository->delete($id, $pdo);
+            $this->user->updateRoleIDForDelete($id); //$id đang là mảng
             $this->roleRepository->delete($id, $pdo);
+            $pdo->commit();
         } catch (\Throwable $th) {
+            $pdo->rollBack();
             throw $th;
         }      
     }
 
     function getById($id)
     {
-        // $pdo = Database::getInstance()->getConnection();
+        // $pdo = Database::getInstance()->getConnection();  
         try {
             $role = $this->roleRepository->getById($id);
-        } catch (\Throwable $th){
-            throw $th;
-        }
-        try {
             $permissions = $this->rolePermRepository->getById($id);
         } catch (\Throwable $th) {
             throw $th;
@@ -133,78 +117,69 @@ class RoleService implements IBaseService
         return $roleArr;
     }
 
-    function checkValidPermission($permissionDb, $permissionNew){
-        $permissions = [
-            ['id' => 'ACCESS_ADMIN', 'parent_id' => 'ACCESS_ROOT'],
-            ['id' => 'ACCESS_ROLE_EDITOR', 'parent_id' => 'ACCESS_ROOT'],
-            ['id' => 'ACCESS_ROOT', 'parent_id' => null],
-            ['id' => 'ACCESS_SETTINGS', 'parent_id' => 'ACCESS_ADMIN'],
-            ['id' => 'ADD_FORM', 'parent_id' => 'MANAGE_FORMS'],
-            ['id' => 'ADD_FORM_TYPE', 'parent_id' => 'MANAGE_FORM_TYPE'],
-            ['id' => 'ADD_MAJOR', 'parent_id' => 'MANAGE_MAJOR'],
-            ['id' => 'ADD_PERIOD', 'parent_id' => 'MANAGE_PERIOD'],
-            ['id' => 'ADD_USER', 'parent_id' => 'MANAGE_USERS'],
-            ['id' => 'ASSIGN_ROLE_USER', 'parent_id' => 'ACCESS_ROLE_EDITOR'],
-            ['id' => 'DELETE_FORM', 'parent_id' => 'MANAGE_FORMS'],
-            ['id' => 'DELETE_FORM_TYPE', 'parent_id' => 'MANAGE_FORM_TYPE'],
-            ['id' => 'DELETE_MAJOR', 'parent_id' => 'MANAGE_MAJOR'],
-            ['id' => 'DELETE_PERIOD', 'parent_id' => 'MANAGE_PERIOD'],
-            ['id' => 'DELETE_RESULT', 'parent_id' => 'MANAGE_RESULTS'],
-            ['id' => 'DELETE_USER', 'parent_id' => 'MANAGE_USERS'],
-            ['id' => 'EDIT_ANOTHER_ROLE', 'parent_id' => 'ACCESS_ROLE_EDITOR'],
-            ['id' => 'EDIT_FORM', 'parent_id' => 'MANAGE_FORMS'],
-            ['id' => 'EDIT_FORM_TYPE', 'parent_id' => 'MANAGE_FORM_TYPE'],
-            ['id' => 'EDIT_MAJOR', 'parent_id' => 'MANAGE_MAJOR'],
-            ['id' => 'EDIT_PERIOD', 'parent_id' => 'MANAGE_PERIOD'],
-            ['id' => 'EDIT_ROLE_ADMIN', 'parent_id' => 'ACCESS_ROOT'],
-            ['id' => 'EDIT_USER', 'parent_id' => 'MANAGE_USERS'],
-            ['id' => 'MANAGE_FORMS', 'parent_id' => 'ACCESS_ADMIN'],
-            ['id' => 'MANAGE_FORM_TYPE', 'parent_id' => 'ACCESS_ADMIN'],
-            ['id' => 'MANAGE_MAJOR', 'parent_id' => 'ACCESS_ADMIN'],
-            ['id' => 'MANAGE_PERIOD', 'parent_id' => 'ACCESS_ADMIN'],
-            ['id' => 'MANAGE_RESULTS', 'parent_id' => 'ACCESS_ADMIN'],
-            ['id' => 'MANAGE_ROLES', 'parent_id' => 'ACCESS_ADMIN'],
-            ['id' => 'MANAGE_USERS', 'parent_id' => 'ACCESS_ADMIN'],
-            ['id' => 'VIEW_FORM', 'parent_id' => 'MANAGE_FORMS'],
-            ['id' => 'VIEW_FORM_TYPE', 'parent_id' => 'MANAGE_FORM_TYPE'],
-            ['id' => 'VIEW_MAJOR', 'parent_id' => 'MANAGE_MAJOR'],
-            ['id' => 'VIEW_PERIOD', 'parent_id' => 'MANAGE_PERIOD'],
-            ['id' => 'VIEW_RESULT', 'parent_id' => 'MANAGE_RESULTS'],
-            ['id' => 'VIEW_USER', 'parent_id' => 'MANAGE_USERS'],
-        ];
-        
-        $parentMap = [];
-        foreach ($permissions as $perm) {
-            $parentMap[$perm['id']] = $perm['parent_id'];
-        }
+    function getOnPagination($data){
+        try {
+            if($data['isFilter']){
+                if($data['fromDateCreate'] == "" && $data['toDateCreate'] == ""){
+                    $data['isCreate'] = 0;
+                }
+                else if($data['fromDateCreate'] == "" || $data['toDateCreate'] == ""){
+                    throw new \Exception('Thiếu dữ liệu', 400);
+                }
+                else{
+                    $data['isCreate'] = 1;
+                    $data['fromDateCreate'] = $data['fromDateCreate'] . ' 00:00:00';
+                    $data['toDateCreate'] = $data['toDateCreate'] . ' 23:59:59';
+                }
 
-        $checkPermission = false;
-        while(isset($parentMap[$permissionNew])){
-            $parentPermission = $parentMap[$permissionNew];
-            if($permissionDb === $parentPermission){
-                $checkPermission = true;
-                break;
+                if($data['fromDateUpdate'] == "" && $data['toDateUpdate'] == ""){
+                    $data['isUpdate'] = 0;
+                }
+                else if($data['fromDateUpdate'] == "" || $data['toDateUpdate'] == ""){
+                    throw new \Exception('Thiếu dữ liệu', 400);
+                }
+                
+                else{
+                    $data['isUpdate'] = 1;
+                     $data['fromDateUpdate'] = $data['fromDateUpdate'] . ' 00:00:00';
+                    $data['toDateUpdate'] = $data['toDateUpdate'] . ' 23:59:59';
+                }
+
+                if($data['option'] == 'created_desc'){
+                    $data['optionString'] = 'ORDER BY created_at DESC';
+                }
+                else if($data['option'] == 'created_asc'){
+                    $data['optionString'] = 'ORDER BY created_at ASC';
+                }
+                else if($data['option'] == 'updated_desc'){
+                    $data['optionString'] = 'ORDER BY updated_at DESC';
+                }
+                else if($data['option'] == 'updated_asc'){
+                    $data['optionString'] = 'ORDER BY updated_at ASC';
+                }
+                else{
+                    throw new \Exception('Thiếu dữ liệu', 400);
+                }
             }
-            $permissionNew = $parentPermission;
-        }
-
-        if($checkPermission) return true;
-        else return false;
-    }
-
-    function validPermission($data){
-        $permissionsDb = $this->rolePermRepository->getById($data['roleID']); //lấy permission của roleID tương ứng trong database
-
-        foreach($permissionsDb as $permissionDb){
-            $check;
-            foreach($data['permissions'] as $permissionNew){
-                $check = $this->checkValidPermission($permissionDb['permID'], $permissionNew);
-                // var_dump($check);
-                if(!$check) break;
+            else{
+                //mặc định là thời gian tạo mới nhất
+                $data['optionString'] = 'ORDER BY created_at DESC';
             }
-            if(!$check){
-                throw new \Exception('Lỗi ! Role của tài khoản không quản lí permission muốn thêm');
+
+            if(!isset($data['limit']) && !isset($data['offset'])){
+                
+                $data['limitString'] = '';
+                $data['search'] = '%' . $data['search'] . '%';
             }
-        }
+            else{
+                $data['limitString'] = 'LIMIT ' . (int) $data['offset'] . ', ' . (int) $data['limit'];               
+            }
+            return [
+                'roles' => $this->roleRepository->getOnPagination($data),
+                'total' => $this->roleRepository->getTotalRecord($data)
+            ];
+        } catch (\Throwable $th) {
+            throw $th;
+        } 
     }
 }

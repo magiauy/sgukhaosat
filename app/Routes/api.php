@@ -38,12 +38,15 @@ $answerController = new AnswerController();
     // User APIs
 
     $router->post('/api/user', fn() => $controller->create($response, $request));
-    $router->put('/api/user', fn() => $controller->update($response, $request), ['email']);
+    $router->put('/api/user', fn() => $controller->update($response, $request));
+    $router->put('/api/user/password', fn() => $controller->resetPassword($response, $request));
     $router->delete('/api/user', fn() => $controller->delete($response, $request));
     $router->get('/api/getListUsers', fn() => $controller->getAll($response, $request));
     $router->get('/api/user', fn() => $controller->getAll($response, $request));
     $router->get('/api/userWithoutWhitelist/{id}', fn($params) => $controller->getAllWithoutWhitelist($response, $request, $params['id']));
-    $router->get('/api/user', fn() => $controller->getById($response, $request), ['email']);
+    $router->get('/api/user/email', function($params) use ($request, $response, $controller) {
+        $controller->getById($response, $request);
+    });
     $router->post('/api/login', fn() => $controller->login($response, $request));
     $router->post('/api/me', fn() =>
         JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req))
@@ -58,6 +61,8 @@ $answerController = new AnswerController();
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
             fn($req, $res) => $controller->bulkCreate($res, $req));
     });
+    $router->post('/api/users/pagination', fn() => $controller->getOnPagination($response, $request));
+
 
 
 // Period APIs
@@ -158,10 +163,12 @@ $answerController = new AnswerController();
     $router->put('/api/role/id', fn() => $roleController->update($response, $request));
     $router->delete('/api/role/id', fn() => $roleController->delete($response, $request));
     $router->get('/api/role/{id}', function($params) use ($request, $response, $roleController) {
-        $_GET['id'] = (int) $params['id'];
+        $_GET['id'] = $params['id'];
         $roleController->getById($response, $request);
     });
     $router->get('/api/role', fn() => $roleController->getAll($response, $request));
+    $router->post('/api/role/pagination', fn() => $roleController->getOnPagination($response, $request));
+ 
 
     // Permission APIs
     $router->get('/api/permission', fn() => $permController->getAll($response, $request));

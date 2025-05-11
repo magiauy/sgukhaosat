@@ -1,128 +1,272 @@
 import { callApi } from "../../apiService.js";
 import { handleDeleteRole, handleDeleteSelectedRoles } from "./deleteRole.js";
-import { showAddRoleUI } from "./addRole.js";
-import { showEditRoleUI } from "./editRole.js";
+import { showPopupAddRole } from "./addRole.js";
+import { showEditRole } from "./editRole.js";
+import { search } from "./searchRole.js";
+import { filter } from "./filterRole.js";
+import PaginationComponent from "../../component/pagination.js";
+
+
+export let selectedRoleIDs = new Set();
+
+// Thêm hàm này vào file
+
+export function clearSelectedRoles() {
+    selectedRoleIDs.clear();
+    const selectedCountElem = document.getElementById('selected-count');
+    if (selectedCountElem) {
+        selectedCountElem.textContent = "0";
+    }
+    
+    const deleteSelectedBtn = document.getElementById('delete-selected-roles');
+    if (deleteSelectedBtn) {
+        deleteSelectedBtn.classList.add('d-none');
+    }
+    
+    const selectAllCheckbox = document.getElementById('select-all-roles');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+}
+
+const pagination = new PaginationComponent({
+    containerId: 'pagination-role',
+    onPageChange: (offset, limit) => {
+        renderTableOnPagination(offset, limit);
+    },
+    onLimitChange: (offset, limit) => {
+        renderTableOnPagination(offset, limit);
+    },
+
+});
 
 export async function renderContentRole(){
     document.querySelector("#content").innerHTML = `
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body text-center py-4">
-                <h3 class="mb-0 fw-bold">Quản lí phân quyền</h3>
-            </div>
-        </div>
+    <div class="container-fluid p-0">
+        <!-- Card chính chứa nội dung -->
+        <div class="card border rounded-4 overflow-hidden">
+            <div class="card-body p-0">
+                <!-- Search section - Cải thiện spacing -->
+                <div class="px-4 pt-4 pb-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-lg-7 col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control rounded-3 border-light-subtle" id="id-search" placeholder="Nhập tên vai trò cần tìm">
+                                <label for="id-search">Tìm kiếm theo ID vai trò</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-5 col-md-6">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-primary rounded-3 px-4 py-2" id="search-button">
+                                    <i class="bi bi-search me-2"></i> Tìm kiếm
+                                </button>
+                                <button id="add-role-button" class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center">
+                                    <i class="bi bi-plus-circle me-2"></i> Thêm vai trò
+                                </button>
+                                <button id="delete-selected-roles" class="btn btn-outline-danger rounded-pill px-3 py-2 d-none d-flex align-items-center">
+                                    <i class="bi bi-trash me-2"></i> Xóa đã chọn
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="card shadow-sm border-0 content-role">
-            <div class="card-body p-0" id="container-role">
-                <!-- Nội dung vai trò sẽ được render ở đây -->
+                <!-- Filter Section - Loại bỏ shadow, cải thiện border -->
+                <div class="p-4 mx-4 mb-4 border rounded-4 bg-light bg-opacity-25">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0 fw-bold text-primary">
+                            <i class="bi bi-funnel me-2"></i> Bộ lọc
+                        </h5>
+                        <div class="d-flex gap-3">
+                            <button id="delete-filter-role" class="btn btn-outline-secondary rounded-pill px-3 py-2 min-width-120">
+                                <i class="bi bi-x-circle me-1"></i> Xóa lọc
+                            </button>
+                            <button id="filter-role" class="btn btn-primary rounded-pill px-3 py-2 min-width-120">
+                                <i class="bi bi-funnel me-1"></i> Áp dụng
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-4">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label fw-medium mb-2">Thời gian tạo</label>
+                                <div class="d-flex gap-2">
+                                    <div class="form-floating flex-grow-1">
+                                        <input type="date" class="form-control date-create rounded-3 border-light-subtle" id="create-from-date">
+                                        <label for="create-from-date">Từ</label>
+                                    </div>
+                                    <div class="form-floating flex-grow-1">
+                                        <input type="date" class="form-control date-create rounded-3 border-light-subtle" id="create-to-date">
+                                        <label for="create-to-date">Đến</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label fw-medium mb-2">Thời gian cập nhật</label>
+                                <div class="d-flex gap-2">
+                                    <div class="form-floating flex-grow-1">
+                                        <input type="date" class="form-control date-update rounded-3 border-light-subtle" id="update-from-date">
+                                        <label for="update-from-date">Từ</label>
+                                    </div>
+                                    <div class="form-floating flex-grow-1">
+                                        <input type="date" class="form-control date-update rounded-3 border-light-subtle" id="update-to-date">
+                                        <label for="update-to-date">Đến</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label fw-medium mb-2">Sắp xếp theo</label>
+                                <div class="form-floating">
+                                    <select class="form-select rounded-3 border-light-subtle" id="sort-option">
+                                        <option value="created_desc" selected>Thời gian tạo mới nhất</option>
+                                        <option value="created_asc">Thời gian tạo cũ nhất</option>
+                                        <option value="updated_desc">Thời gian cập nhật mới nhất</option>
+                                        <option value="updated_asc">Thời gian cập nhật cũ nhất</option>
+                                    </select>
+                                    <label for="sort-option">Sắp xếp theo</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>                    
+                    
+                <!-- Table section - Loại bỏ shadow -->
+                <div class="px-4 mb-4">
+                    <div class="table-responsive rounded-4 border overflow-hidden">
+                        <table id="table-role" class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4" style="width: 40px;">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="select-all-roles">
+                                        </div>
+                                    </th>
+                                    <th style="width: 50px;">#</th>
+                                    <th>ID vai trò</th>
+                                    <th>Tên vai trò</th>
+                                    <th>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-calendar-date text-primary me-2"></i> Thời gian tạo
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-clock-history text-primary me-2"></i> Thời gian cập nhật
+                                        </div>
+                                    </th>
+                                    <th class="text-end pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dữ liệu vai trò sẽ được render ở đây -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Pagination section - Cải thiện styling -->
+                <div class="px-4 py-3 border-top d-flex justify-content-between align-items-center bg-light bg-opacity-10">
+                    <div>
+                        <span class="text-muted"><span id="selected-count">0</span> mục được chọn</span>
+                    </div>
+                    <div>
+                        <nav aria-label="Page navigation" id="pagination-role" class="pagination-container">
+                            <!-- Phân trang sẽ được render ở đây -->
+                        </nav>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
     `;
 
-    showContentRole();
+   
+    renderTableOnPagination(0, 10); // Hiển thị 10 vai trò đầu tiên
+
+    showPopupAddRole(); // Khi ấn thêm vai trò
+    handleDeleteSelectedRoles(); // Xóa vai trò đã chọn
+    search();
+    filter(); // Lọc vai trò theo ngày tạo
 }
 
-//hàm render các vai trò trong database
-async function showContentRole(){
-    let response = await callApi('/role');
-    let roles = response.data;
-    const roleIDCurrent = parseInt(document.querySelector("#sidebar-container").getAttribute("data-code"));
-    
-    document.querySelector('#container-role').innerHTML = `
-        <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
-            <h5 class="mb-0 fw-bold text-primary">Quản lý vai trò</h5>
-            <div class="d-flex align-items-center gap-2">
-                <button id="delete-selected-roles" class="btn btn-outline-danger btn-sm d-none">
-                    <i class="bi bi-trash"></i> Xóa đã chọn
-                </button>
-                <button id="add-role-button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoleModal">
-                    <i class="bi bi-plus-circle"></i> Thêm vai trò
-                </button>
-            </div>
-        </div>
-        
-        <div class="table-responsive">
-            <table id="table-role" class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4" style="width: 40px;">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="select-all-roles">
-                            </div>
-                        </th>
-                        <th style="width: 50px;">#</th>
-                        <th>Tên vai trò</th>
-                        <th>Thời gian tạo</th>
-                        <th>Thời gian cập nhật</th>
-                        <th class="text-end pe-4">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dữ liệu vai trò sẽ được render ở đây -->
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="p-3 border-top d-flex justify-content-between align-items-center">
-            <div>
-                <span class="text-muted fs-sm"><span id="selected-count">0</span> mục được chọn</span>
-            </div>
-            <div>
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination pagination-sm mb-0">
-                     
-                    </ul>
-                </nav>
-            </div>
-        </div>
-    `;
+// Cập nhật hàm renderTableRole
 
+export async function renderTableRole(roles) {
+
+    let currentAccount = await callApi("/me", "POST");
+    currentAccount = currentAccount.data;
+    currentAccount = currentAccount.user;
+    const roleIDCurrent = currentAccount.roleID;
 
     const tableBody = document.querySelector("#table-role tbody");
     tableBody.innerHTML = "";
 
+    const indexCurrent = roles.findIndex(role => role.roleID === roleIDCurrent);
+
     roles.forEach((role, index) => {
-        if(index+1 !== roleIDCurrent){
-            const createdDate = new Date('2024-01-01').toLocaleDateString('vi-VN');
-            const updatedDate = new Date('2024-03-01').toLocaleDateString('vi-VN');
-            
-            tableBody.innerHTML += `
-                <tr>
-                    <td class="ps-4">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input role-checkbox" data-id="${role.roleID}">
-                        </div>
-                    </td>
-                    <td>${index+1}</td>
-                    <td>
-                        <div class="fw-medium">${role.roleName}</div>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-calendar-date text-muted me-2"></i>
-                            <span>${createdDate}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-clock-history text-muted me-2"></i>
-                            <span>${updatedDate}</span>
-                        </div>
-                    </td>
-                    <td class="text-end pe-4">
-                        <div class="btn-group">
-                            <button data-code=${role.roleID} class="btn btn-outline-primary btn-sm edit-role" data-bs-toggle="modal" data-bs-target="#editRoleModal">
-                                <i class="bi bi-pencil"></i> Sửa
-                            </button>
-                            <button data-code=${role.roleID} class="btn btn-outline-danger btn-sm delete-role">
-                                <i class="bi bi-trash"></i> Xóa
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
+        // Kiểm tra xem role này có trong danh sách đã chọn hay không
+        const isChecked = selectedRoleIDs.has(role.roleID) ? 'checked' : '';
+        let isCheckedCurrent = '';
+        if(indexCurrent === index){
+            isCheckedCurrent = 'disabled-row';
         }
+        tableBody.innerHTML += `
+            <tr class="role-row ${isCheckedCurrent}">
+                <td class="ps-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input role-checkbox" data-id="${role.roleID}" ${isChecked}>
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-light text-dark rounded-pill px-2">${index+1}</span>
+                </td>
+                <td>
+                    <div class="fw-medium text-primary">${role.roleID}</div>
+                </td>
+                <td>
+                    <div class="fw-medium">${role.roleName}</div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-calendar-date text-primary me-2"></i>
+                        <span class="text-secondary">${role.created_at}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clock-history text-primary me-2"></i>
+                        <span class="text-secondary">${role.updated_at}</span>
+                    </div>
+                </td>
+                <td class="text-end pe-4">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button data-code="${role.roleID}" class="btn btn-outline-primary btn-sm rounded-pill px-3 edit-role">
+                            <i class="bi bi-pencil me-1"></i> Sửa
+                        </button>
+                        <button data-code="${role.roleID}" class="btn btn-outline-danger btn-sm rounded-pill px-3 delete-role">
+                            <i class="bi bi-trash me-1"></i> Xóa
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
     });
 
+    logicCheckbox();
+    handleDeleteRole(); // Xóa vai trò
+    showEditRole(); // Sửa vai trò
+}
+
+
+async function logicCheckbox(){
     // Xử lý checkbox và đếm số mục đã chọn
     const selectAllCheckbox = document.getElementById('select-all-roles');
     const roleCheckboxes = document.querySelectorAll('.role-checkbox');
@@ -154,27 +298,76 @@ async function showContentRole(){
     }
 
     // Xử lý sự kiện khi click vào checkbox "chọn tất cả"
-    selectAllCheckbox.addEventListener('change', function() {
+    selectAllCheckbox.onchange = function() {
         roleCheckboxes.forEach(checkbox => {
             checkbox.checked = this.checked;
+            
+            // Cập nhật Set các ID được chọn
+            const roleID = checkbox.getAttribute('data-id');
+            if (this.checked) {
+                selectedRoleIDs.add(roleID);
+            } else {
+                selectedRoleIDs.delete(roleID);
+            }
         });
         updateSelectedCount();
-    });
+    };
 
     // Xử lý sự kiện khi click vào các checkbox riêng lẻ
     roleCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateSelectedCount);
+        checkbox.onchange = function() {
+            const roleID = this.getAttribute('data-id');
+            
+            // Cập nhật Set các ID được chọn
+            if (this.checked) {
+                selectedRoleIDs.add(roleID);
+            } else {
+                selectedRoleIDs.delete(roleID);
+            }
+            
+            updateSelectedCount();
+        };
+    });
+
+    // Khôi phục trạng thái checkbox từ selectedRoleIDs
+    roleCheckboxes.forEach(checkbox => {
+        const roleID = checkbox.getAttribute('data-id');
+        if (selectedRoleIDs.has(roleID)) {
+            checkbox.checked = true;
+        }
     });
 
     // Khởi tạo trạng thái ban đầu
     updateSelectedCount();
-
-    // Các hàm xử lý khác
-    showAddRoleUI(); // Khi ấn thêm vai trò
-    handleDeleteRole(); // Xóa vai trò
-    showEditRoleUI(); // Sửa vai trò
-    handleDeleteSelectedRoles(); // Xóa vai trò đã chọn
 }
+
+
+export async function renderTableOnPagination(offset, limit){
+    try {
+        // console.log(offset, limit);
+        let response = await callApi("/role/pagination", "POST", {
+            offset: offset,
+            limit: limit,
+            isFilter: 0,
+            isSearch: 0
+        });
+        let result = response.data; // Lấy danh sách vai trò từ API
+        // console.log(result);
+        renderTableRole(result.roles); // Gọi hàm renderTableRole để hiển thị danh sách vai trò
+        
+        pagination.render({
+            currentPage: Math.floor(offset / limit) + 1,
+            totalPages: Math.ceil(result.total / limit),
+            limit: limit,
+            totalItems: result.total
+        });
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
 
 
 

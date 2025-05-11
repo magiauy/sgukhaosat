@@ -17,6 +17,7 @@ class RoleController implements IBaseController{
 
     
     // data từ frontend: {
+    //     "roleID": ""
     //     "roleName": ""
     //     "permissions": []
     // }
@@ -45,13 +46,12 @@ class RoleController implements IBaseController{
         }
     }
 
-    // $data từ frontend: {
-    //     "roleID": []
+    // $data từ frontend: [] mảng các roleID
     public function delete(Response $response, Request $request){
         try {
             $data = $request->getBody();
-            $id = $data['roleID'];
-            $this->roleService->delete($id);
+            // var_dump($data);
+            $this->roleService->delete($data);
             $response->json(['message: ' => 'Deleted successfully']);
         }catch (\Throwable $e){
             $response->json(['error' => $e->getMessage()]);
@@ -86,6 +86,16 @@ class RoleController implements IBaseController{
         }
     }
 
-
-
+    public function getOnPagination(Response $response, Request $request){
+        try {
+            $data = $request->getBody();
+            $roles = $this->roleService->getOnPagination($data);
+            $response->json([
+                'message' => 'Successfully',
+                'data' => $roles
+            ]);
+        }catch (\Throwable $th){
+            $response->json(['Error' => $th->getMessage()]);
+        }
+    }
 }

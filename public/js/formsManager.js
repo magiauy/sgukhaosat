@@ -5,6 +5,7 @@ import {showSwalToast} from "./form/utils/notifications.js";
 
 const formSettingsModal = new FormSettingsModal(config);
 async function loadSurveyTable(data) {
+    // console.log(data);
 
     if (!data || !data.forms) {
         console.error("Invalid survey data.");
@@ -56,11 +57,15 @@ async function loadSurveyTable(data) {
             const firstTd = row?.querySelector('td');
             if (firstTd) {
                 const fid = firstTd.textContent.trim();
+                // console.log(fid);
                 if (this.classList.contains('btn-edit-form')) {
                     window.location.href = `${config.Url}/admin/form/${fid}/edit`;
                 } else if (this.classList.contains('btn-setting-form')) {
                     const fid = firstTd.textContent.trim();
+
+
                     const form = data.forms.find(item => item.FID == fid);
+
                     await formSettingsModal.open(fid, form);
                 }
             }

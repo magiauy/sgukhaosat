@@ -45,13 +45,15 @@ class UserController implements IAuthController
     public function update(Response $response, Request $request)
     {
         try {
-            $email = $request->getParam("email");
+            $data = $request->getBody();
+            $email = $data['email'];
+
             if (!$email) {
                 $response->json(['error' => 'Email is required'], 400);
                 return;
             }
 
-            $result = $this->userService->update($email, $request->getBody());
+            $result = $this->userService->update($email, $data);
             if ($result) {
                 $response->json(['message' => 'User updated successfully']);
             } else {
@@ -65,18 +67,14 @@ class UserController implements IAuthController
     public function delete(Response $response, Request $request)
     {
         try {
-            $email = $request->getParam("email");
-            if (!$email) {
+            $emails = $request->getBody();
+            if (!$emails) {
                 $response->json(['error' => 'Email is required'], 400);
                 return;
             }
 
-            $result = $this->userService->delete($email);
-            if ($result) {
-                $response->json(['message' => 'User deleted successfully']);
-            } else {
-                $response->json(['error' => 'Failed to delete user'], 500);
-            }
+            $this->userService->delete($emails);
+            $response->json(['message' => 'User deleted successfully']);
         } catch (\Exception $e) {
             $response->json(['error' => $e->getMessage()], $e->getCode());
         }
@@ -86,6 +84,7 @@ class UserController implements IAuthController
     {
         try {
             $email = $request->getParam("email");
+            error_log($email);
             if (!$email) {
                 $response->json(['error' => 'Email is required'], 400);
                 return;
@@ -212,4 +211,41 @@ public function bulkCreate(Response $response, Request $request)
         ], 500);
     }
 }
+
+    public function resetPassword(Response $response, Request $request)
+    {
+        try {
+            $data = $request->getBody();
+            $email = $data['email'] ?? null;
+            if (!$email) {
+                $response->json(['status' => false, 'message' => 'Email is required'], 400);
+            }
+
+            // Let service handle the business logic
+            $this->userService->resetPassword($email);
+            $response->json([
+                'status' => true,
+                'message' => 'Password reset successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+             $response->json([
+                'status' => false,
+                'message' => 'Error resetting password: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getOnPagination(Response $response, Request $request)
+    {
+        try {
+            $data = $request->getBody();
+            $users = $this->userService->getOnPagination($data);
+            $response->json([
+                'message' => 'Get user on pagination successfully',
+                'data' => $users]);
+        } catch (\Throwable $e) {
+            $response->json(['error' => $e->getMessage()]);
+        }
+    }
 }

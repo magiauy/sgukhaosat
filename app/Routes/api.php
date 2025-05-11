@@ -61,6 +61,8 @@ $answerController = new AnswerController();
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
             fn($req, $res) => $controller->bulkCreate($res, $req));
     });
+    $router->post('/api/users/pagination', fn() => $controller->getOnPagination($response, $request));
+
 
 
 // Period APIs
@@ -165,6 +167,8 @@ $answerController = new AnswerController();
         $roleController->getById($response, $request);
     });
     $router->get('/api/role', fn() => $roleController->getAll($response, $request));
+    $router->post('/api/role/pagination', fn() => $roleController->getOnPagination($response, $request));
+ 
 
     // Permission APIs
     $router->get('/api/permission', fn() => $permController->getAll($response, $request));

@@ -15,13 +15,16 @@ use Utils\PasswordUtils;
 class UserService implements IAuthService
 {
     private IBaseRepository $userRepository;
+     private IBaseRepository $roleRepo;
     private IBaseService $roleService;
     private IWhitelistForm $whitelistForm;
+
 
     public function __construct()
     {
         $this->userRepository = new UserRepository();
         $this->roleService = new RoleService();
+        // $this->roleRepo = new RoleRepository();
         $this->whitelistForm = new WhitelistForm();
     }
 
@@ -43,7 +46,8 @@ class UserService implements IAuthService
         foreach ($data as &$row) {
             // $row['password'] = (string) $row['password'];
             $row['password'] = password_hash($row['password'], PASSWORD_DEFAULT, $options);
-            $row['dateCreate'] = $row['dateCreate'] ?? date('Y-m-d H:i:s'); // Gán ngày tạo nếu chưa có
+            $row['created_at'] = $row['created_at'] ?? date('Y-m-d H:i:s'); // Gán ngày tạo nếu chưa có
+            $row['updated_at'] = $row['updated_at'] ?? date('Y-m-d H:i:s'); // Gán ngày cập nhật nếu chưa có
             $row['status'] = $row['status'] ?? 1; // Gán trạng thái mặc định là 1 nếu chưa có
             // var_dump($row);
         }
@@ -304,5 +308,79 @@ class UserService implements IAuthService
         } catch (\Throwable $th) {
             throw $th;
         }
+    }
+
+    public function getOnPagination($data)
+    {
+        if($data['isFilter']){
+            if($data['fromDateCreate'] == "" && $data['toDateCreate'] == ""){
+                $data['isCreate'] = 0;
+            }
+            else if($data['fromDateCreate'] == "" || $data['toDateCreate'] == ""){
+                throw new \Exception('Thiếu dữ liệu', 400);
+            }
+            else{
+                $data['isCreate'] = 1;
+                $data['fromDateCreate'] = $data['fromDateCreate'] . ' 00:00:00';
+                $data['toDateCreate'] = $data['toDateCreate'] . ' 23:59:59';
+            }
+
+            if($data['fromDateUpdate'] == "" && $data['toDateUpdate'] == ""){
+                $data['isUpdate'] = 0;
+            }
+            else if($data['fromDateUpdate'] == "" || $data['toDateUpdate'] == ""){
+                throw new \Exception('Thiếu dữ liệu', 400);
+            }
+            
+            else{
+                $data['isUpdate'] = 1;
+                    $data['fromDateUpdate'] = $data['fromDateUpdate'] . ' 00:00:00';
+                $data['toDateUpdate'] = $data['toDateUpdate'] . ' 23:59:59';
+            }
+
+            if($data['sortOrder'] == 'created_desc'){
+                $data['sortOrderString'] = 'ORDER BY created_at DESC';
+            }
+            else if($data['sortOrder'] == 'created_asc'){
+                $data['sortOrderString'] = 'ORDER BY created_at ASC';
+            }
+            else if($data['sortOrder'] == 'updated_desc'){
+                $data['sortOrderString'] = 'ORDER BY updated_at DESC';
+            }
+            else if($data['sortOrder'] == 'updated_asc'){
+                $data['sortOrderString'] = 'ORDER BY updated_at ASC';
+            }
+            else{
+                throw new \Exception('Thiếu dữ liệu', 400);
+            }
+        }
+        else{
+            $data['sortOrderString'] = 'ORDER BY created_at DESC';
+        }
+
+        if(!isset($data['limit']) && !isset($data['offset'])){
+            var_dump($data);
+            $data['limitString'] = '';
+            $data['search'] = '%' . $data['search'] . '%';
+        }
+        else{
+            $data['limitString'] = 'LIMIT ' . (int) $data['offset'] . ', ' . (int) $data['limit'];               
+        }
+
+        $accounts = $this->userRepository->getOnPagination($data);
+        $roles = $this->roleRepo->getAll();
+        foreach ($accounts as &$account) {
+            foreach ($roles as $role) {
+                if ($account['roleID'] == $role['roleID']) {
+                    $account['roleName'] = $role['roleName'];
+                    break;
+                }
+            }
+            
+        }
+        return[
+            'accounts' => $this->userRepository->getOnPagination($data),
+            'total' => $this->userRepository->getTotalRecord($data)
+        ];
     }
 }

@@ -1,5 +1,5 @@
 import { callApi } from "../../apiService.js";
-import { renderContentUser } from "./userAdmin.js";
+import { renderContentUser } from "./accountAdmin.js";
 
 export function showDetail(){
     document.querySelectorAll(".detail-account").forEach((detail) => {

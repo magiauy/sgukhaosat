@@ -1,5 +1,5 @@
 import { callApi } from "../../apiService.js";
-import { renderListUsers } from "./userAdmin.js";
+import { renderListAccount } from "./accountAdmin.js";
 
 export function deleteAccount(){
     document.querySelector("#delete-account").onclick = async function(){
@@ -12,7 +12,7 @@ export function deleteAccount(){
        try {
             const response = await callApi("/user", "DELETE", arrID);
             console.log(response);
-            renderListUsers();
+            renderListAccount();
        } catch (error) {
             console.log(error);
        }
@@ -25,7 +25,7 @@ export function deleteAccount(){
             try {
                 const response = await callApi("/user", "DELETE", [id]);
                 console.log(response);
-                renderListUsers();
+                renderListAccount();
             } catch (error) {
                 console.log(error);
             }

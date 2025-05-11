@@ -20,10 +20,10 @@ class UserRepository implements IAuthRepository {
         // var_dump($data);
         $this->pdo->beginTransaction();
         try {
-                $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ? ,?,?,?)"));
-                $sql = "INSERT INTO users (email, password, dateCreate, status , roleId, `position`,fullName) VALUES $placeholders";
-                $stmt = $this->pdo->prepare($sql);
-                $expectedOrder = ['email', 'password', 'dateCreate', 'status', 'roleId','position','fullName'];
+            $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?, ? ,?,?,?)"));
+            $sql = "INSERT INTO users (email, password, created_at, updated_at, status , roleId, `position`,fullName) VALUES $placeholders";
+            $stmt = $this->pdo->prepare($sql);
+            $expectedOrder = ['email', 'password', 'created_at', 'updated_at', 'status', 'roleId','position','fullName'];
             $params = [];
             foreach ($data as $row) {
 
@@ -222,6 +222,13 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
         return $this->pdo->lastInsertId();
     }
 
+    /**
+     * @param string $email User's email
+     * @param string $newPassword New password to set
+     * @return void
+     * @throws \PDOException
+     */
+
     public function resetPassword($email, $newPassword)
     {
         $sql = "UPDATE users SET password = :password WHERE email = :email";
@@ -232,10 +239,67 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
         ]);
     }
 
+    /**
+     * @param array $ids List of role IDs to update
+     * @return void
+     * @throws \PDOException
+     */
     public function updateRoleIDForDelete($ids){
-        $sql = "UPDATE users SET roleID = 'USER' WHERE roleID in (:roleID)";
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "UPDATE users SET roleID = 'USER' WHERE roleID IN ($placeholders)";
         $stmt = $this->pdo->prepare($sql);
-        $ids = implode(', ', array_values($ids));
-        $stmt->execute(['roleID' => $ids]);
+        $stmt->execute(array_values($ids));
+    }
+
+    function getOnPagination($data){
+        // var_dump($data);
+
+        $sql = "SELECT * FROM users 
+        WHERE (
+            (:isFilter = 0) OR 
+            (
+                (:isCreate = 0 OR (created_at BETWEEN :fromDateCreate AND :toDateCreate))
+                AND 
+                (:isUpdate = 0 OR (updated_at BETWEEN :fromDateUpdate AND :toDateUpdate))
+            )
+        )
+        AND (
+            (:isSearch = 0) OR (roleID LIKE :search)
+        )
+        {$data['sortOrderString']} 
+        {$data['limitString']}";
+
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'fromDateCreate' => $data['fromDateCreate'] ?? 0,
+            'toDateCreate' => $data['toDateCreate'] ?? 0,
+            'fromDateUpdate' => $data['fromDateUpdate'] ?? 0,
+            'toDateUpdate' => $data['toDateUpdate'] ?? 0,
+            'isCreate' => $data['isCreate'] ?? 0,
+            'isUpdate' => $data['isUpdate'] ?? 0,
+            'isFilter' => $data['isFilter'],
+            'isSearch' => $data['isSearch'],
+            'search' => $data['search'] ?? 0,
+        ]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    function getTotalRecord($data){
+        $sql = 'SELECT COUNT(*) FROM users 
+        WHERE (:isFilter = 0 OR (
+        (:isCreate = 0 OR created_at BETWEEN :fromDateCreate AND :toDateCreate) AND (:isUpdate = 0 OR updated_at BETWEEN :fromDateUpdate AND :toDateUpdate)))';
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'fromDateCreate' => $data['fromDateCreate'] ?? 0,
+            'toDateCreate' => $data['toDateCreate'] ?? 0,
+            'fromDateUpdate' => $data['fromDateUpdate'] ?? 0,
+            'toDateUpdate' => $data['toDateUpdate'] ?? 0,
+            'isCreate' => $data['isCreate'] ?? 0,
+            'isUpdate' => $data['isUpdate'] ?? 0,
+            'isFilter' => $data['isFilter']
+        ]);
+        return $stmt->fetchColumn();
     }
 }

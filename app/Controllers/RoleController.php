@@ -50,6 +50,7 @@ class RoleController implements IBaseController{
     public function delete(Response $response, Request $request){
         try {
             $data = $request->getBody();
+            // var_dump($data);
             $this->roleService->delete($data);
             $response->json(['message: ' => 'Deleted successfully']);
         }catch (\Throwable $e){
@@ -85,6 +86,16 @@ class RoleController implements IBaseController{
         }
     }
 
-
-
+    public function getOnPagination(Response $response, Request $request){
+        try {
+            $data = $request->getBody();
+            $roles = $this->roleService->getOnPagination($data);
+            $response->json([
+                'message' => 'Successfully',
+                'data' => $roles
+            ]);
+        }catch (\Throwable $th){
+            $response->json(['Error' => $th->getMessage()]);
+        }
+    }
 }

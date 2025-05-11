@@ -1,115 +1,359 @@
-/* Sidebar */
+/* Thay đổi biến CSS root để cùng một màu */
+:root {
+    --primary: #0d6efd;
+    --secondary: #6c757d;
+    --success: #198754;
+    --info: #0dcaf0;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    
+    --primary-light: rgba(13, 110, 253, 0.1);
+    --body-bg: #f5f7fb;
+    --sidebar-bg: #f5f7fb; /* Thay đổi từ #f0f4f8 sang #f5f7fb để khớp với body-bg */
+    --header-height: 56px;
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 70px;
+    --transition: 0.3s ease;
+    --border-color: rgba(0, 0, 0, 0.08);
+}
+
+body {
+    overflow-x: hidden;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+
+/* Main Layout - Cập nhật màu nền */
+#main {
+    position: relative;
+    display: flex;
+    padding: 10px 0px 10px 0px;
+    background-color: var(--body-bg); /* Thay đổi từ #F0F4F8 sang var(--body-bg) */
+}
+
+/* Sidebar Styling - Cập nhật màu nền */
+#sidebar-container {
+    width: var(--sidebar-width);
+    transition: width var(--transition), box-shadow var(--transition);
+    /* max-height: 1000px; */
+    height: 100%;
+    overflow-y: auto;
+    background-color: var(--body-bg); /* Thay đổi để khớp với body-bg */
+    box-shadow: none; /* Loại bỏ đổ bóng để tránh phân biệt với main */
+    align-self: flex-start;
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    margin-right: 10px;
+}
+
+
+#sidebar-container.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
 #sidebar {
-    width: 250px;
-    min-height: calc(100vh - 295px);
-    background: #e6f2ff; /* Updated sidebar background color */
-    transition: all 0.3s;
+    height: 100%;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    background-color: var(--body-bg); /* Thay đổi để khớp với body-bg */
 }
 
-#sidebar .nav-link {
-    color: #212529; /* Darker text for better contrast on light background */
+/* Sidebar Toggle Button */
+.sidebar-toggle-container {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 0.5rem 0.5rem 0;
+    margin-bottom: 1rem;
 }
 
-#sidebar .nav-link:hover {
-    background: #cce4ff; /* Updated hover background color */
-    color: #000; /* Maintain dark text on hover */
+.btn-toggle-sidebar {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: var(--light);
+    border: 1px solid var(--border-color);
+    color: var(--primary);
+    transition: transform var(--transition);
+    padding: 0;
+    cursor: pointer;
 }
 
-#sidebar .nav-link.active {
-    background: #b3d7ff; /* Added active state styling */
-    color: #000;
-    font-weight: 500;
+.btn-toggle-sidebar:hover {
+    background-color: var(--primary-light);
 }
 
-#sidebar.collapsed {
-    width: 80px;
+.collapsed .btn-toggle-sidebar {
+    transform: rotate(180deg);
 }
 
-#sidebar.collapsed .nav-text {
+/* Sidebar Heading */
+.sidebar-heading {
+    text-transform: uppercase;
+    color: var(--secondary);
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 0 1rem 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+/* Sidebar Menu Items */
+.nav-menu {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 1rem;
+}
+
+.nav-item {
+    margin-bottom: 0.25rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    border-radius: 0.5rem;
+    color: var(--dark);
+    text-decoration: none;
+    transition: all var(--transition);
+}
+
+.nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--primary);
+}
+
+.nav-link.active {
+    background-color: var(--primary);
+    color: white;
+}
+
+.nav-link.active .nav-icon {
+    color: white;
+}
+
+.nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+    margin-right: 0.75rem;
+    color: var(--primary);
+    transition: color var(--transition);
+}
+
+/* Cải thiện căn chỉnh khi sidebar thu gọn */
+#sidebar-container.collapsed .sidebar-heading {
+    opacity: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#sidebar-container.collapsed .nav-text {
     display: none;
 }
 
-#sidebar.collapsed .nav-link {
-    text-align: center;
-}
- /* Content */
- #content {
-    flex-grow: 1;
-    padding: 20px;
-    transition: margin-left 0.3s;
-     position: relative;
-     overflow: visible;
-
- }
-
-
-/* Lớp phủ màn hình loading */
-#loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
-    display: flex;
+#sidebar-container.collapsed .nav-link {
     justify-content: center;
-    align-items: center;
-    z-index: 9999;
+    padding: 0.65rem 0;
+    margin: 0.5rem auto;
+    width: 52px; /* Chiều rộng cố định khi thu gọn */
 }
 
-/* Vòng xoay spinner */
-#loading-spinner {
-    border: 8px solid #f3f3f3; /* Màu nền */
-    border-top: 8px solid #3498db; /* Màu vòng xoay */
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 2s linear infinite;
+#sidebar-container.collapsed .nav-icon {
+    margin-right: 0;
+    width: 36px;
+    height: 36px;
 }
 
-/* Hoạt ảnh xoay */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+#sidebar-container.collapsed .sidebar-toggle-container {
+    justify-content: center;
+    padding: 0.5rem 0;
 }
 
-.card-stats {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-.card-stats .card {
-    flex: 1;
-    margin-right: 10px;
-    text-align: center;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-.card-stats .card:last-child {
+#sidebar-container.collapsed .btn-toggle-sidebar {
     margin-right: 0;
 }
-.filter-section {
+
+/* Content Area */
+#content {
+    flex: 1;
+    overflow-x: hidden;
+    background-color: var(--body-bg);
+    transition: margin-left var(--transition);
+    padding: 0px;
+}
+
+/* Responsive Styles */
+@media (max-width: 991.98px) {
+    #sidebar-container {
+        width: var(--sidebar-collapsed-width);
+    }
+    
+    #sidebar-container .sidebar-heading {
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    
+    #sidebar-container .nav-text {
+        display: none;
+    }
+    
+    #sidebar-container .nav-link {
+        justify-content: center;
+        padding: 0.65rem 0;
+        margin: 0.5rem auto;
+        width: 52px;
+    }
+    
+    #sidebar-container .nav-icon {
+        margin-right: 0;
+    }
+    
+    #sidebar-container.expanded {
+        width: var(--sidebar-width);
+        box-shadow: none; /* Thay đổi từ shadow sang none */
+    }
+    
+    #sidebar-container.expanded .sidebar-heading {
+        opacity: 1;
+        height: auto;
+        padding: 0 1rem 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    #sidebar-container.expanded .nav-text {
+        display: block;
+    }
+    
+    #sidebar-container.expanded .nav-link {
+        justify-content: flex-start;
+        padding: 0.65rem 1rem;
+        width: auto;
+        margin: 0.25rem 0;
+    }
+    
+    #sidebar-container.expanded .nav-icon {
+        margin-right: 0.75rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    #sidebar-container {
+        position: fixed;
+        width: 0;
+        left: 0;
+    }
+    
+    #content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    #sidebar-container.expanded {
+        width: var(--sidebar-width);
+    }
+    
+    /* Overlay cho mobile khi sidebar mở rộng */
+    body.sidebar-expanded::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+}
+
+/* Card Styling */
+.card {
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+/* Stat Card Styling */
+.stat-card .card-body {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
 }
-.filter-section .form-select {
-    width: 150px;
+
+.bg-primary-light { background-color: rgba(13, 110, 253, 0.1); color: var(--primary); }
+.bg-success-light { background-color: rgba(25, 135, 84, 0.1); color: var(--success); }
+.bg-info-light { background-color: rgba(13, 202, 240, 0.1); color: var(--info); }
+.bg-warning-light { background-color: rgba(255, 193, 7, 0.1); color: var(--warning); }
+
+.stat-title {
+    color: var(--secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    font-weight: normal;
 }
-.filter-section .form-control {
-    width: 300px;
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
 }
-.action-buttons {
+
+.stat-change {
+    font-size: 0.75rem;
     display: flex;
-    gap: 10px;
+    align-items: center;
 }
-.table th:last-child,
-.table td:last-child {
-    width: 100px;
-    text-align: center;
+
+.stat-change.up { color: var(--success); }
+.stat-change.down { color: var(--danger); }
+.stat-change.same { color: var(--secondary); }
+
+.stat-change i {
+    font-size: 1.25rem;
+    margin-right: 0.25rem;
 }
-.table td:last-child .btn {
-    padding: 5px 10px;
+
+/* Đảm bảo footer hiển thị đúng */
+footer {
+    margin-top: auto;
+    padding: 1rem 0;
+    background-color: white;
+    border-top: 1px solid var(--border-color);
+    position: relative;
+    z-index: 900;
+}
+
+.container-fluid{
+    padding: 0px;
 }

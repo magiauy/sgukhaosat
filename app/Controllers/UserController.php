@@ -235,4 +235,17 @@ public function bulkCreate(Response $response, Request $request)
             ], 500);
         }
     }
+
+    public function getOnPagination(Response $response, Request $request)
+    {
+        try {
+            $data = $request->getBody();
+            $users = $this->userService->getOnPagination($data);
+            $response->json([
+                'message' => 'Get user on pagination successfully',
+                'data' => $users]);
+        } catch (\Throwable $e) {
+            $response->json(['error' => $e->getMessage()]);
+        }
+    }
 }

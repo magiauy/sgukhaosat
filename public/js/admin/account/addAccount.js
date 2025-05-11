@@ -1,5 +1,5 @@
 import { callApi } from "../../apiService.js";
-import { renderListUsers } from "./userAdmin.js";
+import { renderListAccount } from "./accountAdmin.js";
 import ImportExcelAccount from "../../modal/ImportExcelAccount.js";
 
 // import * as XLSX from "xlsx";
@@ -151,12 +151,12 @@ function addAccount(){
 function closePopup(){
     document.querySelector("#close-popup").onclick = () => {
         document.querySelector("#popup-add-account").remove();
-        renderListUsers();
+        renderListAccount();
     }
 
     document.querySelector("#cancel-account").onclick = () => {
         document.querySelector("#popup-add-account").remove();
-        renderListUsers();
+        renderListAccount();
     }
 }
 

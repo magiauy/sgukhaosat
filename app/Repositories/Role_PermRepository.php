@@ -35,13 +35,10 @@ class Role_PermRepository implements IBaseRepositoryTransaction
     //roleID là mảng
     function delete($id, \PDO $pdo)
     {
-        $sql = 'DELETE FROM role_permission WHERE roleID in (:roleID)';
+        $placeholders = implode(',', array_fill(0, count($id), '?'));
+        $sql = "DELETE FROM role_permission WHERE roleID IN ($placeholders)";
         $stmt = $pdo->prepare($sql);
-        $id = implode(',', array_values($id));
-        $stmt->execute([
-            'roleID' => $id
-        ]);
-        return $stmt->rowCount();
+        $stmt->execute(array_values($id));
     }
 
     function getById($id): array

@@ -33,6 +33,9 @@ class RoleService implements IBaseService
                 throw new \Exception('Thiếu dữ liệu', 400);
             }
             $data['acceptDelete'] = 1;
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $data['updated_at'] = date('Y-m-d H:i:s');
+
             
             $this->roleRepository->create($data, $pdo);
             $this->rolePermRepository->create($data, $pdo);
@@ -69,15 +72,18 @@ class RoleService implements IBaseService
 
     function delete($id)
     {
-        $pdo = Database::getInstance()->getConnection();
         if(empty($id)){
             throw new \Exception('Thiếu dữ liệu', 400);            
         }
         try {
-            $rolePerm = $this->rolePermRepository->delete($id, $pdo);
+            $pdo = Database::getInstance()->getConnection();
+            $pdo->beginTransaction();
+            $this->rolePermRepository->delete($id, $pdo);
             $this->user->updateRoleIDForDelete($id); //$id đang là mảng
             $this->roleRepository->delete($id, $pdo);
+            $pdo->commit();
         } catch (\Throwable $th) {
+            $pdo->rollBack();
             throw $th;
         }      
     }
@@ -109,5 +115,71 @@ class RoleService implements IBaseService
         }
         unset($role);
         return $roleArr;
+    }
+
+    function getOnPagination($data){
+        try {
+            if($data['isFilter']){
+                if($data['fromDateCreate'] == "" && $data['toDateCreate'] == ""){
+                    $data['isCreate'] = 0;
+                }
+                else if($data['fromDateCreate'] == "" || $data['toDateCreate'] == ""){
+                    throw new \Exception('Thiếu dữ liệu', 400);
+                }
+                else{
+                    $data['isCreate'] = 1;
+                    $data['fromDateCreate'] = $data['fromDateCreate'] . ' 00:00:00';
+                    $data['toDateCreate'] = $data['toDateCreate'] . ' 23:59:59';
+                }
+
+                if($data['fromDateUpdate'] == "" && $data['toDateUpdate'] == ""){
+                    $data['isUpdate'] = 0;
+                }
+                else if($data['fromDateUpdate'] == "" || $data['toDateUpdate'] == ""){
+                    throw new \Exception('Thiếu dữ liệu', 400);
+                }
+                
+                else{
+                    $data['isUpdate'] = 1;
+                     $data['fromDateUpdate'] = $data['fromDateUpdate'] . ' 00:00:00';
+                    $data['toDateUpdate'] = $data['toDateUpdate'] . ' 23:59:59';
+                }
+
+                if($data['option'] == 'created_desc'){
+                    $data['optionString'] = 'ORDER BY created_at DESC';
+                }
+                else if($data['option'] == 'created_asc'){
+                    $data['optionString'] = 'ORDER BY created_at ASC';
+                }
+                else if($data['option'] == 'updated_desc'){
+                    $data['optionString'] = 'ORDER BY updated_at DESC';
+                }
+                else if($data['option'] == 'updated_asc'){
+                    $data['optionString'] = 'ORDER BY updated_at ASC';
+                }
+                else{
+                    throw new \Exception('Thiếu dữ liệu', 400);
+                }
+            }
+            else{
+                //mặc định là thời gian tạo mới nhất
+                $data['optionString'] = 'ORDER BY created_at DESC';
+            }
+
+            if(!isset($data['limit']) && !isset($data['offset'])){
+                
+                $data['limitString'] = '';
+                $data['search'] = '%' . $data['search'] . '%';
+            }
+            else{
+                $data['limitString'] = 'LIMIT ' . (int) $data['offset'] . ', ' . (int) $data['limit'];               
+            }
+            return [
+                'roles' => $this->roleRepository->getOnPagination($data),
+                'total' => $this->roleRepository->getTotalRecord($data)
+            ];
+        } catch (\Throwable $th) {
+            throw $th;
+        } 
     }
 }

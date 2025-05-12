@@ -1,4 +1,4 @@
-import {callApi} from "./apiService";
+import {callApi} from "./apiService.js";
     document.addEventListener('DOMContentLoaded', async function() {
         Loader.show();
         const path = window.location.pathname;

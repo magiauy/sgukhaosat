@@ -78,14 +78,90 @@ async function loadSurveyTable(data) {
         });
     });
 
-    const btnAddForm = document.querySelector('.btn-add-form');
-    if (btnAddForm) {
-        btnAddForm.addEventListener('click', async function () {
-            const data = await callApi(`/draft`, 'POST');
-                const url = data['url'];
-                window.location.href = `${config.Url}${url}`;
-        });
+const btnAddForm = document.querySelector('.btn-add-form');
+if (btnAddForm) {
+    // Remove any existing event listeners first
+    btnAddForm.replaceWith(btnAddForm.cloneNode(true));
+
+    // Get the fresh reference after replacement
+    const freshBtnAddForm = document.querySelector('.btn-add-form');
+
+freshBtnAddForm.addEventListener('click', async function() {
+    try {
+        // Disable button to prevent multiple clicks
+        this.disabled = true;
+
+        const data = await callApi(`/draft`, 'POST');
+        if (data && data['url']) {
+            // Remove any existing modal
+            const existingModal = document.getElementById("popupModal");
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Create the modal element
+            const modal = document.createElement('div');
+            modal.id = "popupModal";
+            modal.className = "position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center";
+            modal.style.cssText = "background: rgba(0,0,0,0.5); z-index: 1050; opacity: 0; transition: opacity 0.3s ease;";
+
+            modal.innerHTML = `
+                <div class="bg-white p-4 rounded shadow" style="max-width: 400px; transform: translateY(-20px); transition: transform 0.3s ease;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Thông báo</h5>
+                        <button type="button" class="btn-close" id="closePopupBtn"></button>
+                    </div>
+                    <div class="text-center">
+                        <i class="bi bi-check-circle-fill text-success fs-1 mb-3"></i>
+                        <p>Biểu mẫu đang được tạo. Bạn sẽ được chuyển hướng sau giây lát.</p>
+                    </div>
+                </div>
+            `;
+
+            // Add to DOM
+            document.body.appendChild(modal);
+
+            // Trigger reflow to ensure transitions work
+            void modal.offsetWidth;
+
+            // Fade in the modal
+            requestAnimationFrame(() => {
+                modal.style.opacity = "1";
+                modal.querySelector(".bg-white").style.transform = "translateY(0)";
+            });
+
+            // Function to handle closing and navigation
+            const closeAndNavigate = () => {
+                // Fade out animation
+                modal.style.opacity = "0";
+                modal.querySelector(".bg-white").style.transform = "translateY(-20px)";
+
+                // Wait for animation to complete before navigation
+                setTimeout(() => {
+                    modal.remove();
+                    window.location.href = `${config.Url}${data['url']}`;
+                }, 300);
+            };
+
+            // Set up navigation timeout
+            const navigationTimeout = setTimeout(() => {
+                closeAndNavigate();
+            }, 2000);
+
+            // Add close button event handler
+            document.getElementById("closePopupBtn").onclick = function() {
+                clearTimeout(navigationTimeout);
+                closeAndNavigate();
+            };
+        }
+    } catch (error) {
+        console.error("Error creating draft form:", error);
+    } finally {
+        // Re-enable button
+        this.disabled = false;
     }
+});
+}
 
 
 

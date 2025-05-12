@@ -10,14 +10,14 @@ $user = $data['user'] ?? null;
 $formService = new FormService();
 //var_dump($user->email);
 try {
-    $data = $formService->getFormWithWhitelist($user->email);
+    $dataF = $formService->getFormWithWhitelist($user->email);
 } catch (Exception $e) {
     // Handle the exception, e.g., log it or show an error message
-    $data = [];
+    $dataF = [];
     $errorMessage = "An error occurred while fetching the forms: " . $e->getMessage();
 
 }
-$forms = $data['forms'] ?? [];
+$forms = $dataF['forms'] ?? [];
 include __DIR__ . '/../../views/layouts/header.php';
 include __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>

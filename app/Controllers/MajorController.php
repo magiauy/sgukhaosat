@@ -83,7 +83,8 @@ class MajorController {
         $success = $this->service->update($id, $data);
         
         $response->json([
-            'message' => $success ? 'Cập nhật ngành học thành công' : 'Cập nhật thất bại'
+            'message' => $success ? 'Cập nhật ngành học thành công' : 'Cập nhật thất bại',
+            'status' => $success
         ]);
     }
 

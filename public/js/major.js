@@ -230,8 +230,7 @@ async function updateMajor() {
             document.getElementById('majorToast').classList.remove('text-bg-danger');
             document.getElementById('majorToast').classList.add('text-bg-success');
             toastElement.show();
-            loadMajors(currentOffset, itemsPerPage);
-
+            await loadMajors(currentOffset, itemsPerPage);
         } else {
             toastMessage.innerText = result.message || 'Cập nhật thất bại';
             document.getElementById('majorToast').classList.remove('text-bg-success');

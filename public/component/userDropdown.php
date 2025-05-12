@@ -17,6 +17,11 @@
                     <i class="bi bi-house"></i> Trang quản trị
                 </a>
             </li>
+             <li>
+                <a class="dropdown-item py-2 d-flex align-items-center gap-2" id="btn-information" href="">
+                    <i class="bi bi-person-circle fs-10"></i> Thông tin cá nhân
+                </a>
+            </li>
             <li>
                 <a class="dropdown-item py-2 text-danger fw-bold d-flex align-items-center gap-2" href="/" id="logout">
                     <i class="bi bi-box-arrow-right"></i> Đăng xuất

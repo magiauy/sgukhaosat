@@ -9,6 +9,7 @@ use Repositories\Interface\IWhitelistForm;
 use Repositories\UserRepository;
 use Repositories\Interface\IBaseRepositoryTransaction;
 use Repositories\RoleRepository;
+use Middlewares\JwtMiddleware;
 
 use Repositories\WhitelistForm;
 use Services\Interface\IAuthService;
@@ -60,16 +61,94 @@ class UserService implements IAuthService
         return $this->userRepository->create($data);
     }
 
-    public function update($id,$data): bool
+
+    public function update($id, $data): bool
     {
-        
-        return $this->userRepository->update($id,$data);
+        try {
+            // Cập nhật trong database
+            try {
+                $checkUpdate = $this->userRepository->update($id, $data);
+                if (!$checkUpdate) {
+                    return false; // Cập nhật không thành công
+                }
+            } catch (\Throwable $th) {
+                throw $th;
+            }
+
+            // Kiểm tra cookie tồn tại
+            if (!isset($_COOKIE['access_token'])) {
+                // Không có token, chỉ trả về kết quả cập nhật
+                return $checkUpdate;
+            }
+
+            $tokenString = $_COOKIE['access_token'];
+
+            try {
+                $tokenData = JwtMiddleware::getDecodedToken($tokenString);
+
+                if (!$tokenData || !isset($tokenData->user)) {
+                    // Token không hợp lệ hoặc không có thông tin user
+                    return $checkUpdate;
+                }
+
+                $user = $tokenData->user;
+                $user = json_decode(json_encode($user), true);
+
+                // So sánh ID của user hiện tại với ID đang được cập nhật
+                if ($user['email'] === $id) {
+                    // Đây là user hiện tại đang đăng nhập, cần cập nhật token
+
+                    // Lấy thông tin user mới từ database sau khi cập nhật
+                    $updatedUser = $this->userRepository->getById($id);
+
+                    if (!$updatedUser) {
+                        // Không thể lấy thông tin user đã cập nhật
+                        return $checkUpdate;
+                    }
+
+                    // Lấy thông tin vai trò và quyền mới
+                    $roleData = $this->roleService->getById($updatedUser['roleID']);
+
+                    if (!$roleData) {
+                        // Không tìm thấy thông tin vai trò
+                        return $checkUpdate;
+                    }
+
+                    // Cập nhật đối tượng user với thông tin mới
+                    $updatedUser['role'] = $roleData['role'];
+                    $updatedUser['permissions'] = $roleData['permissions'];
+
+                    // Tạo token mới với thông tin đã cập nhật
+                    $jwtHelper = new jwt_helper();
+                    $secret = require __DIR__ . '/../../config/JwtConfig.php';
+
+                    $userData = ['user' => $updatedUser];
+
+                    $accessToken = $jwtHelper->createJWT($userData, $secret['access_secret'], 600);
+                    $refreshToken = $jwtHelper->createRefreshToken($userData, $secret['refresh_secret'], 604800);
+
+                    setcookie('access_token', '', time() - 3600, '/', '', false, true);
+                    setcookie('refresh_token', '', time() - 3600, '/', '', false, true);
+                    // Thiết lập cookie mới
+                    setcookie('access_token', $accessToken, time() + 600, '/', '', false, true);
+                    setcookie('refresh_token', $refreshToken, time() + 604800, '/', '', false, true);
+                }
+
+                return $checkUpdate;
+            } catch (\Throwable $th) {
+                // Lỗi khi cập nhật token nhưng dữ liệu đã được cập nhật
+                error_log("Error updating token after user update: " . $th->getMessage());
+                return $checkUpdate; // Vẫn trả về kết quả cập nhật
+            }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 
     //id là mảng
     public function delete($id): bool
     {
-        if(empty($id)){
+        if (empty($id)) {
             throw new \Exception("thiếu id", 400);
         }
         try {
@@ -106,26 +185,26 @@ class UserService implements IAuthService
 
             // Try to login with repository
             $user['user'] = $this->userRepository->login($data);
-            
+
             if ($user['user']) {
                 // Debug log - remove in production
                 error_log("User found, fetching role data");
-                
+
                 $jwtHelper = new jwt_helper();
                 $secret = require __DIR__ . '/../../config/JwtConfig.php';
-//                error_log("Secret access: " . $secret['access_secret']);
+                //                error_log("Secret access: " . $secret['access_secret']);
 //                error_log("Secret refresh: " . $secret['refresh_secret']);
-                
+
                 // Debug log - remove in production
 
 
                 error_log("Secret loaded, fetching role ID: " . $user['user']['roleID']);
-                
+
                 $roleData = $this->roleService->getById($user['user']['roleID']);
-                
+
                 // Debug log - remove in production
                 error_log("Role data fetched: " . ($roleData ? "success" : "failed"));
-                
+
                 if ($roleData) {
                     $user['role'] = $roleData['role'];
                     $user['permissions'] = $roleData['permissions'];
@@ -141,21 +220,21 @@ class UserService implements IAuthService
                     error_log("JWT creation failed: " . $e->getMessage());
                     throw new Exception("Lỗi tạo token: " . $e->getMessage(), 500);
                 }
-                
+
                 // Clean up sensitive data
                 error_log(json_encode($user['refreshToken']));
                 unset($user['user']['password']);
-                
+
                 return $user;
             }
-            
+
             // This should never be reached as the repository would throw an exception if login fails
             throw new Exception("Đăng nhập thất bại", 401);
-            
+
         } catch (Exception $e) {
             // Log the error - helpful for debugging
             error_log("Login error: " . $e->getMessage() . " (code: " . $e->getCode() . ")");
-            
+
             if ($e->getCode() == 401) {
                 throw new Exception($e->getMessage(), 401);
             } else {
@@ -194,7 +273,7 @@ class UserService implements IAuthService
         $whitelistUIDs = array_column($whitelistUsers, 'UID');
 
         // Filter out users who are already in the whitelist
-        $filteredUsers = array_filter($allUsers, function($user) use ($whitelistUIDs) {
+        $filteredUsers = array_filter($allUsers, function ($user) use ($whitelistUIDs) {
             return !in_array($user['email'], $whitelistUIDs);
         });
         return $filteredUsers; // Re-index array
@@ -240,7 +319,7 @@ class UserService implements IAuthService
         $existingEmails = array_column($existingUsers, 'email');
 
         // Filter new emails
-        $newEmails = array_values(array_filter($emails, function($email) use ($existingEmails) {
+        $newEmails = array_values(array_filter($emails, function ($email) use ($existingEmails) {
             return !in_array($email, $existingEmails);
         }));
 
@@ -267,7 +346,7 @@ class UserService implements IAuthService
         // Prepare batch data for all users at once
         foreach ($emails as $email) {
             $password = PasswordUtils::generateDefaultPassword($email);
-            
+
             $batchData[] = [
                 'email' => $email,
                 'fullName' => explode('@', $email)[0],
@@ -305,7 +384,7 @@ class UserService implements IAuthService
     {
         // Generate a new password
         $newPassword = PasswordUtils::generateDefaultPassword($email);
-        
+
         $options = ['cost' => 8];
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT, $options);
         error_log("Mật khẩu mới: " . $hashedPassword);
@@ -319,79 +398,64 @@ class UserService implements IAuthService
 
     public function getOnPagination($data)
     {
-        if($data['isFilter']){
-            if($data['fromDateCreate'] == "" && $data['toDateCreate'] == ""){
+        if ($data['isFilter']) {
+            if ($data['fromDateCreate'] == "" && $data['toDateCreate'] == "") {
                 $data['isCreate'] = 0;
-            }
-            else if($data['fromDateCreate'] == "" || $data['toDateCreate'] == ""){
+            } else if ($data['fromDateCreate'] == "" || $data['toDateCreate'] == "") {
                 throw new \Exception('Thiếu dữ liệu', 400);
-            }
-            else{
+            } else {
                 $data['isCreate'] = 1;
                 $data['fromDateCreate'] = $data['fromDateCreate'] . ' 00:00:00';
                 $data['toDateCreate'] = $data['toDateCreate'] . ' 23:59:59';
             }
 
-            if($data['fromDateUpdate'] == "" && $data['toDateUpdate'] == ""){
+            if ($data['fromDateUpdate'] == "" && $data['toDateUpdate'] == "") {
                 $data['isUpdate'] = 0;
-            }
-            else if($data['fromDateUpdate'] == "" || $data['toDateUpdate'] == ""){
+            } else if ($data['fromDateUpdate'] == "" || $data['toDateUpdate'] == "") {
                 throw new \Exception('Thiếu dữ liệu', 400);
-            }
-            
-            else{
+            } else {
                 $data['isUpdate'] = 1;
-                    $data['fromDateUpdate'] = $data['fromDateUpdate'] . ' 00:00:00';
+                $data['fromDateUpdate'] = $data['fromDateUpdate'] . ' 00:00:00';
                 $data['toDateUpdate'] = $data['toDateUpdate'] . ' 23:59:59';
             }
 
-            if($data['sortOrder'] == 'created_desc'){
+            if ($data['sortOrder'] == 'created_desc') {
                 $data['sortOrderString'] = 'ORDER BY created_at DESC';
-            }
-            else if($data['sortOrder'] == 'created_asc'){
+            } else if ($data['sortOrder'] == 'created_asc') {
                 $data['sortOrderString'] = 'ORDER BY created_at ASC';
-            }
-            else if($data['sortOrder'] == 'updated_desc'){
+            } else if ($data['sortOrder'] == 'updated_desc') {
                 $data['sortOrderString'] = 'ORDER BY updated_at DESC';
-            }
-            else if($data['sortOrder'] == 'updated_asc'){
+            } else if ($data['sortOrder'] == 'updated_asc') {
                 $data['sortOrderString'] = 'ORDER BY updated_at ASC';
-            }
-            else{
+            } else {
                 throw new \Exception('Thiếu dữ liệu', 400);
             }
-        }
-        else{
+        } else {
             $data['sortOrderString'] = 'ORDER BY created_at DESC';
         }
 
-        if(!isset($data['limit']) || !isset($data['offset'])){
+        if (!isset($data['limit']) || !isset($data['offset'])) {
             // var_dump($data);
             $data['limitString'] = '';
-        }
-        else{
-            $data['limitString'] = 'LIMIT ' . (int) $data['offset'] . ', ' . (int) $data['limit'];               
+        } else {
+            $data['limitString'] = 'LIMIT ' . (int) $data['offset'] . ', ' . (int) $data['limit'];
         }
 
-        if(!isset($data['isSearch'])){
+        if (!isset($data['isSearch'])) {
             $data['isSearch'] = 0;
-        }
-    
-        else if($data['isSearch']){
+        } else if ($data['isSearch']) {
             $data['search'] = '%' . trim($data['search']) . '%';
         }
-    
-        if(!isset($data['status'])){
+
+        if (!isset($data['status'])) {
+            $data['isStatus'] = 0;
+        } else if ($data['status'] == 'all') {
             $data['isStatus'] = 0;
         }
-        else if($data['status'] == 'all'){
-            $data['isStatus'] = 0;
-        }
-        
-        if(!isset($data['roleID'])){
+
+        if (!isset($data['roleID'])) {
             $data['isRole'] = 0;
-        }
-        else if($data['roleID'] == 'all'){
+        } else if ($data['roleID'] == 'all') {
             $data['isRole'] = 0;
         }
 
@@ -406,14 +470,14 @@ class UserService implements IAuthService
                     }
                 }
             }
-            return[
+            return [
                 'accounts' => $accounts,
                 'total' => $this->userRepository->getTotalRecord($data)
             ];
         } catch (\Throwable $th) {
-            throw $th;    
+            throw $th;
         }
-        
+
     }
 
     public function getByEmail($data)

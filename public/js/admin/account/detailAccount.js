@@ -158,7 +158,7 @@ export async function renderFormDetailAccount(account) {
                                       <span class="input-group-text bg-light">
                                           <i class="bi bi-person"></i>
                                       </span>
-                                      <input type="text" id="account-fullName" class="form-control" 
+                                      <input type="text" id="account-position" class="form-control" 
                                           value="${account.position || ''}" disabled>
                                   </div>
                               </div>
@@ -205,6 +205,7 @@ export async function renderFormDetailAccount(account) {
       this.remove();
   });
 
+
   setUpHandlers(account);
 }
 
@@ -218,6 +219,9 @@ export function edit(account){
         document.querySelector("#account-role").disabled = false;
         document.querySelector("#account-status").disabled = false;
         document.querySelector("#reset-password").disabled = false;
+        document.querySelector("#account-fullName").disabled = false;
+        document.querySelector("#account-phone").disabled = false;
+        document.querySelector("#account-position").disabled = false;
 
         document.querySelector("#detail-edit-submit").innerText = "Lưu";
         document.querySelector("#detail-edit-submit").id = "save-edit-submit";
@@ -225,16 +229,25 @@ export function edit(account){
         document.querySelector("#save-edit-submit").onclick = async () => {
             const roleID = document.querySelector("#account-role").value;
             const status = document.querySelector("#account-status").value;
+            const fullName = document.querySelector("#account-fullName").value;
+            const phone = document.querySelector("#account-phone").value;
+            const position = document.querySelector("#account-position").value;
             
             const data = {
                 email: account.email,
                 roleID: roleID,      
                 status: status,
-                fullName: account.fullName,
-                phone: account.phone    
+                fullName: fullName,
+                phone: phone,
+                position: position   
             }
             // console.log(data);
-
+            // let response = await callApi('/me', "POST");
+            // let accountCurrent = response.data;
+            // accountCurrent = accountCurrent.user;
+            // if(accountCurrent.roleID === account.roleID){
+            //     data.isResetToken = 1;
+            // }
             try {
               const response = await callApi("/user", "PUT", data);
               // console.log(response);
@@ -247,25 +260,24 @@ export function edit(account){
                 console.log(error);
                 return;
             }
-
-            const dataPassword = {
-              email: account.email
-            }
-
-            console.log(dataPassword);
-            try {
-                const response = await callApi("/user/password", "PUT", dataPassword);
-                console.log(response);
-            } catch (error) {
-                console.log(error);
-            }
-            }
+        }
     }
 }
 
 export function resetPassword(){
     document.querySelector("#reset-password").onclick = async function(e){
         e.preventDefault();
+        const email = document.querySelector("#account-email").value;
+        const dataPassword = {
+            email: email,
+        }
+        console.log(dataPassword);
+        try {
+            const response = await callApi("/user/password", "PUT", dataPassword);
+            console.log(response);
+        } catch (error) {
+            console.log(error);
+        }
         document.querySelector("#reset-password").innerText = "Đã khôi phục";
         document.querySelector("#reset-password").disabled = true;
     }

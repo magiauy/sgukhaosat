@@ -195,4 +195,21 @@ class JwtMiddleware
     }
 
 
+
+    public static function getDecodedToken(string $token): ?object
+    {
+        try {
+            if (!$token) {
+                return null;
+            }
+            
+            $token = str_replace('Bearer ', '', $token);
+            $jwtHelper = new jwt_helper();
+            $secret = require __DIR__ . '/../../config/JwtConfig.php';
+            return $jwtHelper->verifyJWT($token, $secret['access_secret']);
+        } catch (\Exception $e) {
+            error_log("Error decoding token: " . $e->getMessage());
+            return null;
+        }
+    }
 }

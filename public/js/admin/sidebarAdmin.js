@@ -6,6 +6,7 @@ import {initMajor} from "../major.js";
 import {initPeriod} from "../period.js";
 import {initFormType} from "../formType.js";
 import {initPosition} from "../position.js";
+import {renderFormDetailAccount} from "./account/detailAccount.js";
 
 // Khởi tạo sidebar
 async function initSidebar() {
@@ -315,3 +316,6 @@ function adjustSidebarHeight() {
 }
 // Initialize sidebar on page load
 document.addEventListener('DOMContentLoaded', initSidebar);
+
+
+

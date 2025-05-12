@@ -40,6 +40,7 @@ const pagination = new PaginationComponent({
 
 //hàm render ra nội dung submenu tài khoản
 export async function  renderContentUser(){
+    if(!document.querySelector("#content")) return;
     document.querySelector("#content").innerHTML = `
     <div class="container-fluid p-0">
         <!-- Card chính chứa nội dung -->

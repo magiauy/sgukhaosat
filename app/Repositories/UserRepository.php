@@ -52,14 +52,17 @@ class UserRepository implements IAuthRepository {
     public function update($id, $data): bool { 
         // var_dump($data);
         $sql = "UPDATE users SET roleID = :roleID, phone = :phone, 
-                status = :status, updated_at = NOW()
+                status = :status, updated_at = NOW(), position = :position,
+                fullName = :fullName 
                 WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'roleID' => $data['roleID'],
             'phone' => $data['phone'],
             'email' => $id,
-            'status' => $data['status']
+            'status' => $data['status'],
+            'position' => $data['position'],
+            'fullName' => $data['fullName'],
         ]);
         return $stmt->rowCount() === 1;
     }
@@ -252,6 +255,8 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
     }
 
     function getOnPagination($data){
+        error_log("Data: " . json_encode($data));
+        
         $sql = "SELECT * FROM users 
         WHERE
         (
@@ -295,6 +300,7 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
     }
 
     function getTotalRecord($data){
+        // var_dump($data);
         $sql = 'SELECT COUNT(*) FROM users 
         WHERE
         (

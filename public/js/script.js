@@ -4,9 +4,10 @@ import { renderFormDetailAccount } from "./admin/account/detailAccount.js";
 document.addEventListener("DOMContentLoaded", async () => {
     const logout = document.getElementById('logout');
     if (logout) {
-        logout.onclick =  async function (e){
+
+        logout.addEventListener('click', async (e) => {
             e.preventDefault();
-            // console.log("Logout clicked");
+
             await fetch(`${config.apiUrl}/auth/logout`, {
                 method: 'POST',
                 headers: {
@@ -17,7 +18,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.cookie = `access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
             document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
             window.location.href = '/';
-        };
+
+        });
     }
 })
 

@@ -1,6 +1,7 @@
 import { callApi } from '../../apiService.js';
 import { renderTableOnPagination } from './roleAdmin.js';
 import { updateRole } from './editRole.js';
+import { showSwalToast } from '../../form/utils/notifications.js';
 
 export function showPopupAddRole() {
     document.querySelector('#add-role-button').onclick = async function() {
@@ -475,17 +476,17 @@ function createRole() {
         let permissions = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.getAttribute('data-id'));
         
         if(permissions.length === 0){
-            alert("Vui lòng chọn quyền");
+            showSwalToast("Vui lòng chọn ít nhất một quyền!", "warning");
             return;
         }
 
         if(roleName.trim() === ""){
-            alert("Tên vai trò không được để trống");
+            showSwalToast("Tên vai trò không được để trống!", "warning");
             return;
         }
 
         if(!isUppercaseAlphaOnly(roleID)){
-            alert("ID vai trò chỉ được chứa chữ cái in hoa và không có dấu");
+            showSwalToast("ID vai trò không hợp lệ!", "warning");
             return;
         };
 
@@ -499,6 +500,7 @@ function createRole() {
         try {
             const response = await callApi('/role', 'POST', data);
             console.log(response);
+            showSwalToast("Tạo vai trò thành công!", "success");
             const modalElement = document.getElementById('addRoleModal');
             const modalInstance = bootstrap.Modal.getInstance(modalElement);
             modalInstance.hide();
@@ -514,6 +516,7 @@ function createRole() {
             await renderTableOnPagination(0, 10);
            
         } catch (error) {
+            showSwalToast("Tạo vai trò không thành công!", "error");
             console.error("Lỗi khi tạo vai trò:", error);
         }
     }

@@ -39,6 +39,7 @@ class RoleController implements IBaseController{
     public function update(Response $response, Request $request){
         try {
            $data = $request->getBody();
+           error_log("Data: " . json_encode($data));
            $this->roleService->update($data['roleID'], $data); 
            $response->json(['message' => "Updated successfully"], 200);
         }catch (\Throwable $e){

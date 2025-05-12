@@ -1,4 +1,5 @@
 import { callApi } from "../../apiService.js";
+import { showSwalToast } from "../../form/utils/notifications.js";
 import { closePopup, renderPermissionsStructure, showFormRole } from "./addRole.js";
 import { renderContentRole } from "./roleAdmin.js";
 
@@ -41,7 +42,9 @@ export async function updateRole(roleID) {
                 if (backdrop) backdrop.remove();
             });
             renderContentRole();
+            showSwalToast("Cập nhật vai trò thành công!", "success");
         } catch (error) {
+            showSwalToast("Cập nhật vai trò không thành công!", "error");
             console.error("Lỗi khi cập nhật vai trò:", error.response); 
         }
     }

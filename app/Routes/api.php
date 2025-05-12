@@ -161,20 +161,12 @@ $answerController = new AnswerController();
     });
 
 
-    
+
     // Role APIs
-    $router->post('/api/role', function() use ($request, $response, $roleController) {
-        JwtMiddleware::authenticate($request, $response, "EDIT_ROLE_ADMIN", 
-        fn($request, $response) => $roleController->create($response, $request));
-    });
-    $router->put('/api/role/id', function() use ($request, $response, $roleController) {
-        JwtMiddleware::authenticate($request, $response, "EDIT_ROLE_ADMIN", 
-        fn($request, $response) => $roleController->update($response, $request));
-    });
-    $router->delete('/api/role/id', function() use ($request, $response, $roleController){
-        JwtMiddleware::authenticate($request, $response, "EDIT_ROLE_ADMIN", 
-        fn($request, $response) => $roleController->delete($response, $request));
-    });
+    $router->post('/api/role', fn() => $roleController->create($response, $request));
+    
+    $router->put('/api/role/id', fn() => $roleController->update($response, $request));
+    $router->delete('/api/role/id', fn() => $roleController->delete($response, $request));
     $router->get('/api/role/{id}', function($params) use ($request, $response, $roleController) {
         $_GET['id'] = $params['id'];
         $roleController->getById($response, $request);

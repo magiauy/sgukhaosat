@@ -2,6 +2,7 @@ import { callApi } from "../../apiService.js";
 import PaginationComponent from "../../component/pagination.js";
 import { renderTableRole } from "./roleAdmin.js";
 import { clearSelectedRoles } from "./roleAdmin.js";
+import { showSwalToast } from "../../form/utils/notifications.js";
 
 const pagination = new PaginationComponent({
     containerId: 'pagination-role',
@@ -17,6 +18,7 @@ const pagination = new PaginationComponent({
 export function filter(){
     document.querySelector("#filter-role").addEventListener('click', async () => {
        renderTableOnFilterPagination(0, 10);
+       
     })
 
     document.querySelector("#delete-filter-role").onclick = async () => {
@@ -27,7 +29,7 @@ export function filter(){
         document.querySelector("#sort-option").value = "created_desc";
         clearSelectedRoles(); // Xóa tất cả checkbox đã chọn
         renderTableOnFilterPagination(0, 10);
-       
+        showSwalToast("Xóa bộ lọc thành công!", "success");
 
     }
 }
@@ -57,7 +59,7 @@ export async function renderTableOnFilterPagination(offset, limit){
         let response = await callApi("/role/pagination", "POST", data);
         console.log(response);
         let result = response.data; // Lấy danh sách vai trò từ API
-
+        showSwalToast("Lọc vai trò thành công!", "success");
         renderTableRole(result.roles);
         
         pagination.render({
@@ -68,6 +70,7 @@ export async function renderTableOnFilterPagination(offset, limit){
         });
 
     } catch (error) {
+        showSwalToast("Lọc vai trò không thành công!", "error");
         console.log(error);
     }
 }

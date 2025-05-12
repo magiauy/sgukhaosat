@@ -1,4 +1,5 @@
 // Import Excel Modal Class
+import { callApi } from "../apiService.js";
 import { cleanupModalBackdrops } from "../formsManager.js";
 export default class ImportExcelAccount {
     constructor(config) {
@@ -18,7 +19,7 @@ export default class ImportExcelAccount {
             // Create modal if it doesn't exist
             let modalElement = document.getElementById('importExcelModal');
             if (!modalElement) {
-                document.body.insertAdjacentHTML('beforeend', this.getModalHTML());
+                document.body.insertAdjacentHTML('beforeend', await this.getModalHTML());
                 modalElement = document.getElementById('importExcelModal');
             }
 
@@ -53,8 +54,10 @@ export default class ImportExcelAccount {
                        
         }
 
-    getModalHTML() {
-        return `
+    async getModalHTML() {
+        let response = await callApi("/position");
+        let positions = response.data;
+        let innerHtml = `
             <div class="modal fade" id="importExcelModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 95%; width: 1400px;">
                     <div class="modal-content">
@@ -140,14 +143,11 @@ export default class ImportExcelAccount {
                                            <div class="card-body p-0">
                                                   <div class="p-2 border-bottom d-flex justify-content-between align-items-center">
                                                     <div class="d-flex align-items-center gap-2" style="width: 50%;">
-                                                      <label class="form-label mb-0 text-nowrap">Vai trò:</label>
+                                                      <label class="form-label mb-0 text-nowrap">Chức vụ:</label>
                                                       <select class="form-select form-select-sm" id="bulkRoleSelect">
-                                                        <option value="student">Sinh viên</option>
-                                                        <option value="alumni">Cựu sinh viên</option>
-                                                        <option value="faculty">Giảng viên</option>
-                                                        <option value="staff">Nhân viên</option>
-                                                        <option value="business">Doanh nghiệp</option>
-                                                        <option value="guest">Khách mời</option>
+                                                        ${positions.map(position => `
+                                                          <option value="${position.PositionID}">${position.PositionName}</option>
+                                                        `).join('')}
                                                       </select>
                                                     </div>
                                                     <button class="btn btn-success btn-sm ms-2" id="createAccountsBtn">
@@ -180,6 +180,7 @@ export default class ImportExcelAccount {
                 </div>
             </div>
         `;
+        return innerHtml;
     }
     setupHandlers() {
 

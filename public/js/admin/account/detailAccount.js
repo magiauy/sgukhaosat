@@ -170,15 +170,14 @@ export async function renderFormDetailAccount(account) {
                           <div class="row">
                               
                             <div class="col-md-6">
-                                  <label for="account-position" class="form-label fw-medium">Position:</label>
+                                  <label for="account-position" class="form-label fw-medium">Chức vụ:</label>
                                   <div class="input-group">
                                       <span class="input-group-text bg-light">
-                                          <i class="bi bi-person"></i>
+                                          <i class="bi bi-person-badge"></i>
                                       </span>
-                                      <input type="text" id="account-position" class="form-control" 
-                                          value="${
-                                            account.position || ""
-                                          }" disabled>
+                                      <select id="account-position" class="form-select" disabled>
+                                          <!-- Options will be populated via JavaScript -->
+                                      </select>
                                   </div>
                               </div>
                               
@@ -215,6 +214,20 @@ export async function renderFormDetailAccount(account) {
           <option value="${role.roleID}" ${
         account.roleID === role.roleID ? "selected" : ""
       }>${role.roleName}</option>
+      `
+    );
+  });
+
+  let response = await callApi("/position");
+  let positions = response.data;
+  const positionSelect = document.querySelector("#account-position");
+  positions.forEach((position) => {
+    positionSelect.insertAdjacentHTML(
+      "beforeend",
+      `
+          <option value="${position.PositionID}" ${
+        account.position === position.PositionID ? "selected" : ""
+      }>${position.PositionName}</option>
       `
     );
   });
@@ -259,6 +272,11 @@ export function edit(account) {
       const fullName = document.querySelector("#account-fullName").value;
       const phone = document.querySelector("#account-phone").value;
       const position = document.querySelector("#account-position").value;
+
+      if(fullName === "" || phone === ""){
+        alert("Vui lòng nhập đầy đủ thông tin");
+        return;
+      }
 
       const data = {
         email: account.email,

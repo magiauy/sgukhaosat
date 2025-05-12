@@ -35,6 +35,7 @@ class UserService implements IAuthService
     public function create($data): bool
     {
         // var_dump($data);
+        // error_log(json_encode($data));
 
         $data['roleID'] = !empty($data['roleID']) ? $data['roleID'] : '1';
         //kiểm tra dữ liệu rỗng
@@ -419,7 +420,7 @@ class UserService implements IAuthService
                 throw new \Exception('Thiếu dữ liệu', 400);
             }
         } else {
-            $data['sortOrderString'] = 'ORDER BY created_at DESC';
+            $data['sortOrderString'] = 'ORDER BY updated_at DESC';
         }
 
         if (!isset($data['limit']) || !isset($data['offset'])) {

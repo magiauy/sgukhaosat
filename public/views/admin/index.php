@@ -4,9 +4,9 @@ include __DIR__ . '/../../views/layouts/header.php';
 use Core\AuthHelper;
 
 $data = AuthHelper::verifyUserToken();
-
 $user = $data['user'] ?? null;
 $permissions = $data['permissions'] ?? null;
+error_log('User aaaa: ' . json_encode($permissions));
 // Check if user has ACCESS_ADMIN permission
 error_log('User permissions: ' . json_encode($permissions));
 $hasAdminAccess = false;

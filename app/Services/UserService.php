@@ -65,81 +65,7 @@ class UserService implements IAuthService
     public function update($id, $data): bool
     {
         try {
-            // Cập nhật trong database
-            try {
-                $checkUpdate = $this->userRepository->update($id, $data);
-                if (!$checkUpdate) {
-                    return false; // Cập nhật không thành công
-                }
-            } catch (\Throwable $th) {
-                throw $th;
-            }
-
-            // Kiểm tra cookie tồn tại
-            if (!isset($_COOKIE['access_token'])) {
-                // Không có token, chỉ trả về kết quả cập nhật
-                return $checkUpdate;
-            }
-
-            $tokenString = $_COOKIE['access_token'];
-
-            try {
-                $tokenData = JwtMiddleware::getDecodedToken($tokenString);
-
-                if (!$tokenData || !isset($tokenData->user)) {
-                    // Token không hợp lệ hoặc không có thông tin user
-                    return $checkUpdate;
-                }
-
-                $user = $tokenData->user;
-                $user = json_decode(json_encode($user), true);
-
-                // So sánh ID của user hiện tại với ID đang được cập nhật
-                if ($user['email'] === $id) {
-                    // Đây là user hiện tại đang đăng nhập, cần cập nhật token
-
-                    // Lấy thông tin user mới từ database sau khi cập nhật
-                    $updatedUser = $this->userRepository->getById($id);
-
-                    if (!$updatedUser) {
-                        // Không thể lấy thông tin user đã cập nhật
-                        return $checkUpdate;
-                    }
-
-                    // Lấy thông tin vai trò và quyền mới
-                    $roleData = $this->roleService->getById($updatedUser['roleID']);
-
-                    if (!$roleData) {
-                        // Không tìm thấy thông tin vai trò
-                        return $checkUpdate;
-                    }
-
-                    // Cập nhật đối tượng user với thông tin mới
-                    $updatedUser['role'] = $roleData['role'];
-                    $updatedUser['permissions'] = $roleData['permissions'];
-
-                    // Tạo token mới với thông tin đã cập nhật
-                    $jwtHelper = new jwt_helper();
-                    $secret = require __DIR__ . '/../../config/JwtConfig.php';
-
-                    $userData = ['user' => $updatedUser];
-
-                    $accessToken = $jwtHelper->createJWT($userData, $secret['access_secret'], 600);
-                    $refreshToken = $jwtHelper->createRefreshToken($userData, $secret['refresh_secret'], 604800);
-
-                    setcookie('access_token', '', time() - 3600, '/', '', false, true);
-                    setcookie('refresh_token', '', time() - 3600, '/', '', false, true);
-                    // Thiết lập cookie mới
-                    setcookie('access_token', $accessToken, time() + 600, '/', '', false, true);
-                    setcookie('refresh_token', $refreshToken, time() + 604800, '/', '', false, true);
-                }
-
-                return $checkUpdate;
-            } catch (\Throwable $th) {
-                // Lỗi khi cập nhật token nhưng dữ liệu đã được cập nhật
-                error_log("Error updating token after user update: " . $th->getMessage());
-                return $checkUpdate; // Vẫn trả về kết quả cập nhật
-            }
+            return $this->userRepository->update($id, $data);
         } catch (\Throwable $th) {
             throw $th;
         }
@@ -212,6 +138,7 @@ class UserService implements IAuthService
                     throw new Exception("Không tìm thấy quyền truy cập", 401);
                 }
 
+                // var_dump($user);
                 // Generate JWT token
                 try {
                     $user['token'] = $jwtHelper->createJWT($user, $secret['access_secret'], 600);
@@ -352,7 +279,8 @@ class UserService implements IAuthService
                 'email' => $email,
                 'fullName' => explode('@', $email)[0],
                 'password' => password_hash($password, PASSWORD_DEFAULT, ['cost' => 8]),
-                'dateCreate' => date('Y-m-d H:i:s'),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at'=> date('Y-m-d H:i:s'),
                 'status' => 1,
                 'roleID' => 'USER',
                 'position' => $role,
@@ -381,20 +309,79 @@ class UserService implements IAuthService
         return [];
     }
 
-    public function resetPassword($email)
-    {
-        // Generate a new password
-        $newPassword = PasswordUtils::generateDefaultPassword($email);
-
-        $options = ['cost' => 8];
-        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT, $options);
-        error_log("Mật khẩu mới: " . $hashedPassword);
-        // Update the user's password in the database
+    public function resetPassword($data)
+    { 
+        
+        $newPassword = '';
+        if(!isset($data['newPassword'])){
+            // Generate a new password
+            $newPassword = PasswordUtils::generateDefaultPassword($data['email']);
+            $options = ['cost' => 8];
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT, $options);
+            error_log("Mật khẩu mới: " . $hashedPassword);
+            // Update the user's password in the database
+        }
+        else{
+            // var_dump($data);
+            $tokenString = $_COOKIE['access_token'];
+            $tokenData = JwtMiddleware::getDecodedToken($tokenString);
+            $user = $tokenData->user;
+            // var_dump($user);
+            $user = json_decode(json_encode($user), true);
+            $currentUser = $this->userRepository->getById($user['email']);
+            $currentPassword = $currentUser['password'];
+            error_log("Mật khẩu hiện tại: " . $currentPassword);
+            if(!password_verify($data['currentPassword'], $currentPassword)){
+                throw new \Exception('Mật khẩu hiện tại không đúng', 400);
+            }
+        
+            $newPassword = $data['newPassword'];
+            $options = ['cost' => 8];
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT, $options);
+            // error_log(json_encode($data));
+        }
         try {
-            $this->userRepository->resetPassword($email, $hashedPassword);
+
+            $this->userRepository->resetPassword($data['email'], $hashedPassword);
+            // Lấy thông tin user mới từ database sau khi cập nhật
+            $updatedUser = $this->userRepository->getById($data['email']);
+            unset($updatedUser['password']);
+            // Lấy thông tin vai trò và quyền mới
+            $roleData = $this->roleService->getById($updatedUser['roleID']);
+
+            if (!$roleData) {
+                // Không tìm thấy thông tin vai trò
+                throw new \Exception('Không lấy được thông tin vai trò',0);
+            }
+
+            // Cập nhật đối tượng user với thông tin mới
+        
+            $userData = [
+                'user' => $updatedUser,
+                'role' => $roleData['role'],
+                'permissions' => $roleData['permissions']
+            ];
+
+            // Tạo token mới với thông tin đã cập nhật
+            $jwtHelper = new jwt_helper();
+            $secret = require __DIR__ . '/../../config/JwtConfig.php';
+
+            
+            // var_dump($userData);
+            $accessToken = $jwtHelper->createJWT($userData, $secret['access_secret'], 600);
+            $refreshToken = $jwtHelper->createRefreshToken($userData, $secret['refresh_secret'], 604800);
+
+            setcookie('access_token', '', time() - 3600, '/', '', false, true);
+            setcookie('refresh_token', '', time() - 3600, '/', '', false, true);
+            // Thiết lập cookie mới
+            setcookie('access_token', $accessToken, time() + 600, '/', '', false, true);
+            setcookie('refresh_token', $refreshToken, time() + 604800, '/', '', false, true);
+            
+            error_log("Token updated successfully");
+            
         } catch (\Throwable $th) {
             throw $th;
-        }
+        } 
     }
 
     public function getOnPagination($data)
@@ -489,5 +476,70 @@ class UserService implements IAuthService
         } catch (\Throwable $th) {
             throw $th;
         }
+    }
+
+
+    public function updateInformation($data)
+    {
+        try {
+            $check = $this->userRepository->updateInformation($data);
+            $tokenString = $_COOKIE['access_token'];
+            $tokenData = JwtMiddleware::getDecodedToken($tokenString);
+
+            if (!$tokenData || !isset($tokenData->user)) {
+                // Token không hợp lệ hoặc không có thông tin user
+                throw new \Exception('Token không hợp lệ hoặc không có thông tin user', 401);
+            }
+
+            $user = $tokenData->user;
+            $user = json_decode(json_encode($user), true);
+
+            // Lấy thông tin user mới từ database sau khi cập nhật
+            $updatedUser = $this->userRepository->getById($data['email']);
+
+            if (!$updatedUser) {
+                // Không thể lấy thông tin user đã cập nhật
+                throw new \Exception('Không thể lấy thông tin user đã cập nhật', 404);
+            }
+
+            // Lấy thông tin vai trò và quyền mới
+            $roleData = $this->roleService->getById($updatedUser['roleID']);
+
+            if (!$roleData) {
+                // Không tìm thấy thông tin vai trò
+                throw new \Exception('Không lấy được thông tin vai trò',0);
+            }
+
+            // Cập nhật đối tượng user với thông tin mới
+        
+            $userData = [
+                'user' => $updatedUser,
+                'role' => $roleData['role'],
+                'permissions' => $roleData['permissions']
+            ];
+
+            // Tạo token mới với thông tin đã cập nhật
+            $jwtHelper = new jwt_helper();
+            $secret = require __DIR__ . '/../../config/JwtConfig.php';
+
+            
+            // var_dump($userData);
+            $accessToken = $jwtHelper->createJWT($userData, $secret['access_secret'], 600);
+            $refreshToken = $jwtHelper->createRefreshToken($userData, $secret['refresh_secret'], 604800);
+
+            setcookie('access_token', '', time() - 3600, '/', '', false, true);
+            setcookie('refresh_token', '', time() - 3600, '/', '', false, true);
+            // Thiết lập cookie mới
+            setcookie('access_token', $accessToken, time() + 600, '/', '', false, true);
+            setcookie('refresh_token', $refreshToken, time() + 604800, '/', '', false, true);
+            
+            error_log("Token updated successfully");
+            return $check;
+            
+        } catch (\Throwable $th) {
+            // Lỗi khi cập nhật token nhưng dữ liệu đã được cập nhật
+            error_log("Error updating token after user update: " . $th->getMessage());
+            throw new \Exception('Lỗi khi cập nhật thông tin người dùng', 500);
+        } 
     }
 }

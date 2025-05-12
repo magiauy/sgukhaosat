@@ -53,7 +53,7 @@ $answerController = new AnswerController();
     );
     $router->post('/api/user/pagination', fn() => $controller->getOnPagination($response, $request));
     $router->post('/api/user/id', fn() => $controller->getByEmail($response, $request));
-
+    $router->post('/api/user/information', fn() => $controller->updateInformation($response, $request));
 
     // Excel Import APIs
     $router->post('/api/excel/parse-emails', function() use ($request, $response, $controller) {
@@ -65,6 +65,7 @@ $answerController = new AnswerController();
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
             fn($req, $res) => $controller->bulkCreate($res, $req));
     });
+    $router->post('/api/user/importAccount', fn() => $controller->bulkCreate($response, $request));
 
 
 

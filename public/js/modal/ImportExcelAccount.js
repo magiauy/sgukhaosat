@@ -376,7 +376,7 @@ export default class ImportExcelAccount {
             const role = document.getElementById('bulkRoleSelect').value;
             this.showToast('info', 'Đang tạo tài khoản...');
 
-            const response = await fetch(`${this.config.apiUrl}/users/bulk-create`, {
+            const response = await fetch(`${this.config.apiUrl}/user/importAccount`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

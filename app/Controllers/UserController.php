@@ -68,11 +68,6 @@ class UserController implements IAuthController
     {
         try {
             $emails = $request->getBody();
-            if (!$emails) {
-                $response->json(['error' => 'Email is required'], 400);
-                return;
-            }
-
             $this->userService->delete($emails);
             $response->json(['message' => 'User deleted successfully']);
         } catch (\Exception $e) {
@@ -245,6 +240,20 @@ public function bulkCreate(Response $response, Request $request)
                 'message' => 'Get user on pagination successfully',
                 'data' => $users]);
         } catch (\Throwable $e) {
+            $response->json(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function getByEmail(Response $response, Request $request)
+    {
+        try {
+            $data = $request->getBody();
+            $user = $this->userService->getByEmail($data);
+            $response->json([
+                'message' => 'Get user by email successfully',
+                'data' => $user
+            ]);
+        } catch (\Exception $e) {
             $response->json(['error' => $e->getMessage()]);
         }
     }

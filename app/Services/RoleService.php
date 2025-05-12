@@ -94,14 +94,13 @@ class RoleService implements IBaseService
         try {
             $role = $this->roleRepository->getById($id);
             $permissions = $this->rolePermRepository->getById($id);
+            return [
+                'role' => $role,
+                'permissions' => $permissions
+            ];
         } catch (\Throwable $th) {
             throw $th;
         }
-
-        return [
-            'role' => $role,
-            'permissions' => $permissions
-        ];
     }
 
     function getAll(): array
@@ -166,14 +165,17 @@ class RoleService implements IBaseService
                 $data['optionString'] = 'ORDER BY created_at DESC';
             }
 
-            if(!isset($data['limit']) && !isset($data['offset'])){
-                
+            if(!isset($data['limit']) || !isset($data['offset'])){
                 $data['limitString'] = '';
-                $data['search'] = '%' . $data['search'] . '%';
             }
             else{
                 $data['limitString'] = 'LIMIT ' . (int) $data['offset'] . ', ' . (int) $data['limit'];               
             }
+
+            if(!isset($data['isSearch'])){
+                $data['isSearch'] = 0;
+            }
+
             return [
                 'roles' => $this->roleRepository->getOnPagination($data),
                 'total' => $this->roleRepository->getTotalRecord($data)

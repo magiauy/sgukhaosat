@@ -88,7 +88,7 @@ class RoleRepository implements IBaseRepositoryTransaction
             )
         )
         AND (
-            (:isSearch = 0) OR (roleID LIKE :search)
+            (:isSearch = 0) OR (roleID = :search)
         )
         {$data['optionString']} 
         {$data['limitString']}";
@@ -110,10 +110,20 @@ class RoleRepository implements IBaseRepositoryTransaction
     }
 
     function getTotalRecord($data){
+        // var_dump($data);
         $sql = 'SELECT COUNT(*) FROM roles 
-        WHERE (:isFilter = 0 OR (
-        (:isCreate = 0 OR created_at BETWEEN :fromDateCreate AND :toDateCreate) AND (:isUpdate = 0 OR updated_at BETWEEN :fromDateUpdate AND :toDateUpdate)))';
-        
+        WHERE (
+            (:isFilter = 0) OR 
+            (
+                (:isCreate = 0 OR (created_at BETWEEN :fromDateCreate AND :toDateCreate))
+                AND 
+                (:isUpdate = 0 OR (updated_at BETWEEN :fromDateUpdate AND :toDateUpdate))
+            )
+        )
+        AND (
+            (:isSearch = 0) OR (roleID = :search)
+        )';
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'fromDateCreate' => $data['fromDateCreate'] ?? 0,
@@ -122,7 +132,9 @@ class RoleRepository implements IBaseRepositoryTransaction
             'toDateUpdate' => $data['toDateUpdate'] ?? 0,
             'isCreate' => $data['isCreate'] ?? 0,
             'isUpdate' => $data['isUpdate'] ?? 0,
-            'isFilter' => $data['isFilter']
+            'isFilter' => $data['isFilter'],
+            'isSearch' => $data['isSearch'],
+            'search' => $data['search'] ?? 0,
         ]);
         return $stmt->fetchColumn();
     }

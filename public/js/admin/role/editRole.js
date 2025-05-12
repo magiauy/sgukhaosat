@@ -14,7 +14,7 @@ export function showEditRole(){
     })
 }
 
-async function updateRole(roleID) {
+export async function updateRole(roleID) {
     document.querySelector("#update-role").onclick = async (e) => {
         e.preventDefault();
         const roleName = document.getElementById("roleName").value;

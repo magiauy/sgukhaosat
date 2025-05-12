@@ -17,7 +17,6 @@ class UserRepository implements IAuthRepository {
      * @throws Throwable
      */
     public function create($data): bool {
-        // var_dump($data);
         $this->pdo->beginTransaction();
         try {
             $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?, ? ,?,?,?)"));
@@ -51,8 +50,9 @@ class UserRepository implements IAuthRepository {
     }
 
     public function update($id, $data): bool { 
+        // var_dump($data);
         $sql = "UPDATE users SET roleID = :roleID, phone = :phone, 
-                status = :status 
+                status = :status, updated_at = NOW()
                 WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
@@ -252,20 +252,25 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
     }
 
     function getOnPagination($data){
-        // var_dump($data);
-
         $sql = "SELECT * FROM users 
-        WHERE (
+        WHERE
+        (
             (:isFilter = 0) OR 
-            (
-                (:isCreate = 0 OR (created_at BETWEEN :fromDateCreate AND :toDateCreate))
-                AND 
-                (:isUpdate = 0 OR (updated_at BETWEEN :fromDateUpdate AND :toDateUpdate))
+                (
+                    (:isCreate = 0 OR (created_at BETWEEN :fromDateCreate AND :toDateCreate))
+                    AND 
+                    (:isUpdate = 0 OR (updated_at BETWEEN :fromDateUpdate AND :toDateUpdate))
+                    AND 
+                    (:isStatus = 0 OR (status = :status))
+                    AND 
+                    (:isRole = 0 OR (roleID = :roleID))
+                )
             )
+            AND
+            (
+                (:isSearch = 0 OR (email LIKE :search))
         )
-        AND (
-            (:isSearch = 0) OR (roleID LIKE :search)
-        )
+        
         {$data['sortOrderString']} 
         {$data['limitString']}";
 
@@ -281,14 +286,33 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
             'isFilter' => $data['isFilter'],
             'isSearch' => $data['isSearch'],
             'search' => $data['search'] ?? 0,
+            'isStatus' => $data['isStatus'],
+            'status' => $data['status'] ?? 0,
+            'isRole' => $data['isRole'],
+            'roleID' => $data['roleID'] ?? 0,
         ]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     function getTotalRecord($data){
         $sql = 'SELECT COUNT(*) FROM users 
-        WHERE (:isFilter = 0 OR (
-        (:isCreate = 0 OR created_at BETWEEN :fromDateCreate AND :toDateCreate) AND (:isUpdate = 0 OR updated_at BETWEEN :fromDateUpdate AND :toDateUpdate)))';
+        WHERE
+        (
+            (:isFilter = 0) OR 
+                (
+                    (:isCreate = 0 OR (created_at BETWEEN :fromDateCreate AND :toDateCreate))
+                    AND 
+                    (:isUpdate = 0 OR (updated_at BETWEEN :fromDateUpdate AND :toDateUpdate))
+                    AND 
+                    (:isStatus = 0 OR (status = :status))
+                    AND 
+                    (:isRole = 0 OR (roleID = :roleID))
+                )
+            )
+            AND
+            (
+                (:isSearch = 0 OR (email LIKE :search))
+        )';
         
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
@@ -298,8 +322,21 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
             'toDateUpdate' => $data['toDateUpdate'] ?? 0,
             'isCreate' => $data['isCreate'] ?? 0,
             'isUpdate' => $data['isUpdate'] ?? 0,
-            'isFilter' => $data['isFilter']
+            'isFilter' => $data['isFilter'],
+            'isSearch' => $data['isSearch'],
+            'search' => $data['search'] ?? 0,
+            'isStatus' => $data['isStatus'],
+            'status' => $data['status'] ?? 0,
+            'isRole' => $data['isRole'],
+            'roleID' => $data['roleID'] ?? 0,
         ]);
         return $stmt->fetchColumn();
+    }
+
+    public function getByEmail($data){
+        $sql = "SELECT * FROM users WHERE email = :email";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['email' => $data['email']]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 }

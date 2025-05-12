@@ -1,5 +1,5 @@
 import { callApi } from "../../apiService.js";
-import { isUppercaseAlphaOnly, showPopupAddRole } from "./addRole.js";
+import { isUppercaseAlphaOnly, showFormRole, showPopupAddRole } from "./addRole.js";
 
 export async function search(){
     document.querySelector("#search-button").addEventListener('click', async () => {
@@ -25,7 +25,7 @@ export async function search(){
             const result = response.data;   
             console.log(result);
 
-            showPopupAddRole(result);
+            await showFormRole(result.roles[0].roleID);
         } catch (error) {
             console.error("Error fetching roles:", error.message);
         }

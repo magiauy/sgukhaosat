@@ -5,7 +5,7 @@ import ImportExcelAccount from "../../modal/ImportExcelAccount.js";
 // import * as XLSX from "xlsx";
 
 export function showAddAccount() {
-    document.querySelector("#add-account").onclick = async function () {
+    document.querySelector("#add-account-button").onclick = async function () {
         document.body.insertAdjacentHTML("beforeend",  `
         <div id="popup-add-account" style="display: flex; position: fixed; top: 0; left: 0; 
             width: 100vw; height: 100vh; background: rgba(0,0,0,0.6);
@@ -151,19 +151,18 @@ function addAccount(){
 function closePopup(){
     document.querySelector("#close-popup").onclick = () => {
         document.querySelector("#popup-add-account").remove();
-        renderListAccount();
     }
 
     document.querySelector("#cancel-account").onclick = () => {
         document.querySelector("#popup-add-account").remove();
-        renderListAccount();
     }
 }
 
 //hàm xử lí ấn import file user
 export function importUsers(){
-    document.querySelector("#import-account").onclick = async function(e){
+    document.querySelector("#import-accounts-button").onclick = async function(e){
         e.preventDefault();
+        console.log(123)
         const importAccount = new ImportExcelAccount(config);
         importAccount.open();
     }

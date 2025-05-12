@@ -1,5 +1,6 @@
 import { callApi } from '../../apiService.js';
 import { renderTableOnPagination } from './roleAdmin.js';
+import { updateRole } from './editRole.js';
 
 export function showPopupAddRole() {
     document.querySelector('#add-role-button').onclick = async function() {
@@ -155,7 +156,7 @@ export async function showFormRole(roleID){
     if(roleID){
         const response = await callApi(`/role/${roleID}`);
         const role = response.data;
-        // console.log(role);
+        console.log(role);
 
         //gán giá trị 
         document.getElementById("roleName").value = role.role.roleName;
@@ -170,6 +171,7 @@ export async function showFormRole(roleID){
         });
         document.querySelector("#save-role").innerText = "Cập nhật vai trò";
         document.querySelector("#save-role").id = "update-role";
+        updateRole(roleID);
         document.querySelector("#addRoleModalLabel").innerText = "Chỉnh sửa vai trò";
 }
 }

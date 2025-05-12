@@ -7,6 +7,9 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use Repositories\Interface\IBaseRepository;
 use Repositories\Interface\IWhitelistForm;
 use Repositories\UserRepository;
+use Repositories\Interface\IBaseRepositoryTransaction;
+use Repositories\RoleRepository;
+
 use Repositories\WhitelistForm;
 use Services\Interface\IAuthService;
 use Services\Interface\IBaseService;
@@ -15,7 +18,7 @@ use Utils\PasswordUtils;
 class UserService implements IAuthService
 {
     private IBaseRepository $userRepository;
-     private IBaseRepository $roleRepo;
+    private IBaseRepositoryTransaction $roleRepo;
     private IBaseService $roleService;
     private IWhitelistForm $whitelistForm;
 
@@ -24,7 +27,7 @@ class UserService implements IAuthService
     {
         $this->userRepository = new UserRepository();
         $this->roleService = new RoleService();
-        // $this->roleRepo = new RoleRepository();
+        $this->roleRepo = new RoleRepository();
         $this->whitelistForm = new WhitelistForm();
     }
 
@@ -40,7 +43,7 @@ class UserService implements IAuthService
             $data = [$data];
         }
         // error_log(json_encode($data));
-        // $data = createUsersInBulk($data);
+        // createUsersInBulk($data);
         // error_log($data);
 
         foreach ($data as &$row) {
@@ -358,29 +361,64 @@ class UserService implements IAuthService
             $data['sortOrderString'] = 'ORDER BY created_at DESC';
         }
 
-        if(!isset($data['limit']) && !isset($data['offset'])){
-            var_dump($data);
+        if(!isset($data['limit']) || !isset($data['offset'])){
+            // var_dump($data);
             $data['limitString'] = '';
-            $data['search'] = '%' . $data['search'] . '%';
         }
         else{
             $data['limitString'] = 'LIMIT ' . (int) $data['offset'] . ', ' . (int) $data['limit'];               
         }
 
-        $accounts = $this->userRepository->getOnPagination($data);
-        $roles = $this->roleRepo->getAll();
-        foreach ($accounts as &$account) {
-            foreach ($roles as $role) {
-                if ($account['roleID'] == $role['roleID']) {
-                    $account['roleName'] = $role['roleName'];
-                    break;
+        if(!isset($data['isSearch'])){
+            $data['isSearch'] = 0;
+        }
+    
+        else if($data['isSearch']){
+            $data['search'] = '%' . trim($data['search']) . '%';
+        }
+    
+        if(!isset($data['status'])){
+            $data['isStatus'] = 0;
+        }
+        else if($data['status'] == 'all'){
+            $data['isStatus'] = 0;
+        }
+        
+        if(!isset($data['roleID'])){
+            $data['isRole'] = 0;
+        }
+        else if($data['roleID'] == 'all'){
+            $data['isRole'] = 0;
+        }
+
+        try {
+            $accounts = $this->userRepository->getOnPagination($data);
+            $roles = $this->roleRepo->getAll();
+            foreach ($accounts as &$account) {
+                foreach ($roles as $role) {
+                    if ($account['roleID'] == $role['roleID']) {
+                        $account['roleName'] = $role['roleName'];
+                        break;
+                    }
                 }
             }
-            
+            return[
+                'accounts' => $accounts,
+                'total' => $this->userRepository->getTotalRecord($data)
+            ];
+        } catch (\Throwable $th) {
+            throw $th;    
         }
-        return[
-            'accounts' => $this->userRepository->getOnPagination($data),
-            'total' => $this->userRepository->getTotalRecord($data)
-        ];
+        
+    }
+
+    public function getByEmail($data)
+    {
+        try {
+            $data['email'] = trim($data['email']);
+            return $this->userRepository->getByEmail($data);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 }

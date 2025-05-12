@@ -1,14 +1,34 @@
 import { callApi } from "../../apiService.js";
 import { showAddAccount, importUsers } from "./addAccount.js";
-import { deleteAccount } from "./deleteAccount.js";
+import { deleteAccountSelected} from "./deleteAccountSelected.js";
 import { showDetail } from "./detailAccount.js";
 import { filterAccount } from "./filterAccount.js";
 import { searchAccount } from "./searchAccount.js";
 import PaginationComponent from "../../component/pagination.js";
 
+export let selectedAccountIDs = new Set();
+
+export function clearSelectedAccounts() {
+    selectedAccountIDs.clear();
+    const selectedCountElem = document.getElementById('selected-count');
+    if (selectedCountElem) {
+        selectedCountElem.textContent = "0";
+    }
+    
+    const deleteSelectedBtn = document.getElementById('delete-selected-accounts');
+    if (deleteSelectedBtn) {
+        deleteSelectedBtn.classList.add('d-none');
+    }
+    
+    const selectAllCheckbox = document.getElementById('select-all-accounts');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+}
 
 const pagination = new PaginationComponent({
-    containerId: 'pagination-role',
+    containerId: 'pagination-account',
     onPageChange: (offset, limit) => {
         renderTableAccountOnPagination(offset, limit);
     },
@@ -28,22 +48,28 @@ export async function  renderContentUser(){
                 <!-- Search section - Cải thiện spacing -->
                 <div class="px-4 pt-4 pb-3">
                     <div class="row g-3 align-items-center">
-                        <div class="col-lg-7 col-md-6">
+                        <div class="col-lg-5 col-md-4">
                             <div class="form-floating">
-                                <input type="text" class="form-control rounded-3 border-light-subtle" id="id-search" placeholder="Nhập tên vai trò cần tìm">
+                                <input type="text" class="form-control rounded-3 border-light-subtle" id="id-search" placeholder="Nhập email cần tìm">
                                 <label for="id-search-account">Tìm kiếm email</label>
                             </div>
                         </div>
-                        <div class="col-lg-5 col-md-6">
+                        <div class="col-lg-7 col-md-8">
                             <div class="d-flex gap-2 flex-wrap">
-                                <button class="btn btn-primary rounded-3 px-4 py-2" id="search-button">
-                                    <i class="bi bi-search me-2"></i> Tìm kiếm
+                                <button class="btn btn-primary rounded-3 px-3 py-2" id="search-button">
+                                    <i class="bi bi-search me-1"></i> Tìm kiếm
                                 </button>
-                                <button id="add-account-button" class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center">
-                                    <i class="bi bi-plus-circle me-2"></i> Thêm tài khoản
+                                <button id="add-account-button" class="btn btn-primary rounded-pill px-3 py-2 d-flex align-items-center">
+                                    <i class="bi bi-plus-circle me-1"></i> Thêm tài khoản
                                 </button>
+                                <div class="position-relative">
+                                    <button id="import-accounts-button" class="btn btn-success rounded-pill px-3 py-2 d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-excel me-1"></i> Nhập file tài khoản
+                                    </button>
+                                    
+                                </div>
                                 <button id="delete-selected-accounts" class="btn btn-outline-danger rounded-pill px-3 py-2 d-none d-flex align-items-center">
-                                    <i class="bi bi-trash me-2"></i> Xóa đã chọn
+                                    <i class="bi bi-trash me-1"></i> Xóa đã chọn
                                 </button>
                             </div>
                         </div>
@@ -148,12 +174,12 @@ export async function  renderContentUser(){
                 <!-- Table section - Loại bỏ shadow -->
                 <div class="px-4 mb-4">
                     <div class="table-responsive rounded-4 border overflow-hidden">
-                        <table id="table-role" class="table table-hover align-middle mb-0">
+                        <table id="table-account" class="table table-hover align-middle mb-0">
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4" style="width: 40px;">
                                         <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="select-all-roles">
+                                            <input type="checkbox" class="form-check-input" id="select-all-accounts">
                                         </div>
                                     </th>
                                     <th style="width: 50px;">#</th>   
@@ -186,7 +212,7 @@ export async function  renderContentUser(){
                         <span class="text-muted"><span id="selected-count">0</span> mục được chọn</span>
                     </div>
                     <div>
-                        <nav aria-label="Page navigation" id="pagination-role" class="pagination-container">
+                        <nav aria-label="Page navigation" id="pagination-account" class="pagination-container">
                             <!-- Phân trang sẽ được render ở đây -->
                         </nav>
                     </div>
@@ -196,7 +222,6 @@ export async function  renderContentUser(){
     </div>
     `;
 
-   
     // render option vai trò
     try {
         const response = await callApi("/role");    
@@ -217,10 +242,11 @@ export async function  renderContentUser(){
 
     await renderTableAccountOnPagination(0, 10);
    
-    // showAddAccount();
-    // importUsers();
+    showAddAccount();
+    deleteAccountSelected();
+    importUsers();
     filterAccount();
-    // searchAccount();
+    searchAccount();
    
     // handleClickFilter();
     // handleImportUsers();
@@ -233,81 +259,6 @@ export async function  renderContentUser(){
     
 }
 
-async function logicCheckbox(){
-    // Xử lý checkbox và đếm số mục đã chọn
-    const selectAllCheckbox = document.getElementById('select-all-roles');
-    const roleCheckboxes = document.querySelectorAll('.role-checkbox');
-    const selectedCountElem = document.getElementById('selected-count');
-    const deleteSelectedBtn = document.getElementById('delete-selected-roles');
-
-    // Cập nhật số lượng mục đã chọn và hiển thị nút xóa hàng loạt
-    function updateSelectedCount() {
-        const checkedBoxes = document.querySelectorAll('.role-checkbox:checked');
-        selectedCountElem.textContent = checkedBoxes.length;
-        
-        // Hiển thị hoặc ẩn nút xóa hàng loạt
-        if (checkedBoxes.length > 0) {
-            deleteSelectedBtn.classList.remove('d-none');
-        } else {
-            deleteSelectedBtn.classList.add('d-none');
-        }
-        
-        // Cập nhật trạng thái của checkbox "chọn tất cả"
-        if (checkedBoxes.length === roleCheckboxes.length && roleCheckboxes.length > 0) {
-            selectAllCheckbox.checked = true;
-            selectAllCheckbox.indeterminate = false;
-        } else if (checkedBoxes.length === 0) {
-            selectAllCheckbox.checked = false;
-            selectAllCheckbox.indeterminate = false;
-        } else {
-            selectAllCheckbox.indeterminate = true;
-        }
-    }
-
-    // Xử lý sự kiện khi click vào checkbox "chọn tất cả"
-    selectAllCheckbox.onchange = function() {
-        roleCheckboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-            
-            // Cập nhật Set các ID được chọn
-            const roleID = checkbox.getAttribute('data-id');
-            if (this.checked) {
-                selectedRoleIDs.add(roleID);
-            } else {
-                selectedRoleIDs.delete(roleID);
-            }
-        });
-        updateSelectedCount();
-    };
-
-    // Xử lý sự kiện khi click vào các checkbox riêng lẻ
-    roleCheckboxes.forEach(checkbox => {
-        checkbox.onchange = function() {
-            const roleID = this.getAttribute('data-id');
-            
-            // Cập nhật Set các ID được chọn
-            if (this.checked) {
-                selectedRoleIDs.add(roleID);
-            } else {
-                selectedRoleIDs.delete(roleID);
-            }
-            
-            updateSelectedCount();
-        };
-    });
-
-    // Khôi phục trạng thái checkbox từ selectedRoleIDs
-    roleCheckboxes.forEach(checkbox => {
-        const roleID = checkbox.getAttribute('data-id');
-        if (selectedRoleIDs.has(roleID)) {
-            checkbox.checked = true;
-        }
-    });
-
-    // Khởi tạo trạng thái ban đầu
-    updateSelectedCount();
-}
-
 export async function renderTableAccountOnPagination(offset, limit){
     try {
         const data = {
@@ -316,12 +267,13 @@ export async function renderTableAccountOnPagination(offset, limit){
             isFilter: 0,
             isSearch: 0
         }
-        console.log(data);
-        const response = await callApi(`/users/pagination`, "POST", data);
+        // console.log(data);
+        const response = await callApi(`/user/pagination`, "POST", data);
         const result = response.data;
-        console.log(response);
+        // console.log(response);
         // console.log(users);
-        renderListAccount(result.accounts);
+         renderListAccount(result.accounts);
+        //  console.log(result.total);
 
         pagination.render({
             currentPage: Math.floor(offset / limit) + 1,
@@ -329,16 +281,17 @@ export async function renderTableAccountOnPagination(offset, limit){
             limit: limit,
             totalItems: result.total
         });
+       
 
     } catch (error) {
        console.log(error);
     }
+
+   
 }
 
-// Cập nhật hàm renderListAccount để hiển thị dữ liệu đẹp hơn và phù hợp với cấu trúc bảng
 export function renderListAccount(users) {
-    
-    const tableBody = document.querySelector("#table-role tbody");
+    const tableBody = document.querySelector("#table-account tbody");
     
     if (!tableBody) return;
     
@@ -373,15 +326,15 @@ export function renderListAccount(users) {
         const statusClass = user.status === 1 ? 'bg-success' : 'bg-danger';
         const statusText = user.status === 1 ? 'Đang hoạt động' : 'Đã khóa';
         
-        // Format thời gian
-        const createdAt = formatDate(user.created_at);
-        const updatedAt = formatDate(user.updated_at);
+        // Kiểm tra xem email đã được chọn trước đó chưa
+        const isChecked = selectedAccountIDs.has(user.email) ? 'checked' : '';
         
         bodyTable += `
             <tr>
                 <td class="ps-4 text-center">
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input user-checkbox" data-id="${user.email}" id="user-${index}">
+                        <input type="checkbox" class="form-check-input user-checkbox" 
+                            data-id="${user.email}" id="user-${index}" ${isChecked}>
                     </div>
                 </td>
                 <td style="width: 50px;">${index + 1}</td>
@@ -398,13 +351,13 @@ export function renderListAccount(users) {
                 <td>
                     <div class="d-flex align-items-center text-nowrap">
                         <i class="bi bi-calendar-date text-primary me-2"></i>
-                        <small>${createdAt}</small>
+                        <small>${user.created_at}</small>
                     </div>
                 </td>
                 <td>
                     <div class="d-flex align-items-center text-nowrap">
                         <i class="bi bi-clock-history text-primary me-2"></i>
-                        <small>${updatedAt || 'N/A'}</small>
+                        <small>${user.updated_at}</small>
                     </div>
                 </td>
                 <td class="text-end pe-4">
@@ -430,9 +383,8 @@ export function renderListAccount(users) {
     setupUserCheckboxes();
 }
 
-// Cập nhật hàm xử lý checkbox để phù hợp với class mới
 function setupUserCheckboxes() {
-    const selectAllCheckbox = document.getElementById('select-all-roles');
+    const selectAllCheckbox = document.getElementById('select-all-accounts');
     const userCheckboxes = document.querySelectorAll('.user-checkbox');
     const selectedCountElem = document.getElementById('selected-count');
     const deleteSelectedBtn = document.getElementById('delete-selected-accounts');
@@ -441,25 +393,37 @@ function setupUserCheckboxes() {
 
     // Cập nhật số lượng mục đã chọn và hiển thị nút xóa hàng loạt
     function updateSelectedCount() {
-        const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
-        selectedCountElem.textContent = checkedBoxes.length;
+        // Cập nhật Set selectedAccountIDs dựa trên trạng thái checkbox hiện tại
+        userCheckboxes.forEach(checkbox => {
+            const email = checkbox.getAttribute('data-id');
+            if (checkbox.checked) {
+                selectedAccountIDs.add(email);
+            } else {
+                selectedAccountIDs.delete(email);
+            }
+        });
+        
+        // Hiển thị số lượng mục đã chọn
+        selectedCountElem.textContent = selectedAccountIDs.size;
         
         // Hiển thị hoặc ẩn nút xóa hàng loạt
-        if (checkedBoxes.length > 0) {
+        if (selectedAccountIDs.size > 0) {
             deleteSelectedBtn.classList.remove('d-none');
         } else {
             deleteSelectedBtn.classList.add('d-none');
         }
         
         // Cập nhật trạng thái của checkbox "chọn tất cả"
-        if (checkedBoxes.length === userCheckboxes.length && userCheckboxes.length > 0) {
-            selectAllCheckbox.checked = true;
-            selectAllCheckbox.indeterminate = false;
-        } else if (checkedBoxes.length === 0) {
-            selectAllCheckbox.checked = false;
-            selectAllCheckbox.indeterminate = false;
-        } else {
-            selectAllCheckbox.indeterminate = true;
+        if (userCheckboxes.length > 0) {
+            if (selectedAccountIDs.size === userCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedAccountIDs.size === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.indeterminate = true;
+            }
         }
     }
 
@@ -468,6 +432,13 @@ function setupUserCheckboxes() {
         selectAllCheckbox.addEventListener('change', function() {
             userCheckboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
+                const email = checkbox.getAttribute('data-id');
+                
+                if (this.checked) {
+                    selectedAccountIDs.add(email);
+                } else {
+                    selectedAccountIDs.delete(email);
+                }
             });
             updateSelectedCount();
         });
@@ -476,107 +447,47 @@ function setupUserCheckboxes() {
     // Xử lý sự kiện khi click vào các checkbox riêng lẻ
     userCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
+            const email = this.getAttribute('data-id');
+            
+            if (this.checked) {
+                selectedAccountIDs.add(email);
+            } else {
+                selectedAccountIDs.delete(email);
+            }
+            
             updateSelectedCount();
         });
     });
-
-    // Xử lý sự kiện khi click nút xóa các mục đã chọn
-    if (deleteSelectedBtn) {
-        deleteSelectedBtn.addEventListener('click', function() {
-            const selectedEmails = [];
-            document.querySelectorAll('.user-checkbox:checked').forEach(checkbox => {
-                selectedEmails.push(checkbox.getAttribute('data-id'));
-            });
-            
-            if (selectedEmails.length > 0) {
-                if (confirm(`Bạn có chắc muốn xóa ${selectedEmails.length} tài khoản đã chọn?`)) {
-                    deleteMultipleAccounts(selectedEmails);
-                }
-            }
-        });
-    }
 
     // Khởi tạo trạng thái ban đầu
     updateSelectedCount();
 }
 
-// Hàm xóa nhiều tài khoản
-async function deleteMultipleAccounts(emails) {
-    try {
-        const response = await callApi("/users/delete-multiple", "POST", { emails });
-        
-        if (response.success) {
-            // Hiển thị thông báo thành công
-            alert(`Đã xóa ${emails.length} tài khoản thành công`);
-            
-            // Tải lại dữ liệu
-            renderTableAccountOnPagination(0, 10);
-        } else {
-            alert(`Có lỗi xảy ra: ${response.message || 'Không thể xóa tài khoản'}`);
-        }
-    } catch (error) {
-        console.error("Lỗi khi xóa nhiều tài khoản:", error);
-        alert("Có lỗi xảy ra khi xóa tài khoản. Vui lòng thử lại.");
-    }
-}
+
 
 // Kích hoạt các action buttons
 function activateActionButtons() {
     // Nút chỉnh sửa
     document.querySelectorAll('.detail-account').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.onclick = (e) => {
+            e.preventDefault();
             const email = btn.getAttribute('data-id');
             showDetail(email);
-        });
+        };
     });
     
     // Nút xóa
     document.querySelectorAll('.delete-account-i').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.onclick = async function(e){
+            e.preventDefault();
             const email = btn.getAttribute('data-id');
-            deleteAccount(email);
-        });
-    });
-}
-// Hàm format thời gian
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    
-    const date = new Date(dateString);
-    
-    // Kiểm tra xem date có hợp lệ không
-    if (isNaN(date.getTime())) {
-        return dateString; // Trả về chuỗi gốc nếu không phải ngày hợp lệ
-    }
-    
-    // Format theo định dạng Việt Nam: DD/MM/YYYY HH:MM
-    return new Intl.DateTimeFormat('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    }).format(date);
-}
-
-
-
-
-
-
-
-
-
-
-async function addRoleNameForUsers(users){
-    let response = await callApi("/role");    
-    let roles = response.data;
-
-    roles.forEach((role) => {
-        users.forEach((user) => {
-            if(user.roleID === role.roleID){
-                user.roleName = role.roleName;
+            try {
+                const response = await callApi("/user", "DELETE", [id]);
+                console.log(response);
+                renderTableAccountOnPagination(0, 10);
+            } catch (error) {
+                console.log(error);
             }
-        })
-    })
+        };
+    });
 }

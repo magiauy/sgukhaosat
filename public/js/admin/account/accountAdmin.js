@@ -469,13 +469,7 @@ function setupUserCheckboxes() {
 // Kích hoạt các action buttons
 function activateActionButtons() {
     // Nút chỉnh sửa
-    document.querySelectorAll('.detail-account').forEach(btn => {
-        btn.onclick = (e) => {
-            e.preventDefault();
-            const email = btn.getAttribute('data-id');
-            showDetail(email);
-        };
-    });
+    showDetail();
     
     // Nút xóa
     document.querySelectorAll('.delete-account-i').forEach(btn => {
@@ -483,7 +477,7 @@ function activateActionButtons() {
             e.preventDefault();
             const email = btn.getAttribute('data-id');
             try {
-                const response = await callApi("/user", "DELETE", [id]);
+                const response = await callApi("/user", "DELETE", [email]);
                 console.log(response);
                 renderTableAccountOnPagination(0, 10);
             } catch (error) {

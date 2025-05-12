@@ -162,7 +162,7 @@ class RoleService implements IBaseService
             }
             else{
                 //mặc định là thời gian tạo mới nhất
-                $data['optionString'] = 'ORDER BY created_at DESC';
+                $data['optionString'] = 'ORDER BY updated_at DESC';
             }
 
             if(!isset($data['limit']) || !isset($data['offset'])){

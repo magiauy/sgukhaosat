@@ -280,25 +280,25 @@ async function updatePeriod() {
 //Tìm kiếm chu kỳ
 async function loadFilteredPeriods() {
     const searchKeyword = document.getElementById('periodKeyword').value.trim();
-    document.getElementById('periodKeyword').value = '';
+    // document.getElementById('periodKeyword').value = '';
     await loadPeriods(0, itemsPerPeriodPage, searchKeyword,true);
 }
 
 
 async function loadPeriods(offset = 0,limit = 10, keyword = '', isSearch = false) {
     try {
-        const startYear = document.getElementById('startYearFilter').value.trim();
-        const endYear = document.getElementById('endYearFilter').value.trim();
-
-        document.getElementById('startYearFilter').value = '';
-        document.getElementById('endYearFilter').value = '';
+        // const startYear = document.getElementById('startYearFilter').value.trim();
+        // const endYear = document.getElementById('endYearFilter').value.trim();
+        //
+        // document.getElementById('startYearFilter').value = '';
+        // document.getElementById('endYearFilter').value = '';
 
         const queryParams = new URLSearchParams({
             offset: offset,
             limit: limit,
             search: keyword || '',
-            startYear: startYear || '',
-            endYear: endYear || ''
+            // startYear: startYear || '',
+            // endYear: endYear || ''
         });
 
         const url = `/api/period/search?${queryParams.toString()}`;
@@ -325,7 +325,7 @@ async function loadPeriods(offset = 0,limit = 10, keyword = '', isSearch = false
         }
 
         // Update the count display
-        document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
+        // document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
 
         // Call separated functions for rendering table and pagination
         renderPeriodTable(result.data['period'] || []);
@@ -353,16 +353,18 @@ function renderPeriodTable(periods) {
         periods.forEach((period) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><input type="checkbox" class="periodCheckbox" value="${period.periodID}"></td> 
+                <td class="ps-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input periodCheckbox" value="${period.periodID}">
+                    </div>
+                </td>
                 <td class="idPeriod">${period.periodID}</td>
                 <td>${period.startYear}</td>
                 <td>${period.endYear}</td>
-                <td>
+                <td class="text-end pe-4">
                     <button class="btn btn-outline-primary" id="editPeriodBtn">
                         <i class="bi bi-gear-fill"></i> Sửa
                     </button>
-                </td>
-                <td>
                     <button class="btn btn-outline-danger" id="deletePeriodBtn">
                         <i class="bi bi-trash"></i> Xóa
                     </button>
@@ -371,33 +373,125 @@ function renderPeriodTable(periods) {
             tbody.appendChild(row);
         });
 
-        // Add event listener for "select all" checkbox
-        document.getElementById('selectAll').addEventListener('change', function () {
-            const isChecked = this.checked;
-            document.querySelectorAll('.periodCheckbox').forEach(cb => {
-                cb.checked = isChecked;
-            });
-        });
-        document.querySelectorAll('#periodTableBody .btn').forEach(button => {
-            button.addEventListener('click', async function () {
-                const row = this.closest('tr');
-                const firstTd = row?.querySelector('.idPeriod');
-                if (firstTd) {
-                    const action = this.id;
-                    const id = firstTd.textContent.trim();
-                    if (action === "editPeriodBtn") {
-                        await loadPeriodEdit(id);
-                    } else if (action === "deletePeriodBtn") {
-                        await handleDeletePeriod(id);
-                    }
-                }
-            });
-        });
+        logicCheckboxPeriod();
     } else {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
     }
 }
+// Store selected period IDs in a Set for efficient tracking
+const selectedPeriodIDs = new Set();
 
+function logicCheckboxPeriod() {
+    // Get elements
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const periodCheckboxes = document.querySelectorAll('.periodCheckbox');
+    const selectedCountElem = document.getElementById('selected-count');
+    const deleteSelectedBtn = document.getElementById('periodDeleteBtn');
+
+    // Function to update count and button visibility
+    function updateSelectedCount() {
+        const checkedBoxes = document.querySelectorAll('.periodCheckbox:checked');
+        selectedCountElem.textContent = checkedBoxes.length;
+
+        // Show/hide bulk delete button
+        if (checkedBoxes.length > 0) {
+            deleteSelectedBtn.classList.remove('d-none');
+        } else {
+            deleteSelectedBtn.classList.add('d-none');
+        }
+
+        // Update "select all" checkbox state
+        if (checkedBoxes.length === periodCheckboxes.length && periodCheckboxes.length > 0) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedBoxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+
+    // Handle "select all" checkbox changes
+    selectAllCheckbox.onchange = function() {
+        periodCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+
+            // Update Set of selected IDs
+            const periodID = checkbox.getAttribute('value');
+            if (this.checked) {
+                selectedPeriodIDs.add(periodID);
+            } else {
+                selectedPeriodIDs.delete(periodID);
+            }
+        });
+        updateSelectedCount();
+    };
+
+    // Handle individual checkbox changes
+    periodCheckboxes.forEach(checkbox => {
+        checkbox.onchange = function() {
+            const periodID = this.getAttribute('value');
+
+            // Update Set of selected IDs
+            if (this.checked) {
+                selectedPeriodIDs.add(periodID);
+            } else {
+                selectedPeriodIDs.delete(periodID);
+            }
+
+            updateSelectedCount();
+        };
+    });
+
+    // Restore checkbox states from selectedPeriodIDs
+    periodCheckboxes.forEach(checkbox => {
+        const periodID = checkbox.getAttribute('value');
+        if (selectedPeriodIDs.has(periodID)) {
+            checkbox.checked = true;
+        }
+    });
+
+    // Add event listeners for edit/delete buttons
+    document.querySelectorAll('#periodTableBody .btn').forEach(button => {
+        button.addEventListener('click', async function() {
+            const row = this.closest('tr');
+            const firstTd = row?.querySelector('.idPeriod');
+            if (firstTd) {
+                const action = this.id;
+                const id = firstTd.textContent.trim();
+                if (action === "editPeriodBtn") {
+                    await loadPeriodEdit(id);
+                } else if (action === "deletePeriodBtn") {
+                    await handleDeletePeriod(id);
+                }
+            }
+        });
+    });
+
+    // Initialize initial state
+    updateSelectedCount();
+}
+
+// Function to clear selections (can be called after operations like bulk delete)
+function clearSelectedPeriods() {
+    selectedPeriodIDs.clear();
+    const selectedCountElem = document.getElementById('selected-count');
+    if (selectedCountElem) {
+        selectedCountElem.textContent = "0";
+    }
+
+    const deleteSelectedBtn = document.getElementById('periodDeleteBtn');
+    if (deleteSelectedBtn) {
+        deleteSelectedBtn.classList.add('d-none');
+    }
+
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+}
 //Xóa chu kỳ
 
 async function deletePeriod(id) {

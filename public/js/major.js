@@ -276,7 +276,7 @@ async function updateMajor() {
 //Tìm kiếm ngành
 async function loadFilteredMajors() {
     const searchKeyword = document.getElementById('majorKeyword').value.trim();
-    document.getElementById('majorKeyword').value = '';
+    // document.getElementById('majorKeyword').value = '';
     await loadMajors(0, itemsPerPage, searchKeyword,true);
 }
 
@@ -313,7 +313,7 @@ async function loadMajors(offset = 0,limit = 10, keyword = '', isSearch = false)
         }
 
         // Update the count display
-        document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
+        // document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
 
         // Call separated functions for rendering table and pagination
         renderMajorTable(result.data['major'] || []);
@@ -336,21 +336,26 @@ async function loadMajors(offset = 0,limit = 10, keyword = '', isSearch = false)
 function renderMajorTable(majors) {
     const tbody = document.getElementById('majorTableBody');
     tbody.innerHTML = '';
+    let i=0;
 
     if (majors && majors.length > 0) {
         majors.forEach((major) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><input type="checkbox" class="majorCheckbox" value="${major.MajorID}"></td> 
+                <td class="ps-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input majorCheckbox" value="${major.MajorID}">
+                    </div>
+                </td>
+                <td>${++i}</td>
+
                 <td class="idMajor">${major.MajorID}</td>
                 <td>${major.MajorName}</td>
-                <td>
+                <td class="text-end pe-4">
                     <button class="btn btn-outline-primary" id="editMajorBtn">
                         <i class="bi bi-gear-fill"></i> Sửa
                     </button>
-                </td>
-                <td>
-                    <button class="btn btn-outline-danger" id="deleteMajorBtn">
+                                        <button class="btn btn-outline-danger" id="deleteMajorBtn">
                         <i class="bi bi-trash"></i> Xóa
                     </button>
                 </td>

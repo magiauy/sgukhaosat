@@ -19,6 +19,7 @@ async function loadSurveyTable(data) {
         console.error("Required elements not found.");
         return;
     }
+    let i = 0;
 
     // Render table rows
     table.innerHTML = '';
@@ -26,6 +27,12 @@ async function loadSurveyTable(data) {
         const row = document.createElement('tr');
         row.dataset.tooltip = item.FName;
         row.innerHTML = `
+            <td class="ps-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input majorCheckbox" value="${item.FID}">
+                    </div>
+            </td>
+            <td>${++i}</td>
             <td class="text-center" >${item.FID}</td>
             <td class="text-left tooltip-trigger" data-tooltip="${item.FName}">
                 ${limitLineBreaks(item.FName, 2,41)}
@@ -41,8 +48,8 @@ async function loadSurveyTable(data) {
             <td class="text-center">${item.UID}</td>
             <td class="text-center">${item.StatusText}</td>
             <td style="display: flex; justify-content: center; align-items: center; gap: 5px; height: 65px">
-                <a href="${item.uri}" class="btn btn-warning custom-button btn-edit-form">Sửa</a>
-                <button class="btn btn-secondary btn-settings custom-button btn-setting-form" data-id="${item.FID}">
+                <a href="${item.uri}" class="btn btn-outline-warning btn-edit-form"><i class="bi bi-pencil-square"></i></a>
+                <button class="btn btn-outline-secondary btn-settings btn-setting-form" data-id="${item.FID}">
                     <i class="bi bi-gear-fill"></i>
                 </button>
             </td>
@@ -56,14 +63,13 @@ async function loadSurveyTable(data) {
             const row = this.closest('tr');
             const firstTd = row?.querySelector('td');
             if (firstTd) {
-                const fid = firstTd.textContent.trim();
+                const checkbox = firstTd.querySelector('.form-check-input');
+                const fid = checkbox ? checkbox.value : null;
+                console.log("Selected FID:", fid);
                 // console.log(fid);
                 if (this.classList.contains('btn-edit-form')) {
                     window.location.href = `${config.Url}/admin/form/${fid}/edit`;
                 } else if (this.classList.contains('btn-setting-form')) {
-                    const fid = firstTd.textContent.trim();
-
-
                     const form = data.forms.find(item => item.FID == fid);
 
                     await formSettingsModal.open(fid, form);

@@ -64,7 +64,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/admin/results" class="nav-link active" data-section="results">
+                    <a href="/admin/results" class="nav-link" data-section="results">
                         <span class="nav-icon"><i class="bi bi-clipboard-data"></i></span>
                         <span class="nav-text">Kết quả khảo sát</span>
                     </a>

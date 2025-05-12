@@ -8,23 +8,45 @@ import {initFormType} from "../formType.js";
 import {initPosition} from "../position.js";
 
 // Khởi tạo sidebar
-function initSidebar() {
+async function initSidebar() {
     // Thiết lập trạng thái ban đầu từ localStorage (nếu có)
     const sidebarState = localStorage.getItem('sidebarState') || 'expanded';
     const sidebarContainer = document.getElementById('sidebar-container');
-    
+
     if (sidebarState === 'collapsed') {
         sidebarContainer.classList.add('collapsed');
     }
-    
+
     // Xử lý nút toggle sidebar
-    setupToggleSidebar();
-    
+    await setupToggleSidebar();
+
     // Xử lý click trên các menu item
-    setupMenuItemsClick();
-    
+    await setupMenuItemsClick();
+
     // Xử lý responsive
-    handleResponsiveSidebar();
+    await handleResponsiveSidebar();
+
+    // Tìm tới thẻ có data-section trong sidebar
+    const sidebarLinks = document.querySelectorAll("#sidebar .nav-link");
+    //select vào thẻ có data-section là dashboard
+    const dashboardLink = Array.from(sidebarLinks).find(link => link.getAttribute('data-section') === 'dashboard');
+
+    // Nếu không có thẻ nào có data-section là dashboard thì thêm class active vào thẻ đầu tiên
+    if (!dashboardLink) {
+        const firstLink = sidebarLinks[0];
+        if (firstLink) {
+            firstLink.classList.add('active');
+            const section = firstLink.getAttribute('data-section');
+            updateBreadcrumb(firstLink.querySelector('.nav-text').textContent.trim());
+            await loadSectionContent(section);
+        }
+    } else {
+        // Nếu có thẻ nào có data-section là dashboard thì thêm class active vào thẻ đó
+        dashboardLink.classList.add('active');
+        updateBreadcrumb(dashboardLink.querySelector('.nav-text').textContent.trim());
+        await loadSectionContent('dashboard');
+    }
+
 }
 
 // Xử lý toggle sidebar
@@ -172,7 +194,7 @@ async function loadSectionContent(section) {
                 await renderContentRole();
                 break;
             case "surveys":
-                await loadContent2(`/pages/survey`);
+                await loadContent(`/pages/survey`);
                 await loadSurveyFromAPI(0, 10);
                 break;
             case "dashboard":
@@ -291,6 +313,5 @@ function adjustSidebarHeight() {
         console.log('Reset sizes - Content height:', contentHeight);
     }, 50);
 }
-handleClickOnSidebar()
 // Initialize sidebar on page load
 document.addEventListener('DOMContentLoaded', initSidebar);

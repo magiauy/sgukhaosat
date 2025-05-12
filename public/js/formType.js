@@ -1,4 +1,5 @@
 import PaginationComponent from "./component/pagination.js";
+import {callApi} from "./apiService.js";
 
 let currentOffset = 0;
 let itemsPerFormTypePage = 5;
@@ -155,39 +156,22 @@ async function addFType() {
 
     if ((fTypeName && fTypeName.trim() !== "") || (fTypeID && fTypeID.trim() !== "")) {
         try {
-            const response = await fetch('/api/form-type', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    FTypeID: fTypeID,
-                    FTypeName: fTypeName
-                })
+            const result = await callApi('/form-type','POST', {
+                FTypeID: fTypeID,
+                FTypeName: fTypeName
             });
 
-            const result = await response.json();
 
-            if (!response.ok) { 
-                if (response.status === 400) {
-                    toastMessage.innerText = result.message || 'Mã loại khảo sát đã tồn tại';
-                    document.getElementById('fTypeToast').classList.remove('text-bg-success');
-                    document.getElementById('fTypeToast').classList.add('text-bg-danger');
-                    toastElement.show();
-                    return;
-                }
- 
+            if (!result.status) {
                 toastMessage.innerText = result.message || 'Thêm loại khảo sát thất bại';
                 document.getElementById('fTypeToast').classList.remove('text-bg-success');
                 document.getElementById('fTypeToast').classList.add('text-bg-danger');
                 toastElement.show();
                 return;
-            }
-
-            if (response.status === 201) {
+            }else {
                 document.getElementById('fTypeID').value = '';
                 document.getElementById('fTypeName').value = '';
-                toastMessage.innerText = 'Loại khảo sát đã được thêm thành công';
+                toastMessage.innerText = result.message;
                 document.getElementById('fTypeToast').classList.remove('text-bg-danger');
                 document.getElementById('fTypeToast').classList.add('text-bg-success');
             }
@@ -216,12 +200,11 @@ async function addFType() {
 
 async function loadFTypeEdit(id) {
     editingFTypeId = id;
-    const response = await fetch(`/api/form-type/${id}`);
-    const result = await response.json();
+    const result = await callApi(`/form-type/${id}`);
     const fType = result.data;
 
     // Gọi render form ở chế độ "edit", truyền dữ liệu
-    await renderFTypeTable("edit", {
+    await renderFType("edit", {
         fTypeName: fType.FTypeName
     });
 }
@@ -241,25 +224,16 @@ async function updateFType() {
     }
 
     try {
-        const response = await fetch(`/api/form-type/${editingFTypeId}`, {
-
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                FTypeName: fTypeName
-            })
+        const result = await callApi(`/form-type/${editingFTypeId}`, 'PUT',{
+            FTypeName: fTypeName
         });
 
-        const result = await response.json();
-
-        if (response.ok) {
+        if (result.status) {
             toastMessage.innerText = 'Cập nhật loại khảo sát thành công';
             document.getElementById('fTypeToast').classList.remove('text-bg-danger');
             document.getElementById('fTypeToast').classList.add('text-bg-success');
             toastElement.show();
-            loadFTypes(currentOffset, itemsPerFormTypePage);
+            await loadFTypes(currentOffset, itemsPerFormTypePage);
         } else {
             toastMessage.innerText = result.message || 'Cập nhật thất bại';
             document.getElementById('fTypeToast').classList.remove('text-bg-success');
@@ -290,10 +264,9 @@ async function loadFTypes(offset = 0,limit = 10, keyword = '', isSearch = false)
             search: keyword || '',
         });
 
-        const url = `/api/form-type/search?${queryParams.toString()}`;
+        const url = `/form-type/search?${queryParams.toString()}`;
 
-        const response = await fetch(url);
-        const result = await response.json();
+        const result = await callApi(url);
 
         console.log(result);
         console.log(result.data['fType']);
@@ -388,22 +361,9 @@ function renderFTypeTable(fTypes) {
 
 async function deleteFType(id) {
     try {
-        const response = await fetch(`/api/form-type/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        const textResponse = await response.text();
+        const result = await callApi(`/form-type/${id}`, 'DELETE');
 
-        let result;
-        try {
-            result = JSON.parse(textResponse);
-        } catch (e) {
-            return { success: false, message: 'Xóa loại khảo sát thất bại (phản hồi không hợp lệ)' };
-        }
-
-        if (response.ok) {
+        if (result.status) {
             return { success: true, message: 'Xóa loại khảo sát thành công' };
         } else {
             return { success: false, message: result?.message || 'Xóa loại khảo sát thất bại' };

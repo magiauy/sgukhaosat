@@ -2,6 +2,7 @@ import { initQuestion } from "../question/questionInitializer.js";
 import { addTitleDescription, addQuestionItem, renderQuestion } from "../question/questionRenderer.js";
 import { clearBrTag} from "../utils/contentHelpers.js";
 import {setupPasteHandlers} from "../utils/editableContent.js";
+import {callApi} from "../../apiService.js";
 
 function showSurvey(surveyHtml) {
   const formContentContainer = document.querySelector('.form-content');
@@ -47,8 +48,61 @@ function renderSurvey(data=null) {
     showSurvey(surveyHtml);
     initQuestion();
     initForm(data?.form || {});
+    initSelectElements();
     clearBrTag();
     setupPasteHandlers();
+}
+async function initSelectElements() {
+    try {
+        const response = await callApi('/form-type');
+        const typeSelect = document.getElementById('typeid');
+        const typeData = Array.isArray(response) ? response : (response.data || []);
+
+        // Since you're using await, typeData already contains the resolved value
+        typeData.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.FTypeID;
+            option.textContent = type.FTypeName;
+            typeSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading form types:', error);
+    }
+
+    try {
+        const response = await callApi('/major');
+        const majorSelect = document.getElementById('majorid');
+        const majorData = Array.isArray(response) ? response : (response.data || []);
+
+        // Since you're using await, majorData already contains the resolved value
+        majorData.forEach(major => {
+            const option = document.createElement('option');
+            option.value = major.MajorID;
+            option.textContent = major.MajorName;
+            majorSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading form majors:', error);
+    }
+
+    try {
+        const response = await callApi('/period');
+        const periodSelect = document.getElementById('periodid');
+        const periodData = Array.isArray(response) ? response : (response.data || []);
+
+        // Since you're using await, periodData already contains the resolved value
+        periodData.forEach(period => {
+            const option = document.createElement('option');
+            option.value = period.PeriodID;
+            option.textContent = period.PeriodName;
+            periodSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading form periods:', error);
+    }
+
+
+
 }
 
 
@@ -67,8 +121,6 @@ function buildFormHtml(form) {
         <label for="typeid">Loại hình khảo sát:</label>
         <select id="typeid" name="typeid" class="form-control">
           <option value="">Chọn loại</option>
-          <option value="FT001" ${form.TypeID === 'FT001' ? 'selected' : ''}>Chuẩn đầu ra</option>
-          <option value="FT002" ${form.TypeID === 'FT002' ? 'selected' : ''}>Chương trình đào tạo</option>
         </select>
       </div>
       <div style="flex: 1;">

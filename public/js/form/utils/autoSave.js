@@ -22,6 +22,8 @@ function startAutoSave() {
     const formId = getFormId();
     const result = collectQuestionData();
 
+    if (result === null) return;
+
     if (formId) {
       callApi(`/draft?id=${formId}`, "PUT", result).then(r => {
         if (r['status']) {

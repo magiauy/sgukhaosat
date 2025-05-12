@@ -20,11 +20,9 @@ class jwt_helper
             return null;
         }
     }
-    // static function createPageJWT($permission, $secret) {
-    //     $payload = [
-    //         "permission" => $permission,
-    //         "exp" => time() + 60 //seconds
-    //     ];
-    //     return JWT::encode($payload, $secret, 'HS256');
-    // }
+    public function createRefreshToken($user, mixed $secret, int $int)
+    {
+        $payload = array_merge($user, ["exp" => time() + $int]);
+        return JWT::encode($payload, $secret, 'HS256');
+    }
 }

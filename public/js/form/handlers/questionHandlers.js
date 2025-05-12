@@ -2,6 +2,7 @@ import { addTitleDescription, addQuestionItem } from "../question/questionRender
 import { focusNewItem } from "../utils/domHelpers.js";
 import { clearBrTag } from "../utils/contentHelpers.js";
 import { initQuestionSelects } from "../question/questionSelect.js";
+import {moreActionMenu} from "../ui/menuActions.js";
 
 function setupQuestionHandlers() {
     // Add title/description
@@ -22,6 +23,7 @@ function setupQuestionHandlers() {
         }
 
         initQuestionSelects();
+        moreActionMenu()
         focusNewItem(newItem);
         clearBrTag();
     });
@@ -42,9 +44,9 @@ function setupQuestionHandlers() {
             questionsContainer.insertAdjacentHTML('beforeend', addQuestionItem());
             newItem = questionsContainer.lastElementChild;
         }
-
         initQuestionSelects();
         clearBrTag();
+        moreActionMenu()
         focusNewItem(newItem);
         document.querySelector('.btn-save').disabled = false;
     });

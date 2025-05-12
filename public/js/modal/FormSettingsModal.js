@@ -225,9 +225,8 @@ export default class FormSettingsModal {
             const availableUsersList = document.getElementById('availableUsersList');
             availableUsersList.innerHTML = '<tr><td colspan="3" class="text-center py-3"><div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>';
 
-            const response = await fetch(`${this.config.apiUrl}/userWithoutWhitelist/${formId}`);
-            const data = await response.json();
-            const users = data['data'];
+            const data = await callApi(`/userWithoutWhitelist/${formId}`);
+            const users = data.data;
 
             // Render users
             if (users.length === 0) {
@@ -499,15 +498,8 @@ export default class FormSettingsModal {
         try {
             this.showToast('info', 'Đang thêm người dùng vào danh sách...');
 
-            const response = await fetch(`${this.config.apiUrl}/forms/${formId}/whitelist`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ users })
-            });
+            const result = callApi(`/forms/${formId}/whitelist`, 'POST',users);
 
-            const result = await response.json();
 
             if (!result.status) {
                 this.showToast('error', result.message || 'Không thể thêm người dùng vào danh sách');
@@ -534,13 +526,7 @@ export default class FormSettingsModal {
         try {
             this.showToast('info', 'Đang xóa người dùng khỏi danh sách...');
 
-            const response = await fetch(`${this.config.apiUrl}/forms/${formId}/whitelist`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ users })
-            });
+            const response = await callApi(`/forms/${formId}/whitelist`, 'DELETE',users);
 
             const result = await response.json();
 
@@ -665,7 +651,11 @@ export default class FormSettingsModal {
             modal.hide();
 
             // Reload the page or update the UI as needed
-            window.location.reload();
+            // window.location.reload();
+            const formsManagerModule = await import('../formsManager.js');
+            await formsManagerModule.loadSurveyFromAPI(0, 10); // Reload first page with default limit
+            // Show success message
+            this.showToast('success', 'Đã cập nhật danh sách biểu mẫu');
         } catch (error) {
             console.error("Error deleting form:", error);
             this.showToast('error', 'Lỗi khi xóa biểu mẫu');
@@ -703,8 +693,7 @@ export default class FormSettingsModal {
                 window.location.href = `${this.config.Url}/admin/form/${result.data.formId}/edit?status=draft`;
             } else {
                 // Reload the table to show the new form in the list
-                const formsManagerModule = await import('../formsManager.js');
-                await formsManagerModule.loadSurveyFromAPI(0, 10); // Reload first page with default limit
+
                 this.showToast('success', 'Đã cập nhật danh sách biểu mẫu');
             }
             // Reload the page or update the UI as needed

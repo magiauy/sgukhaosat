@@ -113,6 +113,8 @@ class UserService implements IAuthService
                 
                 $jwtHelper = new jwt_helper();
                 $secret = require __DIR__ . '/../../config/JwtConfig.php';
+//                error_log("Secret access: " . $secret['access_secret']);
+//                error_log("Secret refresh: " . $secret['refresh_secret']);
                 
                 // Debug log - remove in production
 
@@ -133,13 +135,15 @@ class UserService implements IAuthService
 
                 // Generate JWT token
                 try {
-                    $user['token'] = $jwtHelper->createJWT($user, $secret, 3600);
+                    $user['token'] = $jwtHelper->createJWT($user, $secret['access_secret'], 600);
+                    $user['refreshToken'] = $jwtHelper->createRefreshToken($user, $secret['refresh_secret'], 604800);
                 } catch (Exception $e) {
                     error_log("JWT creation failed: " . $e->getMessage());
                     throw new Exception("Lỗi tạo token: " . $e->getMessage(), 500);
                 }
                 
                 // Clean up sensitive data
+                error_log(json_encode($user['refreshToken']));
                 unset($user['user']['password']);
                 
                 return $user;
@@ -193,7 +197,7 @@ class UserService implements IAuthService
         $filteredUsers = array_filter($allUsers, function($user) use ($whitelistUIDs) {
             return !in_array($user['email'], $whitelistUIDs);
         });
-        return array_values($filteredUsers); // Re-index array
+        return $filteredUsers; // Re-index array
     }
 
     /**

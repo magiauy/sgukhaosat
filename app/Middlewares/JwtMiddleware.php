@@ -7,6 +7,7 @@ use Core\Response;
 use Core\Request;
 use Core\jwt_helper;
 use Controllers\FormController;
+use http\Cookie;
 use http\Message\Body;
 
 class JwtMiddleware
@@ -32,7 +33,7 @@ class JwtMiddleware
             }// Assuming you have a method to verify the token
             $jwtHelper = new jwt_helper();
             $secret = require __DIR__ . '/../../config/JwtConfig.php';
-            $decoded = $jwtHelper->verifyJWT($token,$secret);
+            $decoded = $jwtHelper->verifyJWT($token,$secret['access_secret']);
             if (!$decoded) {
                 $response->json([
                     'error' => 'Invalid or expired token'
@@ -78,7 +79,7 @@ class JwtMiddleware
             $token = str_replace('Bearer ', '', $token);
             $jwtHelper = new jwt_helper();
             $secret = require __DIR__ . '/../../config/JwtConfig.php';
-            $decoded = $jwtHelper->verifyJWT($token, $secret);
+            $decoded = $jwtHelper->verifyJWT($token, $secret['access_secret']);
 
             if (!$decoded || !isset($decoded->user)) {
                 return 401;
@@ -116,10 +117,11 @@ class JwtMiddleware
             }// Assuming you have a method to verify the token
             $jwtHelper = new jwt_helper();
             $secret = require __DIR__ . '/../../config/JwtConfig.php';
-            $decoded = $jwtHelper->verifyJWT($token,$secret);
+            $decoded = $jwtHelper->verifyJWT($token,$secret['access_secret']);
             if (!$decoded) {
                 return 401;
             }//Don't have
+            error_log("Decoded token: " . json_encode($decoded));
             if ($permission) {
                 $permissions = $decoded->permissions;
                 $hasPermission = false;
@@ -141,5 +143,56 @@ class JwtMiddleware
             return 500;
         }
     }
+    /**
+     * Handles refresh token validation and generates a new access token
+     *
+     * @param Request $request The request object containing the refresh token
+     * @param Response $response The response object
+     * @return void
+     */
+    public static function refresh(Request $request, Response $response): void
+    {
+        try {
+            // Get refresh token from cookie
+            $refreshToken = $_COOKIE['refresh_token'] ?? null;
+
+            if (!$refreshToken) {
+                $response->json([
+                    'error' => 'Refresh token not provided'
+                ], 401);
+                return;
+            }
+
+            // Verify the refresh token
+            $jwtHelper = new jwt_helper();
+            $secret = require __DIR__ . '/../../config/JwtConfig.php';
+            $decoded = $jwtHelper->verifyJWT($refreshToken, $secret['refresh_secret']);
+
+            if (!$decoded) {
+                $response->json([
+                    'error' => 'Invalid or expired refresh token'
+                ], 401);
+                return;
+            }
+
+            // Generate a new access token using data from refresh token
+            $userData = (array)$decoded;
+            $accessToken = jwt_helper::createJWT($userData, $secret['access_secret'], 600); // 10 minutes expiry
+
+            // Return the new access token in the response
+            setcookie('access_token', $accessToken, time() + 600, '/', '', false, true);
+
+            $response->json([
+                'access_token' => $accessToken,
+                'status' => true,
+                ], 200);
+
+        } catch (\Exception $e) {
+            $response->json([
+                'error' => 'An error occurred while refreshing token: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 }

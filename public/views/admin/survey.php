@@ -5,28 +5,30 @@
         <h5 class="mb-3">Bộ lọc</h5>
         <div class="row">
             <div class="col-md-2">
-                <select class="form-select role-select">
+                <select class="form-select form-type-select" id="form-type-select">
                     <option value="all" selected>Loại hình khảo sát</option>
                 </select>
             </div>
 
             <div class="col-md-2">
-                <select class="form-select status-select">
+                <select class="form-select major-select" id="major-select">
                     <option value="all" selected>Ngành</option>
 
                 </select>
             </div>
             <div class="col-md-2">
-                <select class="form-select status-select">
+                <select class="form-select period-select" id="period-select">
                     <option value="all" selected>Giai đoạn</option>
 
                 </select>
             </div>
+            <div class="col-md-2">
+                <input id="search-form" type="text" class="form-control" placeholder="Tìm kiếm tên khảo sát" style="max-width: 200px;">
+            </div>
 
-
-            <div class="col-md-3 d-flex justify-content-end gap-2">
-                <button class="btn btn-secondary delete-filter-user">Xóa lọc</button>
-                <button class="btn btn-primary filter-user">Lọc</button>
+            <div class="col-md-3 d-flex  gap-2">
+                <button class="btn btn-secondary btn-reset">Xóa lọc</button>
+                <button class="btn btn-primary btn-filter">Lọc</button>
             </div>
         </div>
     </section>
@@ -38,7 +40,6 @@
         <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded">
             <h5 class="m-0">Quản lý tài khoản</h5>
             <div class="d-flex align-items-center gap-2">
-                <input id="search-email" type="text" class="form-control" placeholder="Tìm kiếm tên khảo sát" style="max-width: 200px;">
                 <button class="btn btn-primary btn-add-form">Tạo khảo sát</button>
             </div>
         </div>

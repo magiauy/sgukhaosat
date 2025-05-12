@@ -194,18 +194,21 @@ $answerController = new AnswerController();
     $router->get('/api/draft/user', fn() => $draftController->getByUserID($response, $request), ['uid']);
     $router->get('/api/draft/id/generate', fn() => $draftController->idGenerate($response, $request));
 
-    // Admin Form Page
-    $router->get('/api/pages/survey', fn() =>
-        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", function ($request, $response) use ($formController) {
+    $router->get('/api/pages/{page}', function($args) use ($request, $response) {
+        $page = $args['page'] ?? 'dashboard';
+        JwtMiddleware::authenticate($request, $response, "ACCESS_ADMIN", function ($request, $response) use ($page) {
+            // Trả về phần HTML partial
             ob_start();
-            require __DIR__ . "/../../public/views/admin/Manage_Form.php";
+            error_log("Page: $page");
+            require __DIR__ . "/../../public/views/admin/{$page}.php";
             $html = ob_get_clean();
-            $response->json([
+
+            return $response->json([
                 'status' => true,
                 'html' => $html
             ]);
-        })
-    );
+        });
+    });
 
           // Admin Form APIs
         $router->get('/api/admin/form', fn() =>
@@ -224,16 +227,23 @@ $answerController = new AnswerController();
             $_GET['id'] = (int) $params['id'];
             JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getById($res, $req));
         });
-        $router->delete('/api/admin/form/{id}', fn() =>
-            JwtMiddleware::authenticate($request, $response, "DELETE_FORM", fn($req, $res) => $formController->delete($res, $req)));
+        $router->delete('/api/admin/form/{id}', function($params) use ($request, $response, $formController) {
+            $_GET['id'] = (int) $params['id'];
+            JwtMiddleware::authenticate($request, $response, "DELETE_FORM",
+                fn($req, $res) => $formController->delete($res, $req));
+        });
         $router->post('/api/admin/form/{id}/duplicate', fn() =>
             JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->duplicate($res, $req)));
         // Form Pagination
         $router->get('/api/admin/forms/pagination', fn() =>
             JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getFormWithPagination($req, $res))
         );
+        $router->post('/api/admin/forms/pagination', fn() =>
+        JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getFormWithSearchPagination($req, $res))
+        );
 
-        // Question Type
+
+// Question Type
         $router->get('/api/question_type', fn() =>
             JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $questionTypeController->getAll($res, $req))
         );
@@ -286,5 +296,12 @@ $answerController = new AnswerController();
         $router->get('/api/answer/statistics', fn() =>
             JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getAnswerStatistics($res, $req))
         , ['formId', 'questionId']);
+
+        // Auth APIs
+        $router->post('/api/auth/refresh', function() use ($response, $request) {
+            JwtMiddleware::refresh($request, $response);
+        });
+
+
     // Xử lý routing
     $router->resolve($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

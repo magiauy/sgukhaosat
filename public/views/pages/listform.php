@@ -1,36 +1,22 @@
 <?php
 
-use Services\Interface\IFormService;
 use Services\FormService;
-use Core\jwt_helper;
-use Middlewares\JwtMiddleware;
-
-$token = $_COOKIE['access_token'] ?? null;
-$secret = require __DIR__ . '/../../../config/JwtConfig.php';
-
-// Redirect nếu không có token
-if (!$token) {
-    header('Location: /login');
-    exit();
-}
-
-// Decode JWT
-$token = str_replace('Bearer ', '', $token);
-$decode = jwt_helper::verifyJWT($token, $secret);
-
-if (!$decode) {
-    http_response_code(401);
-    header('Location: /login');
-    exit();
-}
-
-$user = $decode->user ?? null;
+use Core\AuthHelper;
 
 
+$data = AuthHelper::verifyUserToken();
+$user = $data['user'] ?? null;
 
 $formService = new FormService();
 //var_dump($user->email);
-$data = $formService->getFormWithWhitelist($user->email);
+try {
+    $data = $formService->getFormWithWhitelist($user->email);
+} catch (Exception $e) {
+    // Handle the exception, e.g., log it or show an error message
+    $data = [];
+    $errorMessage = "An error occurred while fetching the forms: " . $e->getMessage();
+
+}
 $forms = $data['forms'] ?? [];
 include __DIR__ . '/../../views/layouts/header.php';
 include __DIR__ . '/../../views/layouts/nav-bar.php';
@@ -49,9 +35,9 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                         <div class="card-body">
                                             <h5 class="card-title text-truncate"><?= htmlspecialchars($form['FName']) ?></h5>
                                             <p class="card-text">
-                                                <strong>Loại:</strong> <?= htmlspecialchars($form['TypeID']) ?><br>
-                                                <strong>Mã Ngành:</strong> <?= htmlspecialchars($form['MajorID']) ?><br>
-                                                <strong>Chu kỳ:</strong> <?= htmlspecialchars($form['PeriodID']) ?>
+                                                <strong>Loại:</strong> <?= htmlspecialchars($form['TypeName']) ?><br>
+                                                <strong>Ngành:</strong> <?= htmlspecialchars($form['MajorName']) ?><br>
+                                                <strong>Chu kỳ:</strong> <?= htmlspecialchars($form['PeriodName']) ?>
                                             </p>
                                         </div>
                                     </div>

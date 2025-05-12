@@ -1,23 +1,17 @@
 <?php
-use Core\jwt_helper;
+use Core\AuthHelper;
 use Services\FormService;
 
 require_once __DIR__ . '/../../../app/Services/FormService.php';
 
-$token = $_COOKIE['access_token'] ?? null;
-$secret = require __DIR__ . '/../../../config/JwtConfig.php';
 
-// Redirect nếu không có token
-if (!$token) {
-    header('Location: /login');
-    exit();
-}
+error_log("Form editor page loaded");
+$data = AuthHelper::verifyUserToken();
 
-// Decode JWT
-$token = str_replace('Bearer ', '', $token);
-$decode = jwt_helper::verifyJWT($token, $secret);
-$user = $decode->user ?? null;
-$permissions = $decode->permissions ?? [];
+error_log("Decoded token: " . json_encode($data['permissions']));
+
+$user = $data['user'] ?? null;
+$permissions = $data['permissions'] ?? [];
 
 // Kiểm tra quyền
 function hasPermission(array $permissions, string $permID): bool {

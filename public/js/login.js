@@ -40,7 +40,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (response.ok) {
                 // localStorage.setItem("token", data.token);
                 showPopup(data['message'], "success");
-                document.cookie = `access_token=${data['data']['token']}; path=/; max-age=3600;`;
+                document.cookie = `access_token=${data['data']['token']}; path=/; max-age=600;`;
+                document.cookie = `refresh_token=${data['data']['refreshToken']}; path=/; max-age=604800;`;
                 // Chuyển hướng đến trang chính
                 setTimeout(() => {
                     window.location.href = "/";

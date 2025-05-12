@@ -287,10 +287,10 @@
     function renderQuestion(question) {
         const descriptionItem = question.children.find(option => option.QTypeID === "DESCRIPTION") || null;
 
-        let html = `
-            <div class="card shadow-sm p-3 rounded question-item questionContainer" id="q${question.QID}" data-question-id="${question.QID}" data-question-type="${question.QTypeID}">
-                <p class="fw-semibold">${question.QIndex}. ${question.QContent}</p>
-        `;
+let html = `
+    <div class="card shadow-sm p-3 rounded question-item questionContainer" id="q${question.QID}" data-question-id="${question.QID}" data-question-type="${question.QTypeID}">
+        <p class="fw-semibold">${question.QIndex}${question.QRequired === 1 ? '<span class="text-danger">*</span>' : ''}. ${question.QContent}</p>
+`;
         if (descriptionItem) {
             html += `
             <p>${descriptionItem.QContent}</p>`;

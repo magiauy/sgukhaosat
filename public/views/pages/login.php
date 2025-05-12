@@ -1,24 +1,22 @@
 <?php
 include __DIR__ . '/../../views/layouts/header.php';
-use Core\jwt_helper;
-$token = $_COOKIE['access_token'] ?? null;
-$secret = require __DIR__ . '/../../../config/JwtConfig.php';
 
-if ($token) {
-    if (jwt_helper::verifyJWT($token,$secret)) {
-        $decode = jwt_helper::verifyJWT($token,$secret);
-        $user = $decode->user ?? null;
-        if ($user) {
-            header('Location: /');
-            exit();
-        }
-    } else {
-        setcookie('access_token', '', time() - 3600, '/');
-        header('Location: /login');
+use Core\AuthHelper;
+
+try {
+    $data = AuthHelper::verifyUserTokenWithoutRedirect();
+    $user = $data['user'] ?? null;
+    if ($user) {
+        // User is logged in, redirect to home page
+        header('Location: /');
         exit();
+    }else{
+        // User is not logged in, show login page
+        $user = null;
     }
+} catch (\Exception $e) {
+    $user = null;
 }
-$user = null;
 require_once __DIR__ .'/../layouts/nav-bar.php'
 ?>
 

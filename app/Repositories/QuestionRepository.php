@@ -45,7 +45,7 @@ class QuestionRepository implements IQuestionRepository
                 throw new \Exception("Không có dữ liệu để thêm!", 400);
             }
             $FID = $form;
-            $mainSql = "INSERT INTO question (QContent, QParent, QTypeID, FID, QIndex) VALUES (:QContent, :QParent, :QTypeID, :FID, :QIndex)";
+            $mainSql = "INSERT INTO question (QContent, QParent, QTypeID, FID, QIndex,QRequired) VALUES (:QContent, :QParent, :QTypeID, :FID, :QIndex, :QRequired)";
             $stmt = $pdo->prepare($mainSql);
             foreach ($data as $question) {
                 $params = [
@@ -53,12 +53,8 @@ class QuestionRepository implements IQuestionRepository
                     ':QParent' => $question['QParent'] ?? null,
                     ':QTypeID' => $question['QTypeID'] ?? null,
                     ':FID' => $FID ?? null,
-                    ':QIndex' => $question['QIndex'] ?? null
-//                        'QContent' => $question->QContent ?? null,
-//                        'QParent' => $question->QParent ?? null,
-//                        'QTypeID' => $question->QTypeID ?? null,
-//                        'FID' => $FID ?? null,
-//                        'QIndex' => $question->QIndex ?? null
+                    ':QIndex' => $question['QIndex'] ?? null,
+                    ':QRequired' => $question['QRequired'] ?? null
                 ];
 
                 $stmt->execute($params);
@@ -92,11 +88,13 @@ class QuestionRepository implements IQuestionRepository
                 throw new Exception("Không có dữ liệu để cập nhật!", 400);
             }
 
-            $sql = "UPDATE question SET QIndex = :QIndex WHERE QID = :QID";
+            $sql = "UPDATE question SET QIndex = :QIndex ,QRequired = :QRequired WHERE QID = :QID";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 ':QID' => $id,
-                ':QIndex' => $data['QIndex']
+                ':QIndex' => $data['QIndex'],
+                ':QRequired' => $data['QRequired'] ?? null
+
             ]);
 
             //Update index của các câu hỏi con
@@ -189,6 +187,15 @@ class QuestionRepository implements IQuestionRepository
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([':FID' => $formID]);
             $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);// Tạo danh sách cây câu hỏi
+            foreach ($questions as &$question) {
+                $question['QID'] = (int)$question['QID'];
+                $question['FID'] = (int)$question['FID'];
+                $question['QIndex'] = (int)$question['QIndex'];
+                $question['QParent'] = $question['QParent'] !== null ? (int)$question['QParent'] : null;
+                $question['QRequired'] = (int)$question['QRequired'];
+                $question['isDeleted'] = (int)$question['isDeleted'];
+                // Cast any other integer fields as needed
+            }
             return $this->buildQuestionTree($questions);
         } catch (Exception $e) {
             throw new \Exception("Lỗi khi lấy câu hỏi: " . $e->getMessage(), 500);

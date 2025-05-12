@@ -164,7 +164,6 @@ freshBtnAddForm.addEventListener('click', async function() {
 }
 
 
-
     cleanupTooltips();
 // Call the function to add tooltip functionality
     addTooltips();
@@ -200,7 +199,22 @@ export async function loadSurveyFromAPI(offset, limit) {
             });
 
         }else {
-             data = await callApi(`/admin/forms/pagination?offset=${offset}&limit=${limit}`);
+            // Check if search-form has a value to enable simple search by form name
+            const searchValue = document.getElementById('search-form')?.value;
+            if (searchValue && searchValue.trim() !== '') {
+                // Call with only search parameter, leaving other filter fields empty
+                data = await callApi(`/admin/forms/pagination?offset=${offset}&limit=${limit}&isFilter=true`, 'POST', {
+                    filter: {
+                        FName: searchValue,
+                        TypeID: 'all',
+                        MajorID: 'all',
+                        PeriodID: 'all'
+                    }
+                });
+            } else {
+                // Standard pagination without any filtering
+                data = await callApi(`/admin/forms/pagination?offset=${offset}&limit=${limit}`);
+            }
         }
         if (!data['status']) {
             showSwalToast('Không tìm thấy khảo sát nào', 'error');
@@ -339,19 +353,39 @@ function setupFilterInputs() {
             });
         }
     });
-    const btnFilter = document.querySelector('.btn-filter');
-    if (btnFilter) {
-        btnFilter.addEventListener('click', async function () {
-            isFilter = true;
+    const btnSearch = document.querySelector('.btn-search');
+    if (btnSearch) {
+        btnSearch.addEventListener('click', async function () {
             const offset = 0;
             await loadSurveyFromAPI(offset, currentLimit);
         });
+        searchInput.addEventListener('keypress', async function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const offset = 0;
+                isSearch = true;
+                await loadSurveyFromAPI(offset, currentLimit);
+            }
+        });
     }
+    const btnFilter = document.querySelector('.btn-filter');
+    {
+        if (btnFilter) {
+            btnFilter.replaceWith(btnFilter.cloneNode(true));
+            const freshBtnFilter = document.querySelector('.btn-filter');
+            freshBtnFilter.addEventListener('click', async function () {
+                isFilter = true;
+                const offset = 0;
+                await loadSurveyFromAPI(offset, currentLimit);
+            });
+        }
+
+    }
+
     const btnReset = document.querySelector('.btn-reset');
     if (btnReset) {
         btnReset.addEventListener('click', async function () {
             isFilter = false;
-            searchInput.value = '';
             formTypeSelect.value = 'all';
             majorSelect.value = 'all';
             periodSelect.value = 'all';
@@ -366,6 +400,7 @@ function setupFilterInputs() {
 let currentLimit = 10;
 let isHavePagination = false;
 let isFilter = false;
+let isSearch = false;
 let isFirstLoad = true;
 const pagination = new PaginationComponent({
     containerId: 'pagination',

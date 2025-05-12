@@ -5,17 +5,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const logout = document.getElementById('logout');
     if (logout) {
         logout.addEventListener('click', async (e) => {
-            // e.preventDefault();
-            console.log("Logout clicked");
-            sessionStorage.clear();
-            document.cookie = `access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
-            document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+            e.preventDefault();
             await fetch(`${config.apiUrl}/auth/logout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
+            sessionStorage.clear();
+            document.cookie = `access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+            document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+            window.location.href = '/';
         });
     }
 })

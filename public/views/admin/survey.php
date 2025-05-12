@@ -13,7 +13,7 @@
                                     </div>
                                     <div class="col-lg-5 col-md-6">
                                         <div class="d-flex gap-2 flex-wrap">
-                                            <button class="btn btn-primary rounded-3 px-4 py-2 btn-filter">
+                                            <button class="btn btn-primary rounded-3 px-4 py-2 btn-search">
                                                 <i class="bi bi-search me-2"></i> Tìm kiếm
                                             </button>
                                             <button class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center btn-add-form">

@@ -1,6 +1,7 @@
 import { callApi } from "../../apiService.js";
 import { renderContentUser, renderListAccount } from "./accountAdmin.js";
 import PaginationComponent from "../../component/pagination.js";
+import { showSwalToast } from "../../form/utils/notifications.js";
 
 const pagination = new PaginationComponent({
     containerId: 'pagination-account',
@@ -29,6 +30,7 @@ export function filterAccount() {
         
         // Hiển thị lại dữ liệu không lọc
         await renderTableAccountOnPagination(0, 10);
+        showSwalToast("Đã xóa bộ lọc", "success");
     };
 }
 
@@ -41,6 +43,15 @@ async function renderTableAccountOnPagination(offset, limit) {
         const toDateCreate = document.getElementById("create-to-date").value;
         const fromDateUpdate = document.getElementById("update-from-date").value;
         const toDateUpdate = document.getElementById("update-to-date").value;
+
+        if(fromDateCreate && toDateCreate && new Date(fromDateCreate) > new Date(toDateCreate)) {
+            showSwalToast("Ngày bắt đầu không được lớn hơn ngày kết thúc", "warning");
+            return;
+        }
+        if(fromDateUpdate && toDateUpdate && new Date(fromDateUpdate) > new Date(toDateUpdate)) {
+            showSwalToast("Ngày bắt đầu không được lớn hơn ngày kết thúc", "warning");
+            return;
+        }
         
         // Chuẩn bị dữ liệu lọc
         const filterData = {
@@ -73,6 +84,8 @@ async function renderTableAccountOnPagination(offset, limit) {
                 limit: limit,
                 totalItems: result.total
             });
+
+            showSwalToast("Đã lọc tài khoản thành công", "success");
         } catch (error) {
             console.error("Lỗi khi lọc tài khoản:", error);
             // Hiển thị thông báo lỗi cho người dùng

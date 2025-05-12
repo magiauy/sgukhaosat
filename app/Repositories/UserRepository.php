@@ -357,4 +357,18 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
         ]);
         return $stmt->rowCount() === 1;
     }
+
+
+    /**
+     * Kiểm tra email đã tồn tại trong database chưa
+     * @param string $email Email cần kiểm tra
+     * @return bool True nếu email đã tồn tại, False nếu chưa
+     */
+    public function checkEmailExists($email)
+    {
+        $sql = 'SELECT COUNT(*) FROM users WHERE email = :email';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['email' => $email]);
+        return $stmt->fetchColumn() > 0;
+    }
 }

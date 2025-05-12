@@ -34,9 +34,6 @@ class UserService implements IAuthService
 
     public function create($data): bool
     {
-        // var_dump($data);
-        // error_log(json_encode($data));
-
         $data['roleID'] = !empty($data['roleID']) ? $data['roleID'] : '1';
         //kiểm tra dữ liệu rỗng
         $options = ['cost' => 8];
@@ -44,9 +41,6 @@ class UserService implements IAuthService
         if (!is_array(reset($data))) {
             $data = [$data];
         }
-        // error_log(json_encode($data));
-        // createUsersInBulk($data);
-        // error_log($data);
 
         foreach ($data as &$row) {
             // $row['password'] = (string) $row['password'];
@@ -542,5 +536,15 @@ class UserService implements IAuthService
             error_log("Error updating token after user update: " . $th->getMessage());
             throw new \Exception('Lỗi khi cập nhật thông tin người dùng', 500);
         } 
+    }
+
+    /**
+     * Kiểm tra email đã tồn tại chưa
+     * @param string $email Email cần kiểm tra
+     * @return bool True nếu email đã tồn tại
+     */
+    public function isEmailExists($email): bool
+    {
+        return $this->userRepository->checkEmailExists($email);
     }
 }

@@ -1,4 +1,9 @@
 
+
+.swal-toast-container {
+    z-index: 9999 !important; 
+}
+
 .footer-custom {
     background-color: #0066a1; /* Màu xanh nền */
 }

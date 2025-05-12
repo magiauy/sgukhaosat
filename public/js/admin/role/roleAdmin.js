@@ -6,6 +6,102 @@ import { search } from "./searchRole.js";
 import { filter } from "./filterRole.js";
 import PaginationComponent from "../../component/pagination.js";
 
+// Function to convert table to mobile view
+function setupResponsiveTable() {
+    const tableElement = document.getElementById('table-role');
+    if (!tableElement) return;
+    
+    function adjustTableForScreenSize() {
+        if (window.innerWidth < 768) {
+            tableElement.classList.add('mobile-card-view');
+            convertToMobileCards();
+        } else {
+            tableElement.classList.remove('mobile-card-view');
+            // Restore original table if needed
+            if (document.querySelectorAll('.mobile-role-header').length > 0) {
+                renderTableOnPagination(
+                    (pagination.currentPage - 1) * pagination.limit, 
+                    pagination.limit
+                );
+            }
+        }
+    }
+    
+    // Call once on init
+    adjustTableForScreenSize();
+    
+    // Setup resize listener
+    window.removeEventListener('resize', adjustTableForScreenSize);
+    window.addEventListener('resize', adjustTableForScreenSize);
+}
+
+// Function to convert table rows to mobile cards
+function convertToMobileCards() {
+    const rows = document.querySelectorAll('#table-role tbody tr');
+    
+    rows.forEach(row => {
+        if (row.querySelector('.mobile-role-header')) return; // Already converted
+        
+        const checkbox = row.querySelector('td:nth-child(1)');
+        const index = row.querySelector('td:nth-child(2) .badge')?.textContent || '';
+        const roleId = row.querySelector('td:nth-child(3) .fw-medium')?.textContent || '';
+        const roleName = row.querySelector('td:nth-child(4) .fw-medium')?.textContent || '';
+        const createdDate = row.querySelector('td:nth-child(5) .text-secondary')?.textContent || '';
+        const updatedDate = row.querySelector('td:nth-child(6) .text-secondary')?.textContent || '';
+        const actions = row.querySelector('td:nth-child(7) .d-flex')?.innerHTML || '';
+        
+        // Create mobile header
+        const mobileHeader = document.createElement('div');
+        mobileHeader.className = 'mobile-role-header';
+        mobileHeader.innerHTML = `
+            <div>
+                <span class="badge bg-light text-dark rounded-pill px-2">${index}</span>
+                <span class="ms-2 fw-medium text-primary">${roleId}</span>
+            </div>
+            ${checkbox.outerHTML}
+        `;
+        
+        // Create mobile info section
+        const mobileInfo = document.createElement('div');
+        mobileInfo.className = 'mobile-role-info';
+        mobileInfo.innerHTML = `
+            <div class="data-row">
+                <span class="data-label">Tên vai trò:</span>
+                <span class="fw-medium">${roleName}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Thời gian tạo:</span>
+                <span class="d-flex align-items-center">
+                    <i class="bi bi-calendar-date text-primary me-2"></i>
+                    <span class="text-secondary">${createdDate}</span>
+                </span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Thời gian cập nhật:</span>
+                <span class="d-flex align-items-center">
+                    <i class="bi bi-clock-history text-primary me-2"></i>
+                    <span class="text-secondary">${updatedDate}</span>
+                </span>
+            </div>
+        `;
+        
+        // Create mobile actions section
+        const mobileActions = document.createElement('div');
+        mobileActions.className = 'mobile-role-actions';
+        mobileActions.innerHTML = actions;
+        
+        // Clear the row and add our new elements
+        row.innerHTML = '';
+        row.appendChild(mobileHeader);
+        row.appendChild(mobileInfo);
+        row.appendChild(mobileActions);
+    });
+    
+    // Reattach event listeners after DOM changes
+    logicCheckbox();
+    handleDeleteRole();
+    showEditRole();
+}
 
 export let selectedRoleIDs = new Set();
 
@@ -42,6 +138,16 @@ const pagination = new PaginationComponent({
 });
 
 export async function renderContentRole(){
+    // Add CSS link for responsive tables
+    if (!document.getElementById('responsive-tables-css')) {
+        const cssLink = document.createElement('link');
+        cssLink.id = 'responsive-tables-css';
+        cssLink.rel = 'stylesheet';
+        cssLink.href = '/public/css/responsive-tables.css';
+        document.head.appendChild(cssLink);
+    }
+
+
     document.querySelector("#content").innerHTML = `
     <div class="container-fluid p-0">
         <!-- Card chính chứa nội dung -->
@@ -189,7 +295,12 @@ export async function renderContentRole(){
     `;
 
    
-    renderTableOnPagination(0, 10); // Hiển thị 10 vai trò đầu tiên
+    // renderTableOnPagination(0, 10); // Hiển thị 10 vai trò đầu tiên
+     // Call setupResponsiveTable after table is rendered
+    renderTableOnPagination(0, 10).then(() => {
+        setupResponsiveTable();
+    });
+
 
     showPopupAddRole(); // Khi ấn thêm vai trò
     handleDeleteSelectedRoles(); // Xóa vai trò đã chọn
@@ -263,6 +374,11 @@ export async function renderTableRole(roles) {
     logicCheckbox();
     handleDeleteRole(); // Xóa vai trò
     showEditRole(); // Sửa vai trò
+
+     // After rendering is complete, setup responsive again if needed
+    if (window.innerWidth < 768) {
+        convertToMobileCards();
+    }
 }
 
 

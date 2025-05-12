@@ -1,5 +1,7 @@
 import { callApi } from "./apiService.js";
 import { renderFormDetailAccount } from "./admin/account/detailAccount.js";
+import { showSwalToast } from "./form/utils/notifications.js";
+import { validatePhoneNumber } from "./checkInput.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     const logout = document.getElementById('logout');
@@ -246,7 +248,16 @@ function handleClickEditInformation(){
             const fullName = document.querySelector("#account-fullName").value;
             const phone = document.querySelector("#account-phone").value;
             const position = document.querySelector("#account-position").value;
+            const checkPhone = validatePhoneNumber(phone);
 
+            if(fullName === "" || phone === ""){
+                showSwalToast("Vui lòng điền đầy đủ thông tin", "warning");
+                return;
+            }
+            if(!checkPhone.valid){
+                showSwalToast(checkPhone.message, "warning");
+                return;
+            }
             let data = {
                 email,
                 fullName,
@@ -256,7 +267,8 @@ function handleClickEditInformation(){
             console.log(data);
             try {
                 let response = await callApi('/user/information', "POST", data);
-                console.log(response); 
+                // console.log(response.status);
+                showSwalToast("Cập nhật thông tin thành công", "success");
                 document.querySelector("#username").innerText = data.fullName;
                // Tắt modal
                 const modalElement = document.getElementById('accountDetailModal');
@@ -264,7 +276,8 @@ function handleClickEditInformation(){
                 modalInstance.hide();
                 
             } catch (error) {
-               console.log(error); 
+                showSwalToast("Cập nhật thông tin thất bại", "error");
+                console.log(error); 
             }
         
         }
@@ -278,8 +291,12 @@ function handleClickChangePassword(account){
         const newPassword = document.querySelector("#new-password").value;
         const confirmPassword = document.querySelector("#confirm-password").value;
 
+        if(currentPassword === "" || newPassword === "" || confirmPassword === ""){
+            showSwalToast("Vui lòng điền đầy đủ thông tin", "warning");
+            return;
+        }
         if(newPassword !== confirmPassword){
-            alert("Mật khẩu mới không khớp");
+            showSwalToast("Mật khẩu xác nhận không khớp", "warning");
             return;
         }
 
@@ -293,13 +310,15 @@ function handleClickChangePassword(account){
         
         try {
             let response = await callApi('/user/password', "PUT", data);
-            console.log(response); 
-            alert("Đổi mật khẩu thành công");
+            // console.log(response); 
+            showSwalToast("Đổi mật khẩu thành công", "success");
             document.querySelector("#current-password").value = "";
             document.querySelector("#new-password").value = "";  
             document.querySelector("#confirm-password").value = "";
         } catch (error) {
+            showSwalToast("Đổi mật khẩu thất bại", "error");
             console.log(error);
         }
     }
 }
+

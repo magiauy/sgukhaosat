@@ -12,7 +12,14 @@ function showToast(message, type) {
     }, 3000);
 }
 
-function showSwalToast( message,type) {
+function showSwalToast(message, type) {
+    // Tìm z-index cao nhất trong trang
+    const highestZIndex = Array.from(document.querySelectorAll('*'))
+        .map(el => parseFloat(getComputedStyle(el).zIndex))
+        .filter(zIndex => !isNaN(zIndex))
+        .reduce((max, zIndex) => Math.max(max, zIndex), 0);
+    
+    // Cấu hình Swal với z-index cao hơn
     Swal.fire({
         icon: type,
         title: type === 'success' ? 'Thành công' :
@@ -23,7 +30,14 @@ function showSwalToast( message,type) {
         position: 'top-end',
         showConfirmButton: false,
         timer: 3000,
-        timerProgressBar: true
+        timerProgressBar: true,
+        customClass: {
+            container: 'swal-toast-container'
+        },
+        didOpen: (toast) => {
+            // Set z-index cao hơn modal
+            toast.style.zIndex = highestZIndex + 10;
+        }
     });
 }
 

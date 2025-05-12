@@ -1,4 +1,5 @@
 import PaginationComponent from "./component/pagination.js";
+import {callApi} from "./apiService.js";
 
 let currentOffset = 0;
 let itemsPerPage = 5;
@@ -6,11 +7,11 @@ let editingPositionId = null;
 
 const pagination = new PaginationComponent({
     containerId: 'pagination',
-    onPageChange: (offset, limit) => {
-        loadPositions(offset, limit);
+    onPageChange: async (offset, limit) => {
+        await loadPositions(offset, limit);
     },
-    onLimitChange: (offset, limit) => {
-        loadPositions(offset, limit);
+    onLimitChange: async (offset, limit) => {
+        await loadPositions(offset, limit);
     }
 })
 
@@ -32,7 +33,7 @@ async function setupHandlers() {
         }
     });
     document.addEventListener("DOMContentLoaded", function () {
-        document.addEventListener('hide.bs.modal', function (event) {
+        document.addEventListener('hide.bs.modal', function () {
             if (document.activeElement) {
                 document.activeElement.blur();
             }
@@ -145,35 +146,17 @@ async function addPosition() {
 
     if ((positionName && positionName.trim() !== "")) {
         try {
-            const response = await fetch('/api/position', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    PositionName: positionName
-                })
+            const result = await callApi('/position', 'POST',{
+                PositionName: positionName
             });
 
-            const result = await response.json();
-
-            if (!response.ok) { 
-                if (response.status === 400) {
-                    toastMessage.innerText = result.message || 'Mã chức vụ đã tồn tại';
-                    document.getElementById('positionToast').classList.remove('text-bg-success');
-                    document.getElementById('positionToast').classList.add('text-bg-danger');
-                    toastElement.show();
-                    return;
-                }
- 
-                toastMessage.innerText = result.message || 'Thêm chức vụ học thất bại';
+            if (!result.status) {
+                toastMessage.innerText = result.message || 'Mã chức vụ đã tồn tại';
                 document.getElementById('positionToast').classList.remove('text-bg-success');
                 document.getElementById('positionToast').classList.add('text-bg-danger');
                 toastElement.show();
                 return;
-            }
-
-            if (response.status === 201) {
+            } else{
                 document.getElementById('positionName').value = '';
                 toastMessage.innerText = 'Chức vụ học đã được thêm thành công';
                 document.getElementById('positionToast').classList.remove('text-bg-danger');
@@ -204,8 +187,7 @@ async function addPosition() {
 
 async function loadPositionEdit(id) {
     editingPositionId = id;
-    const response = await fetch(`/api/position/${id}`);
-    const result = await response.json();
+    const result = await callApi(`/position/${id}`);
     const position = result.data;
 
     await renderPosition("edit", {
@@ -227,25 +209,16 @@ async function updatePosition() {
     }
 
     try {
-        const response = await fetch(`/api/position/${editingPositionId}`, {
-
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                PositionName: positionName
-            })
+        const result = await callApi(`/position/${editingPositionId}`, 'PUT',{
+            PositionName: positionName
         });
 
-        const result = await response.json();
-
-        if (response.ok) {
+        if (result.status) {
             toastMessage.innerText = 'Cập nhật chức vụ thành công';
             document.getElementById('positionToast').classList.remove('text-bg-danger');
             document.getElementById('positionToast').classList.add('text-bg-success');
             toastElement.show();
-            loadPositions(currentOffset, itemsPerPage);
+            await loadPositions(currentOffset, itemsPerPage);
 
         } else {
             toastMessage.innerText = result.message || 'Cập nhật thất bại';
@@ -265,7 +238,6 @@ async function updatePosition() {
 //Tìm kiếm chức vụ
 async function loadFilteredPositions() {
     const searchKeyword = document.getElementById('positionKeyword').value.trim();
-    document.getElementById('positionKeyword').value = '';
     await loadPositions(0, itemsPerPage, searchKeyword,true);
 }
 
@@ -279,12 +251,9 @@ async function loadPositions(offset = 0,limit = 10, keyword = '', isSearch = fal
             search: keyword || '',
         });
 
-        const url = `/api/position/search?${queryParams.toString()}`;
-        const response = await fetch(url);
-        const result = await response.json();
+        const url = `/position/search?${queryParams.toString()}`;
+        const result = await callApi(url);
 
-        console.log(result);
-        console.log(result.data['position']);
         if (isSearch) {
             //Thông báo
             const toastMessage = document.getElementById('toastMessage');
@@ -302,7 +271,7 @@ async function loadPositions(offset = 0,limit = 10, keyword = '', isSearch = fal
         }
 
         // Update the count display
-        document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
+        // document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
 
         // Call separated functions for rendering table and pagination
         renderPositionTable(result.data['position'] || []);
@@ -325,20 +294,23 @@ async function loadPositions(offset = 0,limit = 10, keyword = '', isSearch = fal
 function renderPositionTable(positions) {
     const tbody = document.getElementById('positionTableBody');
     tbody.innerHTML = '';
-
+    let i = 0;
     if (positions && positions.length > 0) {
         positions.forEach((position) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><input type="checkbox" class="positionCheckbox" value="${position.PositionID}"></td> 
+               <td class="ps-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input positionCheckbox" value="${position.PositionID}">
+                    </div>
+                </td>
+                <td>${++i}</td> 
                 <td class="idPosition">${position.PositionID}</td>
                 <td>${position.PositionName}</td>
-                <td>
+                <td class="text-end pe-4">
                     <button class="btn btn-outline-primary" id="editPositionBtn">
                         <i class="bi bi-gear-fill"></i> Sửa
                     </button>
-                </td>
-                <td>
                     <button class="btn btn-outline-danger" id="deletePositionBtn">
                         <i class="bi bi-trash"></i> Xóa
                     </button>
@@ -346,54 +318,112 @@ function renderPositionTable(positions) {
             `;
             tbody.appendChild(row);
         });
-
-        // Add event listener for "select all" checkbox
-        document.getElementById('selectAll').addEventListener('change', function () {
-            const isChecked = this.checked;
-            document.querySelectorAll('.positionCheckbox').forEach(cb => {
-                cb.checked = isChecked;
-            });
-        });
-        document.querySelectorAll('#positionTableBody .btn').forEach(button => {
-            button.addEventListener('click', async function () {
-                const row = this.closest('tr');
-                const firstTd = row?.querySelector('.idPosition');
-                if (firstTd) {
-                    const action = this.id;
-                    const id = firstTd.textContent.trim();
-                    if (action === "editPositionBtn") {
-                        await loadPositionEdit(id);
-                    } else if (action === "deletePositionBtn") {
-                        await handleDeletePosition(id);
-                    }
-                }
-            });
-        });
+        logicCheckbox();
     } else {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
     }
+}
+const selectedPositionIDs = new Set();
+
+function logicCheckbox() {
+    selectedPositionIDs.clear();
+    // Get elements
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const positionCheckboxes = document.querySelectorAll('.positionCheckbox');
+    const selectedCountElem = document.getElementById('selected-count');
+    const deleteSelectedBtn = document.getElementById('positionDeleteBtn');
+
+    // Function to update count and button visibility
+    function updateSelectedCount() {
+        const checkedBoxes = document.querySelectorAll('.positionCheckbox:checked');
+        selectedCountElem.textContent = checkedBoxes.length;
+
+        // Show/hide bulk delete button
+        if (checkedBoxes.length > 0) {
+            deleteSelectedBtn.classList.remove('d-none');
+        } else {
+            deleteSelectedBtn.classList.add('d-none');
+        }
+
+        // Update "select all" checkbox state
+        if (checkedBoxes.length === positionCheckboxes.length && positionCheckboxes.length > 0) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedBoxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+
+    // Handle "select all" checkbox changes
+    selectAllCheckbox.onchange = function() {
+        positionCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+
+            // Update Set of selected IDs
+            const positionId = checkbox.getAttribute('value');
+            if (this.checked) {
+                selectedPositionIDs.add(positionId);
+            } else {
+                selectedPositionIDs.delete(positionId);
+            }
+        });
+        updateSelectedCount();
+    };
+
+    // Handle individual checkbox changes
+    positionCheckboxes.forEach(checkbox => {
+        checkbox.onchange = function() {
+            const positionId = this.getAttribute('value');
+
+            // Update Set of selected IDs
+            if (this.checked) {
+                selectedPositionIDs.add(positionId);
+            } else {
+                selectedPositionIDs.delete(positionId);
+            }
+
+            updateSelectedCount();
+        };
+    });
+
+    // Restore checkbox states from selectedPositionIDs
+    positionCheckboxes.forEach(checkbox => {
+        const positionId = checkbox.getAttribute('value');
+        if (selectedPositionIDs.has(positionId)) {
+            checkbox.checked = true;
+        }
+    });
+
+    // Add event listeners for edit/delete buttons
+    document.querySelectorAll('#positionTableBody .btn').forEach(button => {
+        button.addEventListener('click', async function() {
+            const row = this.closest('tr');
+            const firstTd = row?.querySelector('.idPosition');
+            if (firstTd) {
+                const action = this.id;
+                const id = firstTd.textContent.trim();
+                if (action === "editPositionBtn") {
+                    await loadPositionEdit(id);
+                } else if (action === "deletePositionBtn") {
+                    await handleDeletePosition(id);
+                }
+            }
+        });
+    });
+
+    // Initialize initial state
+    updateSelectedCount();
 }
 
 //Xóa chức vụ
 async function deletePosition(id) {
     try {
-        const response = await fetch(`/api/position/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        const result = await callApi(`/position/${id}`, 'DELETE');
 
-        const textResponse = await response.text();
-
-        let result;
-        try {
-            result = JSON.parse(textResponse);
-        } catch (e) {
-            return { success: false, message: 'Xóa chức vụ thất bại (phản hồi không hợp lệ)' };
-        }
-
-        if (response.ok) {
+        if (result.status) {
             return { success: true, message: 'Xóa chức vụ thành công' };
         } else {
             return { success: false, message: result?.message || 'Xóa chức vụ thất bại' };
@@ -426,7 +456,7 @@ async function handleDeletePosition(id) {
         });
 
         if (res.success) {
-            loadPositions(currentOffset, itemsPerPage);
+            await loadPositions(currentOffset, itemsPerPage);
         }
     }
 }
@@ -483,7 +513,7 @@ async function deleteSelectedPositions() {
             confirmButtonText: 'Đóng'
         });
 
-        loadPositions(currentOffset, itemsPerPage);
+        await loadPositions(currentOffset, itemsPerPage);
     }
 }
 

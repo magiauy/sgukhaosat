@@ -230,7 +230,7 @@ function setupFilterInputs() {
     dataType.then(data => {
         if (data && data.data) {
             const typeSelect = document.getElementById('form-type-select');
-            typeSelect.innerHTML = `<option value="all">Loại khảo sát</option>`;
+            typeSelect.innerHTML = `<option value="all">Tất cả loại hình khảo sát</option>`;
             data.data.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.FTypeID;
@@ -242,7 +242,7 @@ function setupFilterInputs() {
     dataMajor.then(data => {
         if (data && data.data) {
             const majorSelect = document.getElementById('major-select');
-            majorSelect.innerHTML = `<option value="all">Ngành</option>`;
+            majorSelect.innerHTML = `<option value="all">Tất cả ngành</option>`;
             data.data.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.MajorID;
@@ -254,7 +254,7 @@ function setupFilterInputs() {
     dataPeriod.then(data => {
         if (data && data.data) {
             const periodSelect = document.getElementById('period-select');
-            periodSelect.innerHTML = `<option value="all">Giai đoạn</option>`;
+            periodSelect.innerHTML = `<option value="all">Tất cả chu kỳ</option>`;
             data.data.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.periodID;

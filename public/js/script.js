@@ -10,6 +10,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             sessionStorage.clear();
             document.cookie = `access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
             document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+            await fetch(`${config.apiUrl}/auth/logout`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
         });
     }
 })

@@ -1,4 +1,5 @@
 import PaginationComponent from "./component/pagination.js";
+import {callApi} from "./apiService.js";
 
 let currentOffset = 0;
 let itemsPerPeriodPage = 5;
@@ -6,11 +7,11 @@ let editingPeriodId = null;
 
 const pagination = new PaginationComponent({
     containerId: 'pagination',
-    onPageChange: (offset, limit) => {
-        loadPeriods(offset, limit);
+    onPageChange: async (offset, limit) => {
+        await loadPeriods(offset, limit);
     },
-    onLimitChange: (offset, limit) => {
-        loadPeriods(offset, limit);
+    onLimitChange: async (offset, limit) => {
+        await loadPeriods(offset, limit);
     }
 })
 
@@ -163,19 +164,11 @@ async function addPeriod() {
         }
 
         try {
-            const response = await fetch('/api/period', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    startYear: startYear,
-                    endYear: endYear
-                })
+            const result = await callApi('/period',  'POST',{
+                startYear: startYear,
+                endYear: endYear
             });
-
-            const result = await response.json();
-            if (response.status === 201) {
+            if (result.status) {
                 toastMessage.innerText = 'Chu kỳ đã được thêm thành công';
                 document.getElementById('startYearInput').value = '';
                 document.getElementById('endYearInput').value = '';
@@ -188,7 +181,7 @@ async function addPeriod() {
             }
 
             toastElement.show();
-            loadPeriods(currentOffset, itemsPerPeriodPage);
+            await loadPeriods(currentOffset, itemsPerPeriodPage);
 
         } catch (error) {
             toastMessage.innerText = 'Lỗi: ' + error.message;
@@ -208,8 +201,7 @@ async function addPeriod() {
 
 async function loadPeriodEdit(id) {
     editingPeriodId = id;
-    const response = await fetch(`/api/period/${id}`);
-    const result = await response.json();
+    const result = await callApi(`/period/${id}`);
     const period = result.data;
 
     await renderPeriod("edit", {
@@ -242,26 +234,17 @@ async function updatePeriod() {
     }
 
     try {
-        const response = await fetch(`/api/period/${editingPeriodId}`, {
-
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                startYear,
-                endYear
-            })
+        const result = await callApi(`/period/${editingPeriodId}`, 'PUT', {
+            startYear,
+            endYear
         });
 
-        const result = await response.json();
-
-        if (response.ok) {
+        if (result.status) {
             toastMessage.innerText = 'Cập nhật chu kỳ thành công';
             document.getElementById('periodToast').classList.remove('text-bg-danger');
             document.getElementById('periodToast').classList.add('text-bg-success');
             toastElement.show();
-            loadPeriods(currentOffset, itemsPerPeriodPage);
+            await loadPeriods(currentOffset, itemsPerPeriodPage);
 
         } else {
             toastMessage.innerText = result.message || 'Cập nhật thất bại';
@@ -301,13 +284,9 @@ async function loadPeriods(offset = 0,limit = 10, keyword = '', isSearch = false
             // endYear: endYear || ''
         });
 
-        const url = `/api/period/search?${queryParams.toString()}`;
+        const url = `/period/search?${queryParams.toString()}`;
 
-        const response = await fetch(url);
-        const result = await response.json();
-        console.log(result);
-        console.log(result.data['period']);
-
+        const result = await callApi(url);
         if (isSearch) {
             //Thông báo
             const toastMessage = document.getElementById('toastMessage');
@@ -382,6 +361,7 @@ function renderPeriodTable(periods) {
 const selectedPeriodIDs = new Set();
 
 function logicCheckboxPeriod() {
+    selectedPeriodIDs.clear();
     // Get elements
     const selectAllCheckbox = document.getElementById('selectAll');
     const periodCheckboxes = document.querySelectorAll('.periodCheckbox');
@@ -496,23 +476,9 @@ function clearSelectedPeriods() {
 
 async function deletePeriod(id) {
     try {
-        const response = await fetch(`/api/period/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        const result = await callApi(`/period/${id}`,  'DELETE');
 
-        const textResponse = await response.text();
-
-        let result;
-        try {
-            result = JSON.parse(textResponse);
-        } catch (e) {
-            return { success: false, message: 'Xóa chu kỳ thất bại (phản hồi không hợp lệ)' };
-        }
-
-        if (response.ok) {
+        if (result.status) {
             return { success: true, message: 'Xóa chu kỳ thành công' };
         } else {
             return { success: false, message: result?.message || 'Xóa chu kỳ thất bại' };

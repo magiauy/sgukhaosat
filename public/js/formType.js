@@ -287,7 +287,7 @@ async function loadFTypes(offset = 0,limit = 10, keyword = '', isSearch = false)
             toastElement.show();
         }
         
-        document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
+        // document.querySelector('.card-stats h5').innerText = result.data['totalCount'] || 0;
 
         renderFTypeTable(result.data['fType'] || []);
         pagination.render({
@@ -308,24 +308,29 @@ async function loadFTypes(offset = 0,limit = 10, keyword = '', isSearch = false)
 function renderFTypeTable(fTypes) {
     const tbody = document.getElementById('fTypeTableBody');
     tbody.innerHTML = '';
+    let i = 1;
 
     if (fTypes && fTypes.length > 0) {
         fTypes.forEach((fType) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><input type="checkbox" class="fTypeCheckbox" value="${fType.FTypeID}"></td> 
+               <td class="ps-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input fTypeCheckbox" value="${fType.FTypeID}">
+                    </div>
+                </td>                
+                <td>${++i}</td>
                 <td class="idfType">${fType.FTypeID}</td>
                 <td>${fType.FTypeName}</td>
-                <td>
+                <td class="text-end pe-4">
                     <button class="btn btn-outline-primary" id="editFTypeBtn">
                         <i class="bi bi-gear-fill"></i> Sửa
                     </button>
-                </td>
-                <td>
                     <button class="btn btn-outline-danger" id="deleteFTypeBtn">
                         <i class="bi bi-trash"></i> Xóa
                     </button>
                 </td>
+
             `;
             tbody.appendChild(row);
         });

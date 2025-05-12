@@ -39,7 +39,10 @@ class FormTypeController {
         $formTypeName = $data['FTypeName'] ?? null;
 
         if (!$formTypeID || !$formTypeName) {
-             $res->json(['message' => 'Dữ liệu không hợp lệ','status'=>false]);
+             $res->json([
+                 'message' => 'Dữ liệu không hợp lệ',
+                 'status'=>false
+             ]);
         }
         if ($this->service->isFTypeIDExists($formTypeID)) {
             $res->json([

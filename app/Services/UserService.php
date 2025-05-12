@@ -216,6 +216,7 @@ class UserService implements IAuthService
                 try {
                     $user['token'] = $jwtHelper->createJWT($user, $secret['access_secret'], 600);
                     $user['refreshToken'] = $jwtHelper->createRefreshToken($user, $secret['refresh_secret'], 604800);
+
                 } catch (Exception $e) {
                     error_log("JWT creation failed: " . $e->getMessage());
                     throw new Exception("Lỗi tạo token: " . $e->getMessage(), 500);

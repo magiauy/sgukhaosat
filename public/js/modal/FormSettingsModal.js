@@ -119,7 +119,7 @@ export default class FormSettingsModal {
                                                                     id="userSearchInput" placeholder="Tìm kiếm email/tên..." />
                                                                 <div class="d-flex align-items-center gap-2">
                                                                     <select class="form-select form-select-sm" id="userPositionFilter">
-                                                                        <option value="">-- Tất cả vai trò --</option>
+                                                                        <option value="">-- Tất cả chức vụ --</option>
                                                                     </select>
                                                                     <button class="btn btn-sm btn-outline-secondary" id="refresh">
                                                                         <i class="bi bi-arrow-clockwise fw-bold fs-5"></i>
@@ -226,7 +226,7 @@ export default class FormSettingsModal {
             availableUsersList.innerHTML = '<tr><td colspan="3" class="text-center py-3"><div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>';
 
             const data = await callApi(`/userWithoutWhitelist/${formId}`);
-            const users = data.data;
+            const users = Array.isArray(data.data) ? data.data : [];
 
             // Render users
             if (users.length === 0) {
@@ -498,8 +498,9 @@ export default class FormSettingsModal {
         try {
             this.showToast('info', 'Đang thêm người dùng vào danh sách...');
 
-            const result = callApi(`/forms/${formId}/whitelist`, 'POST',users);
+            const result = await callApi(`/forms/${formId}/whitelist`, 'POST', {users});
 
+            console.log(result);
 
             if (!result.status) {
                 this.showToast('error', result.message || 'Không thể thêm người dùng vào danh sách');
@@ -526,9 +527,8 @@ export default class FormSettingsModal {
         try {
             this.showToast('info', 'Đang xóa người dùng khỏi danh sách...');
 
-            const response = await callApi(`/forms/${formId}/whitelist`, 'DELETE',users);
+            const result = await callApi(`/forms/${formId}/whitelist`, 'DELETE', {users});
 
-            const result = await response.json();
 
             if (!result.status) {
                 this.showToast('error', result.message || 'Không thể xóa người dùng khỏi danh sách');
@@ -564,7 +564,7 @@ export default class FormSettingsModal {
 
             // Clear existing options
             positionSelect.innerHTML = '';
-            positionSelect.appendChild(new Option('-- Tất cả vai trò --', ''));
+            positionSelect.appendChild(new Option('-- Tất cả chức vụ --', ''));
 
 
 

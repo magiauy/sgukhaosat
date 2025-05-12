@@ -212,4 +212,23 @@ class JwtMiddleware
             return null;
         }
     }
+
+    public static function logout(Request $request, Response $response)
+    {
+        try {
+            // Clear the access token and refresh token cookies
+            setcookie('access_token', '', time() - 3600, '/', '', false, true);
+            setcookie('refresh_token', '', time() - 3600, '/', '', false, true);
+
+            // Optionally, you can also invalidate the tokens on the server side if you have a token store
+
+            $response->json([
+                'message' => 'Logged out successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            $response->json([
+                'error' => 'An error occurred while logging out: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

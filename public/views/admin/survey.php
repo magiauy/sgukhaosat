@@ -83,7 +83,7 @@
                             </div>
 
                             <!-- Table section -->
-                            <div class="px-4 mb-4">
+                            <div class="px-4 mb-4 custom-form-table">
                                 <div class="table-responsive rounded-4 border overflow-hidden">
                                     <table class="table table-hover align-middle mb-0">
                                         <thead class="bg-light">

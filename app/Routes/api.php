@@ -302,6 +302,9 @@ $answerController = new AnswerController();
         $router->post('/api/auth/refresh', function() use ($response, $request) {
             JwtMiddleware::refresh($request, $response);
         });
+        $router->post('/api/auth/logout', function() use ($response, $request) {
+            JwtMiddleware::logout($request, $response);
+        });
 
 
     // Xử lý routing

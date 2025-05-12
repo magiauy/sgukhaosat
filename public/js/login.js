@@ -39,13 +39,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             if (response.ok) {
                 // localStorage.setItem("token", data.token);
-                showPopup(data['message'], "success");
                 document.cookie = `access_token=${data['data']['token']}; path=/; max-age=600;`;
                 document.cookie = `refresh_token=${data['data']['refreshToken']}; path=/; max-age=604800;`;
-                // Chuyển hướng đến trang chính
-                setTimeout(() => {
-                    window.location.href = "/";
-                }, 100);
+
+                await showPopup(data['message'], "success");
             } else {
                 showPopup(data.message || "Email hoặc mật khẩu không chính xác!", "error");
             }
@@ -93,7 +90,20 @@ function showPopup(message, type = "success") {
     // Hiển thị modal
     const modal = new bootstrap.Modal(document.getElementById("popupModal"));
     modal.show();
+    if (type === "success") {
+        // Tự động đóng sau 3 giây
+        const navigationTimeout = setTimeout(() => {
+            window.location.href = "/";
+        }, 2000);
 
-    // Tự động đóng sau 3 giây
+// Also handle modal hidden event
+        const popupModal = document.getElementById("popupModal");
+        popupModal.addEventListener('hidden.bs.modal', () => {
+            clearTimeout(navigationTimeout); // Clear the timeout if modal closes early
+            window.location.href = "/";
+        });
+    }
+
+// Set auto-close timeout (still keep this if you want the modal to auto-close)
     setTimeout(() => modal.hide(), 3000);
 }

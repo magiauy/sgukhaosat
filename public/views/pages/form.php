@@ -1,10 +1,50 @@
 <?php
 use Core\AuthHelper;
+use Services\FormService;
 
-$data = AuthHelper::verifyUserToken();
-$user = $data['user'] ?? null;
-include __DIR__ . '/../../views/layouts/header.php';
-include __DIR__ . '/../../views/layouts/nav-bar.php';
+$authParam = $_GET['auth'] ?? null;
+$path = $_SERVER['REQUEST_URI'];
+$formId = null;
+if (preg_match('/\/form\/(\d+)/', $path, $matches)) {
+    $formId = (int)$matches[1];
+}
+if ($authParam) {
+    $data = AuthHelper::verifyLoginUrlToken($authParam);
+    $user = $data['user'] ?? null;
+
+    if (!$user) {
+        header('Location: /login');
+        exit();
+    }
+} else {
+    $data = AuthHelper::verifyUserToken();
+    $user = $data['user'] ?? null;
+}
+
+//Kiểm tra quyền truy cập form
+if (empty($user)) {
+    header('Location: /login');
+    exit();
+}
+$formService = new FormService();
+$formService = new FormService();
+try {
+    $dataF = $formService->checkWhitelist($formId,$user->email ?? $user['email'] ?? '');
+    if (!$dataF) {
+        header('Location: /login');
+        exit();
+    }
+} catch (Exception $e) {
+    error_log("Error fetching form data: " . $e->getMessage());
+    header('Location: /login');
+}
+
+
+
+
+//error_log("Permissions: " . json_encode($data['permissions']));
+include_once __DIR__ . '/../../views/layouts/header.php';
+include_once __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>
 <body>
 <!-- Loading overlay -->

@@ -638,4 +638,14 @@ function duplicate($id, $userId)
             throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }
     }
+
+    function checkWhitelist($id, $email): bool
+    {
+        $result = $this->whitelistFormRepository->checkWhitelist($id, $email);
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

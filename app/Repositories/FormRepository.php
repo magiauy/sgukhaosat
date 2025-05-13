@@ -114,7 +114,15 @@ public function delete($id, \PDO $pdo) {
         $FID = $id['id'];
         $email = $id['email'];
 
-        $sql = "SELECT * FROM forms WHERE FID = :FID AND isDelete = 0";
+        $sql = "SELECT f.*,
+        m.MajorName,
+        CONCAT(p.startYear, '-', p.endYear) AS PeriodName,
+        ft.FTypeName AS TypeName
+        FROM forms f
+        LEFT JOIN major m ON f.MajorID = m.MajorID
+        LEFT JOIN period p ON f.PeriodID = p.PeriodID
+        LEFT JOIN form_type ft ON f.TypeID = ft.FTypeID
+        WHERE f.FID = :FID AND f.isDelete = 0";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':FID' => $FID]);
 

@@ -2,7 +2,23 @@ import {callApi} from "./apiService.js";
     document.addEventListener('DOMContentLoaded', async function() {
         Loader.show();
         const path = window.location.pathname;
-    if (path.match(/\/form\/(\d+)/)) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const authToken = urlParams.get('auth');
+        if (authToken) {
+            // Remove the auth parameter from URL without page refresh
+            const url = new URL(window.location);
+            url.searchParams.delete('auth');
+            window.history.replaceState({}, document.title, url);
+
+            // You can still process the token if needed
+            try {
+                // Process auth token here if needed
+                // This code will run after removing from URL
+            } catch (error) {
+                console.error('Error processing auth token:', error);
+            }
+        }
+        if (path.match(/\/form\/(\d+)/)) {
         const matches = path.match(/\/form\/(\d+)/);
         const formId = parseInt(matches[1], 10);
 
@@ -18,6 +34,7 @@ import {callApi} from "./apiService.js";
             // Loader.hide();
         }
     }
+
     });
 
     // Explanation:

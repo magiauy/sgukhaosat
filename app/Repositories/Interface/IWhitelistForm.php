@@ -10,4 +10,6 @@ interface IWhitelistForm
     function delete($id);
     function getByFormID($id);
     function deleteWithData($id, $data);
+
+    function checkWhitelist($id,$email);
 }

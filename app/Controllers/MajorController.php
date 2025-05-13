@@ -17,14 +17,23 @@ class MajorController {
     }
 
     public function getById(Response $response, $id) {
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
-    
+        if (!$id) $response->json([
+            'error' => 'ID is required',
+            'status' => false
+        ]);
+
         $Major = $this->service->getById($id);
     
         if ($Major) {
-            $response->json(['data' => $Major]);
+            $response->json([
+                'data' => $Major,
+                'status' => true
+            ]);
         } else {
-            $response->json(['error' => 'Chu kỳ không tồn tại'], 404);
+            $response->json([
+                'error' => 'Chu kỳ không tồn tại',
+                'status' => false
+            ]);
         }
     }
 
@@ -39,10 +48,16 @@ class MajorController {
         $majorName = $data['MajorName'] ?? null;
     
         if (!$majorName || !$majorID) {
-            return $res->json(['message' => 'Dữ liệu không hợp lệ'], 400);
+            $res->json([
+                'message' => 'Dữ liệu không hợp lệ',
+                'status' => false
+            ]);
         } 
         if ($this->service->isMajorIDExists($majorID)) {
-            return $res->json(['message' => 'Mã ngành đã tồn tại. Vui lòng chọn mã ngành khác.'], 400);
+            $res->json([
+                'message' => 'Mã ngành đã tồn tại. Vui lòng chọn mã ngành khác.',
+                'status' => false
+            ]);
         }
     
         $this->service->create([
@@ -50,28 +65,39 @@ class MajorController {
             'MajorID' => $majorID
         ]);
     
-        return $res->json(['message' => 'Tạo ngành học thành công'], 201);
+        $res->json([
+            'message' => 'Tạo ngành học thành công',
+            'status' => true
+        ]);
     }
     
 
     public function update(Response $response, Request $request) {
         $id = $request->getParam("id");
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
+        if (!$id) $response->json([
+            'error' => 'ID is required',
+            'status' => false
+        ]);
 
         $data = $request->getBody();
         $success = $this->service->update($id, $data);
         
         $response->json([
-            'message' => $success ? 'Cập nhật ngành học thành công' : 'Cập nhật thất bại'
+            'message' => $success ? 'Cập nhật ngành học thành công' : 'Cập nhật thất bại',
+            'status' => $success
         ]);
     }
 
     public function delete(Response $response, Request $request) {
         $id = $request->getParam("id");
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
+        if (!$id) $response->json([
+            'error' => 'ID is required',
+            'status' => false
+        ]);
         $success = $this->service->delete($id);
         $response->json([
-            'message' => $success ? 'Xóa ngành học thành công' : 'Xóa thất bại'
+            'message' => $success ? 'Xóa ngành học thành công' : 'Xóa thất bại',
+            'status' => $success
         ]);
     }
     

@@ -357,3 +357,9 @@ footer {
 .container-fluid{
     padding: 0px;
 }
+.custom-table{
+    min-height: 600px;
+}
+.custom-form-table{
+    min-height: 700px;
+}

@@ -1,5 +1,5 @@
 import { callApi } from "../../apiService.js";
-import { renderListAccount } from "./accountAdmin.js";
+import { renderListAccount, renderTableAccountOnPagination } from "./accountAdmin.js";
 import ImportExcelAccount from "../../modal/ImportExcelAccount.js";
 
 // import * as XLSX from "xlsx";
@@ -141,7 +141,8 @@ function addAccount(){
             const response = await callApi("/user", "POST", data);
             console.log(response);
             document.querySelector("#popup-add-account").remove();
-            document.querySelector("#add-account").click();
+            // document.querySelector("#add-account").click();
+            await renderTableAccountOnPagination(0, 10);
         } catch (error) {
             console.log(error);
         }
@@ -162,7 +163,7 @@ function closePopup(){
 export function importUsers(){
     document.querySelector("#import-accounts-button").onclick = async function(e){
         e.preventDefault();
-        console.log(123)
+        // console.log(123)
         const importAccount = new ImportExcelAccount(config);
         importAccount.open();
     }

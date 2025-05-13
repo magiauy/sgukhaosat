@@ -1,4 +1,5 @@
 import PaginationComponent from "./component/pagination.js";
+import {callApi} from "./apiService.js";
 
 let currentOffset = 0;
 let itemsPerPage = 5;
@@ -154,36 +155,19 @@ async function addMajor() {
 
     if ((majorName && majorName.trim() !== "") || (majorID && majorID.trim() !== "")) {
         try {
-            const response = await fetch('/api/major', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    MajorID: majorID,
-                    MajorName: majorName
-                })
+            const result = await callApi('/major', 'POST',{
+                MajorID: majorID,
+                MajorName: majorName
             });
 
-            const result = await response.json();
 
-            if (!response.ok) { 
-                if (response.status === 400) {
+                if (!result.status) {
                     toastMessage.innerText = result.message || 'Mã ngành đã tồn tại';
                     document.getElementById('majorToast').classList.remove('text-bg-success');
                     document.getElementById('majorToast').classList.add('text-bg-danger');
                     toastElement.show();
                     return;
-                }
- 
-                toastMessage.innerText = result.message || 'Thêm ngành học thất bại';
-                document.getElementById('majorToast').classList.remove('text-bg-success');
-                document.getElementById('majorToast').classList.add('text-bg-danger');
-                toastElement.show();
-                return;
-            }
-
-            if (response.status === 201) {
+                } else{
                 document.getElementById('majorID').value = '';
                 document.getElementById('majorName').value = '';
                 toastMessage.innerText = 'Ngành học đã được thêm thành công';
@@ -192,7 +176,8 @@ async function addMajor() {
             }
 
             toastElement.show();
-            loadMajors(currentOffset, itemsPerPage);
+            await loadMajors(currentOffset, itemsPerPage);
+
         } catch (error) {
             console.error('Lỗi chi tiết:', error);
             const errorDetails = error.stack || error.message || 'Không có thông tin lỗi chi tiết';
@@ -215,8 +200,7 @@ async function addMajor() {
 
 async function loadMajorEdit(id) {
     editingMajorId = id;
-    const response = await fetch(`/api/major/${id}`);
-    const result = await response.json();
+    const result = await callApi(`/major/${id}`);
     const major = result.data;
 
     await renderMajor("edit", {
@@ -238,26 +222,15 @@ async function updateMajor() {
     }
 
     try {
-        const response = await fetch(`/api/major/${editingMajorId}`, {
-
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                MajorName: majorName
-            })
+        const result = await callApi(`/major/${editingMajorId}`, 'PUT',{
+            MajorName: majorName
         });
-
-        const result = await response.json();
-
-        if (response.ok) {
+        if (result.status) {
             toastMessage.innerText = 'Cập nhật ngành thành công';
             document.getElementById('majorToast').classList.remove('text-bg-danger');
             document.getElementById('majorToast').classList.add('text-bg-success');
             toastElement.show();
-            loadMajors(currentOffset, itemsPerPage);
-
+            await loadMajors(currentOffset, itemsPerPage);
         } else {
             toastMessage.innerText = result.message || 'Cập nhật thất bại';
             document.getElementById('majorToast').classList.remove('text-bg-success');
@@ -290,12 +263,9 @@ async function loadMajors(offset = 0,limit = 10, keyword = '', isSearch = false)
             search: keyword || '',
         });
 
-        const url = `/api/major/search?${queryParams.toString()}`;
-        const response = await fetch(url);
-        const result = await response.json();
+        const url = `/major/search?${queryParams.toString()}`;
+        const result = await callApi(url);
 
-        console.log(result);
-        console.log(result.data['major']);
         if (isSearch) {
             //Thông báo
             const toastMessage = document.getElementById('toastMessage');
@@ -363,53 +333,112 @@ function renderMajorTable(majors) {
             tbody.appendChild(row);
         });
 
-        // Add event listener for "select all" checkbox
-        document.getElementById('selectAll').addEventListener('change', function () {
-            const isChecked = this.checked;
-            document.querySelectorAll('.majorCheckbox').forEach(cb => {
-                cb.checked = isChecked;
-            });
-        });
-        document.querySelectorAll('#majorTableBody .btn').forEach(button => {
-            button.addEventListener('click', async function () {
-                const row = this.closest('tr');
-                const firstTd = row?.querySelector('.idMajor');
-                if (firstTd) {
-                    const action = this.id;
-                    const id = firstTd.textContent.trim();
-                    if (action === "editMajorBtn") {
-                        await loadMajorEdit(id);
-                    } else if (action === "deleteMajorBtn") {
-                        await handleDeleteMajor(id);
-                    }
-                }
-            });
-        });
+        logicCheckbox()
     } else {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
     }
 }
 
+const selectedMajorIDs = new Set();
+function logicCheckbox() {
+    selectedMajorIDs.clear();
+    // Get elements
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const majorCheckbox = document.querySelectorAll('.majorCheckbox');
+    const selectedCountElem = document.getElementById('selected-count');
+    const deleteSelectedBtn = document.getElementById('majorDeleteBtn');
+
+    // Function to update count and button visibility
+    function updateSelectedCount() {
+        const checkedBoxes = document.querySelectorAll('.majorCheckbox:checked');
+        selectedCountElem.textContent = checkedBoxes.length;
+
+
+        // Show/hide bulk delete button
+        if (checkedBoxes.length > 0) {
+            deleteSelectedBtn.classList.remove('d-none');
+        } else {
+            deleteSelectedBtn.classList.add('d-none');
+        }
+
+        // Update "select all" checkbox state
+        if (checkedBoxes.length === majorCheckbox.length && majorCheckbox.length > 0) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedBoxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+
+    // Handle "select all" checkbox changes
+    selectAllCheckbox.onchange = function() {
+        majorCheckbox.forEach(checkbox => {
+            checkbox.checked = this.checked;
+
+            // Update Set of selected IDs
+            const majorId = checkbox.getAttribute('value');
+            if (this.checked) {
+                selectedMajorIDs.add(majorId);
+            } else {
+                selectedMajorIDs.delete(majorId);
+            }
+        });
+        updateSelectedCount();
+    };
+
+    // Handle individual checkbox changes
+    majorCheckbox.forEach(checkbox => {
+        checkbox.onchange = function() {
+            const periodID = this.getAttribute('value');
+
+            // Update Set of selected IDs
+            if (this.checked) {
+                selectedMajorIDs.add(periodID);
+            } else {
+                selectedMajorIDs.delete(periodID);
+            }
+
+            updateSelectedCount();
+        };
+    });
+
+    // Restore checkbox states from selectedPeriodIDs
+    majorCheckbox.forEach(checkbox => {
+        const majorID = checkbox.getAttribute('value');
+        if (selectedMajorIDs.has(majorID)) {
+            checkbox.checked = true;
+        }
+    });
+
+    // Add event listeners for edit/delete buttons
+    document.querySelectorAll('#table-major .btn').forEach(button => {
+        button.addEventListener('click', async function() {
+            const row = this.closest('tr');
+            const firstTd = row?.querySelector('.idMajor');
+            if (firstTd) {
+                const action = this.id;
+                const id = firstTd.textContent.trim();
+                if (action === "editMajorBtn") {
+                    await loadMajorEdit(id);
+                } else if (action === "deleteMajorBtn") {
+                    await handleDeleteMajor(id);
+                }
+            }
+        });
+    });
+
+    // Initialize initial state
+    updateSelectedCount();
+}
 //Xóa ngành
 async function deleteMajor(id) {
     try {
-        const response = await fetch(`/api/major/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        const result = await callApi(`/major/${id}`, 'DELETE');
 
-        const textResponse = await response.text();
-
-        let result;
-        try {
-            result = JSON.parse(textResponse);
-        } catch (e) {
-            return { success: false, message: 'Xóa ngành thất bại (phản hồi không hợp lệ)' };
-        }
-
-        if (response.ok) {
+        if (result.status) {
             return { success: true, message: 'Xóa ngành thành công' };
         } else {
             return { success: false, message: result?.message || 'Xóa ngành thất bại' };

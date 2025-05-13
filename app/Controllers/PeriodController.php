@@ -17,12 +17,18 @@ class PeriodController {
     }
     
     public function getById(Response $response, $id) {
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
+        if (!$id) $response->json(
+            ['error' => 'ID is required',
+                'status' => false
+            ]);
     
         $Period = $this->service->getById((int)$id);
     
         if ($Period) {
-            $response->json(['data' => $Period]);
+            $response->json([
+                'data' => $Period,
+                'status' => true
+            ]);
         } else {
             $response->json(['error' => 'Chu kỳ không tồn tại'], 404);
         }
@@ -40,7 +46,10 @@ class PeriodController {
         $endYear = $data['endYear'] ?? null;
 
         if (!$startYear || !$endYear) {
-            return $res->json(['message' => 'Dữ liệu không hợp lệ'], 400);
+            $res->json([
+                'message' => 'Dữ liệu không hợp lệ' ,
+                'status' => false
+            ]);
         }
 
         $this->service->create([
@@ -48,18 +57,25 @@ class PeriodController {
             'endYear' => $endYear
         ]);
 
-        return $res->json(['message' => 'Tạo chu kỳ thành công'], 201);
+        $res->json([
+            'message' => 'Tạo chu kỳ thành công',
+            'status' => true
+        ]);
     }
 
     public function update(Response $response, Request $request) {
         $id = $_GET['id'] ?? null;
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
+        if (!$id) $response->json([
+            'error' => 'ID is required',
+            'status' => false
+        ]);
 
         $data = $request->getBody();
         $success = $this->service->update((int)$id, $data);
 
         $response->json([
-            'message' => $success ? 'Cập nhật chu kỳ thành công' : 'Cập nhật thất bại'
+            'message' => $success ? 'Cập nhật chu kỳ thành công' : 'Cập nhật thất bại',
+            'status' => $success
         ]);
     }
 
@@ -68,13 +84,22 @@ class PeriodController {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
     
         if (!$id) {
-            return $response->json(['error' => 'ID is required'], 400);
+            $response->json([
+                'error' => 'ID is required',
+                'status' => false
+            ]);
         }
         $success = $this->service->delete($id);
         if ($success) {
-            return $response->json(['message' => 'Xóa chu kỳ thành công']);
+            $response->json([
+                'message' => 'Xóa chu kỳ thành công',
+                'status' => true
+            ]);
         } else {
-            return $response->json(['message' => 'Xóa chu kỳ thất bại'], 500);
+            $response->json([
+                'message' => 'Xóa chu kỳ thất bại',
+                'status' => false
+            ]);
         }
     }
     

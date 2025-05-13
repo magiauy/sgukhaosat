@@ -217,7 +217,7 @@ public function bulkCreate(Response $response, Request $request)
             }
 
             // Let service handle the business logic
-            $this->userService->resetPassword($email);
+            $this->userService->resetPassword($data);
             $response->json([
                 'status' => true,
                 'message' => 'Password reset successfully'
@@ -252,6 +252,19 @@ public function bulkCreate(Response $response, Request $request)
             $response->json([
                 'message' => 'Get user by email successfully',
                 'data' => $user
+            ]);
+        } catch (\Exception $e) {
+            $response->json(['error' => $e->getMessage()]);
+        }
+    }
+    
+    public function updateInformation(Response $response, Request $request)
+    {
+        try {
+            $data = $request->getBody();
+            $this->userService->updateInformation($data);
+            $response->json([
+                'message' => 'Update user information successfully'
             ]);
         } catch (\Exception $e) {
             $response->json(['error' => $e->getMessage()]);

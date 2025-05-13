@@ -30,7 +30,7 @@
 
 
         <!-- Table section -->
-        <div class="px-4 mb-4">
+        <div class="px-4 mb-4 custom-table">
             <div class="table-responsive rounded-4 border overflow-hidden">
                 <table id="table-period" class="table table-hover align-middle mb-0">
                     <thead class="bg-light">

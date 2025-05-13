@@ -28,7 +28,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
             </div>
         </div>
     </div>
-<script src="/public/js/view-form.js"></script>
+<script src="/public/js/view-form.js" type="module"></script>
 <?php
 include __DIR__ . '/../../views/layouts/footer.php';
 ?>

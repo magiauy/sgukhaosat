@@ -20,9 +20,9 @@ class UserRepository implements IAuthRepository {
         $this->pdo->beginTransaction();
         try {
             $placeholders = implode(", ", array_fill(0, count($data), "(?, ?, ?, ?, ? ,?,?,?)"));
-            $sql = "INSERT INTO users (email, password, created_at, updated_at, status , roleId, `position`,fullName) VALUES $placeholders";
+            $sql = "INSERT INTO users (email, password, created_at, updated_at, status , roleID, `position`,fullName) VALUES $placeholders";
             $stmt = $this->pdo->prepare($sql);
-            $expectedOrder = ['email', 'password', 'created_at', 'updated_at', 'status', 'roleId','position','fullName'];
+            $expectedOrder = ['email', 'password', 'created_at', 'updated_at', 'status', 'roleID','position','fullName'];
             $params = [];
             foreach ($data as $row) {
 
@@ -52,14 +52,17 @@ class UserRepository implements IAuthRepository {
     public function update($id, $data): bool { 
         // var_dump($data);
         $sql = "UPDATE users SET roleID = :roleID, phone = :phone, 
-                status = :status, updated_at = NOW()
+                status = :status, updated_at = NOW(), position = :position,
+                fullName = :fullName 
                 WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'roleID' => $data['roleID'],
             'phone' => $data['phone'],
             'email' => $id,
-            'status' => $data['status']
+            'status' => $data['status'],
+            'position' => $data['position'],
+            'fullName' => $data['fullName'],
         ]);
         return $stmt->rowCount() === 1;
     }
@@ -231,7 +234,7 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
 
     public function resetPassword($email, $newPassword)
     {
-        $sql = "UPDATE users SET password = :password WHERE email = :email";
+        $sql = "UPDATE users SET password = :password, updated_at = NOW() WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'password' => $newPassword,
@@ -251,7 +254,9 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
         $stmt->execute(array_values($ids));
     }
 
-    function getOnPagination($data){
+    public function getOnPagination($data){
+        error_log("Data: " . json_encode($data));
+        
         $sql = "SELECT * FROM users 
         WHERE
         (
@@ -295,6 +300,7 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
     }
 
     function getTotalRecord($data){
+        // var_dump($data);
         $sql = 'SELECT COUNT(*) FROM users 
         WHERE
         (
@@ -338,5 +344,17 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['email' => $data['email']]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    public function updateInformation($data){
+        $sql = "UPDATE users SET phone = :phone, fullName = :fullName, updated_at = NOW(), position = :position WHERE email = :email";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'phone' => $data['phone'],
+            'email' => $data['email'],
+            'fullName' => $data['fullName'],
+            'position' => $data['position'],
+        ]);
+        return $stmt->rowCount() === 1;
     }
 }

@@ -1,11 +1,4 @@
-    async function fetchFormData(formId) {
-        const response = await fetch(`/api/form?id=${formId}`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return await response.json();
-    }
-
+import {callApi} from "./apiService.js";
     document.addEventListener('DOMContentLoaded', async function() {
         Loader.show();
         const path = window.location.pathname;
@@ -15,7 +8,7 @@
 
         try {
         console.log('Form ID:', formId);
-        const formData = await fetchFormData(formId);
+        const formData = await callApi(`/form?id=${formId}`);
         renderSurvey(formData['data']);
         } catch (error) {
         console.error('Error loading form:', error);
@@ -31,23 +24,6 @@
     // 1. Removes all drag handles, edit controls, and contenteditable features.
     // 2. Builds a basic read-only display for survey form data.
     // 3. Replaces interactive form fields with plain text or read-only inputs.
-
-
-    async function fetchSurveyData() {
-        const response = await fetch(`${config.apiUrl}/admin/form/3`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${sessionStorage.getItem("token")}`,
-
-            },
-        });
-
-        const data = await response.json();
-        console.log(data['data'])
-        renderSurvey(data['data'])
-    }
-
     function renderSurvey(data) {
         let surveyHtml = `
             <div id="survey-body" class="survey-body container py-4 px-3" style="max-width: 720px">

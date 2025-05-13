@@ -12,9 +12,29 @@
                 <small class="text-muted" id="dropdown-email"><?= $user->email ?? "" ?></small>
             </li>
             <li><hr class="dropdown-divider"></li>
-            <li>
-                <a class="dropdown-item py-2 d-flex align-items-center gap-2" id="btn-admin" href="/admin">
-                    <i class="bi bi-house"></i> Trang quản trị
+            <?php
+            // Check if user has admin access permission
+            $hasAdminAccess = false;
+            if (isset($data) && isset($data['permissions']) && is_array($data['permissions'])) {
+                foreach ($data['permissions'] as $permission) {
+                    if (isset($permission->permID) && $permission->permID === 'ACCESS_ADMIN') {
+                        $hasAdminAccess = true;
+                        break;
+                    }
+                }
+            }
+            // Only show admin link if user has admin access
+            if ($hasAdminAccess):
+                ?>
+                <li>
+                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" id="btn-admin" href="/admin">
+                        <i class="bi bi-house"></i> Trang quản trị
+                    </a>
+                </li>
+            <?php endif; ?>
+             <li>
+                <a class="dropdown-item py-2 d-flex align-items-center gap-2" id="btn-information" href="">
+                    <i class="bi bi-person-circle fs-10"></i> Thông tin cá nhân
                 </a>
             </li>
             <li>

@@ -53,7 +53,7 @@ $answerController = new AnswerController();
     );
     $router->post('/api/user/pagination', fn() => $controller->getOnPagination($response, $request));
     $router->post('/api/user/id', fn() => $controller->getByEmail($response, $request));
-
+    $router->post('/api/user/information', fn() => $controller->updateInformation($response, $request));
 
     // Excel Import APIs
     $router->post('/api/excel/parse-emails', function() use ($request, $response, $controller) {
@@ -65,6 +65,7 @@ $answerController = new AnswerController();
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
             fn($req, $res) => $controller->bulkCreate($res, $req));
     });
+    $router->post('/api/user/importAccount', fn() => $controller->bulkCreate($response, $request));
 
 
 
@@ -160,11 +161,20 @@ $answerController = new AnswerController();
     });
 
 
-
+    
     // Role APIs
-    $router->post('/api/role', fn() => $roleController->create($response, $request));
-    $router->put('/api/role/id', fn() => $roleController->update($response, $request));
-    $router->delete('/api/role/id', fn() => $roleController->delete($response, $request));
+    $router->post('/api/role', function() use ($request, $response, $roleController) {
+        JwtMiddleware::authenticate($request, $response, "EDIT_ROLE_ADMIN", 
+        fn($request, $response) => $roleController->create($response, $request));
+    });
+    $router->put('/api/role/id', function() use ($request, $response, $roleController) {
+        JwtMiddleware::authenticate($request, $response, "EDIT_ROLE_ADMIN", 
+        fn($request, $response) => $roleController->update($response, $request));
+    });
+    $router->delete('/api/role/id', function() use ($request, $response, $roleController){
+        JwtMiddleware::authenticate($request, $response, "EDIT_ROLE_ADMIN", 
+        fn($request, $response) => $roleController->delete($response, $request));
+    });
     $router->get('/api/role/{id}', function($params) use ($request, $response, $roleController) {
         $_GET['id'] = $params['id'];
         $roleController->getById($response, $request);
@@ -300,6 +310,9 @@ $answerController = new AnswerController();
         // Auth APIs
         $router->post('/api/auth/refresh', function() use ($response, $request) {
             JwtMiddleware::refresh($request, $response);
+        });
+        $router->post('/api/auth/logout', function() use ($response, $request) {
+            JwtMiddleware::logout($request, $response);
         });
 
 

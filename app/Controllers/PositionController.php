@@ -40,35 +40,50 @@ class PositionController {
         $positionName = $data['PositionName'] ?? null;
     
         if (!$positionName) {
-            return $res->json(['message' => 'Dữ liệu không hợp lệ'], 400);
+            $res->json([
+                'message' => 'Dữ liệu không hợp lệ',
+                'status' => false
+            ]);
         } 
     
         $this->service->create([
             'PositionName' => $positionName
         ]);
     
-        return $res->json(['message' => 'Tạo chức vụ học thành công'], 201);
+        $res->json([
+            'message' => 'Tạo chức vụ thành công',
+            'status' => true
+            ]);
     }
     
 
     public function update(Response $response, Request $request) {
         $id = $request->getParam("id");
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
+        if (!$id) $response->json([
+            'error' => 'ID is required',
+            'status' => false
+        ]);
 
         $data = $request->getBody();
         $success = $this->service->update($id, $data);
         
         $response->json([
-            'message' => $success ? 'Cập nhật chức vụ học thành công' : 'Cập nhật thất bại'
+            'message' => $success ? 'Cập nhật chức vụ học thành công' : 'Cập nhật thất bại',
+            'status' => $success
         ]);
     }
 
     public function delete(Response $response, Request $request) {
         $id = $request->getParam("id");
-        if (!$id) return $response->json(['error' => 'ID is required'], 400);
+        if (!$id) $response->json([
+            'error' => 'ID is required',
+            'status' => false
+        ]);
+
         $success = $this->service->delete($id);
         $response->json([
-            'message' => $success ? 'Xóa chức vụ học thành công' : 'Xóa thất bại'
+            'message' => $success ? 'Xóa chức vụ học thành công' : 'Xóa thất bại',
+            'status' => $success
         ]);
     }
     

@@ -271,7 +271,10 @@ export default class ImportExcelModal {
 
         // Click on drop zone should open file dialog
         dropZone.addEventListener('click', (e) => {
-            if (e.target !== fileInput) {
+            // Don't trigger file input click if the click was on a button or label inside the drop zone
+            if (e.target !== fileInput &&
+                !e.target.closest('button') &&
+                !e.target.closest('label')) {
                 fileInput.click();
             }
         });

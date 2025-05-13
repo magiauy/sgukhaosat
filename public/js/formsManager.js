@@ -78,15 +78,90 @@ async function loadSurveyTable(data) {
         });
     });
 
-    const btnAddForm = document.querySelector('.btn-add-form');
-    if (btnAddForm) {
-        btnAddForm.addEventListener('click', async function () {
-            const data = await callApi(`/draft`, 'POST');
-                const url = data['url'];
-                window.location.href = `${config.Url}${url}`;
-        });
-    }
+const btnAddForm = document.querySelector('.btn-add-form');
+if (btnAddForm) {
+    // Remove any existing event listeners first
+    btnAddForm.replaceWith(btnAddForm.cloneNode(true));
 
+    // Get the fresh reference after replacement
+    const freshBtnAddForm = document.querySelector('.btn-add-form');
+
+freshBtnAddForm.addEventListener('click', async function() {
+    try {
+        // Disable button to prevent multiple clicks
+        this.disabled = true;
+
+        const data = await callApi(`/draft`, 'POST');
+        if (data && data['url']) {
+            // Remove any existing modal
+            const existingModal = document.getElementById("popupModal");
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Create the modal element
+            const modal = document.createElement('div');
+            modal.id = "popupModal";
+            modal.className = "position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center";
+            modal.style.cssText = "background: rgba(0,0,0,0.5); z-index: 1050; opacity: 0; transition: opacity 0.3s ease;";
+
+            modal.innerHTML = `
+                <div class="bg-white p-4 rounded shadow" style="max-width: 400px; transform: translateY(-20px); transition: transform 0.3s ease;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Thông báo</h5>
+                        <button type="button" class="btn-close" id="closePopupBtn"></button>
+                    </div>
+                    <div class="text-center">
+                        <i class="bi bi-check-circle-fill text-success fs-1 mb-3"></i>
+                        <p>Biểu mẫu đang được tạo. Bạn sẽ được chuyển hướng sau giây lát.</p>
+                    </div>
+                </div>
+            `;
+
+            // Add to DOM
+            document.body.appendChild(modal);
+
+            // Trigger reflow to ensure transitions work
+            void modal.offsetWidth;
+
+            // Fade in the modal
+            requestAnimationFrame(() => {
+                modal.style.opacity = "1";
+                modal.querySelector(".bg-white").style.transform = "translateY(0)";
+            });
+
+            // Function to handle closing and navigation
+            const closeAndNavigate = () => {
+                // Fade out animation
+                modal.style.opacity = "0";
+                modal.querySelector(".bg-white").style.transform = "translateY(-20px)";
+
+                // Wait for animation to complete before navigation
+                setTimeout(() => {
+                    modal.remove();
+                    window.location.href = `${config.Url}${data['url']}`;
+                }, 300);
+            };
+
+            // Set up navigation timeout
+            const navigationTimeout = setTimeout(() => {
+                closeAndNavigate();
+            }, 2000);
+
+            // Add close button event handler
+            document.getElementById("closePopupBtn").onclick = function() {
+                clearTimeout(navigationTimeout);
+                closeAndNavigate();
+            };
+        }
+    } catch (error) {
+        console.error("Error creating draft form:", error);
+    } finally {
+        // Re-enable button
+        this.disabled = false;
+    }
+});
+}
 
 
     cleanupTooltips();
@@ -124,7 +199,22 @@ export async function loadSurveyFromAPI(offset, limit) {
             });
 
         }else {
-             data = await callApi(`/admin/forms/pagination?offset=${offset}&limit=${limit}`);
+            // Check if search-form has a value to enable simple search by form name
+            const searchValue = document.getElementById('search-form')?.value;
+            if (searchValue && searchValue.trim() !== '') {
+                // Call with only search parameter, leaving other filter fields empty
+                data = await callApi(`/admin/forms/pagination?offset=${offset}&limit=${limit}&isFilter=true`, 'POST', {
+                    filter: {
+                        FName: searchValue,
+                        TypeID: 'all',
+                        MajorID: 'all',
+                        PeriodID: 'all'
+                    }
+                });
+            } else {
+                // Standard pagination without any filtering
+                data = await callApi(`/admin/forms/pagination?offset=${offset}&limit=${limit}`);
+            }
         }
         if (!data['status']) {
             showSwalToast('Không tìm thấy khảo sát nào', 'error');
@@ -230,7 +320,7 @@ function setupFilterInputs() {
     dataType.then(data => {
         if (data && data.data) {
             const typeSelect = document.getElementById('form-type-select');
-            typeSelect.innerHTML = `<option value="all">Loại khảo sát</option>`;
+            typeSelect.innerHTML = `<option value="all">Tất cả loại hình khảo sát</option>`;
             data.data.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.FTypeID;
@@ -242,7 +332,7 @@ function setupFilterInputs() {
     dataMajor.then(data => {
         if (data && data.data) {
             const majorSelect = document.getElementById('major-select');
-            majorSelect.innerHTML = `<option value="all">Ngành</option>`;
+            majorSelect.innerHTML = `<option value="all">Tất cả ngành</option>`;
             data.data.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.MajorID;
@@ -254,7 +344,7 @@ function setupFilterInputs() {
     dataPeriod.then(data => {
         if (data && data.data) {
             const periodSelect = document.getElementById('period-select');
-            periodSelect.innerHTML = `<option value="all">Giai đoạn</option>`;
+            periodSelect.innerHTML = `<option value="all">Tất cả chu kỳ</option>`;
             data.data.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.periodID;
@@ -263,19 +353,39 @@ function setupFilterInputs() {
             });
         }
     });
-    const btnFilter = document.querySelector('.btn-filter');
-    if (btnFilter) {
-        btnFilter.addEventListener('click', async function () {
-            isFilter = true;
+    const btnSearch = document.querySelector('.btn-search');
+    if (btnSearch) {
+        btnSearch.addEventListener('click', async function () {
             const offset = 0;
             await loadSurveyFromAPI(offset, currentLimit);
         });
+        searchInput.addEventListener('keypress', async function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const offset = 0;
+                isSearch = true;
+                await loadSurveyFromAPI(offset, currentLimit);
+            }
+        });
     }
+    const btnFilter = document.querySelector('.btn-filter');
+    {
+        if (btnFilter) {
+            btnFilter.replaceWith(btnFilter.cloneNode(true));
+            const freshBtnFilter = document.querySelector('.btn-filter');
+            freshBtnFilter.addEventListener('click', async function () {
+                isFilter = true;
+                const offset = 0;
+                await loadSurveyFromAPI(offset, currentLimit);
+            });
+        }
+
+    }
+
     const btnReset = document.querySelector('.btn-reset');
     if (btnReset) {
         btnReset.addEventListener('click', async function () {
             isFilter = false;
-            searchInput.value = '';
             formTypeSelect.value = 'all';
             majorSelect.value = 'all';
             periodSelect.value = 'all';
@@ -290,6 +400,7 @@ function setupFilterInputs() {
 let currentLimit = 10;
 let isHavePagination = false;
 let isFilter = false;
+let isSearch = false;
 let isFirstLoad = true;
 const pagination = new PaginationComponent({
     containerId: 'pagination',

@@ -2,23 +2,22 @@ import { callApi } from "../../apiService.js";
 import { renderContentUser } from "./accountAdmin.js";
 
 export function showDetail() {
-    document.querySelectorAll(".detail-account").forEach((detail) => {
-        detail.onclick = async function(e) {
-            e.preventDefault();
-            const email = detail.getAttribute("data-id");
-      
-            try {
-                let response = await callApi(`/user/id`, "POST", {email: email});
-                let account = response.data;
-                
-                renderFormDetailAccount(account);
-                
-            } catch (error) {
-                console.error("Không thể tải thông tin tài khoản:", error);
-                alert("Có lỗi xảy ra khi tải thông tin tài khoản.");
-            }
-        };
-    });
+  document.querySelectorAll(".detail-account").forEach((detail) => {
+    detail.onclick = async function (e) {
+      e.preventDefault();
+      const email = detail.getAttribute("data-id");
+
+      try {
+        let response = await callApi(`/user/id`, "POST", { email: email });
+        let account = response.data;
+
+        renderFormDetailAccount(account);
+      } catch (error) {
+        console.error("Không thể tải thông tin tài khoản:", error);
+        alert("Có lỗi xảy ra khi tải thông tin tài khoản.");
+      }
+    };
+  });
 }
 
 export async function renderFormDetailAccount(account) {
@@ -49,7 +48,9 @@ export async function renderFormDetailAccount(account) {
                                           <i class="bi bi-envelope"></i>
                                       </span>
                                       <input type="email" id="account-email" class="form-control" 
-                                          value="${account.email || ''}" disabled>
+                                          value="${
+                                            account.email || ""
+                                          }" disabled>
                                   </div>
                               </div>
                               
@@ -61,7 +62,9 @@ export async function renderFormDetailAccount(account) {
                                           <i class="bi bi-person"></i>
                                       </span>
                                       <input type="text" id="account-fullName" class="form-control" 
-                                          value="${account.fullName || ''}" disabled>
+                                          value="${
+                                            account.fullName || ""
+                                          }" disabled>
                                   </div>
                               </div>
                           </div>
@@ -76,7 +79,9 @@ export async function renderFormDetailAccount(account) {
                                           <i class="bi bi-telephone"></i>
                                       </span>
                                       <input type="text" id="account-phone" class="form-control" 
-                                          value="${account.phone || ''}" disabled>
+                                          value="${
+                                            account.phone || ""
+                                          }" disabled>
                                   </div>
                               </div>
                               
@@ -88,7 +93,9 @@ export async function renderFormDetailAccount(account) {
                                           <i class="bi bi-calendar-date"></i>
                                       </span>
                                       <input type="text" id="account-dateCreate" class="form-control" 
-                                          value="${account.created_at || ''}" disabled>
+                                          value="${
+                                            account.created_at || ""
+                                          }" disabled>
                                   </div>
                               </div>
 
@@ -112,7 +119,9 @@ export async function renderFormDetailAccount(account) {
                                         <i class="bi bi-calendar-date"></i>
                                     </span>
                                     <input type="text" id="account-dateUpdate" class="form-control" 
-                                        value="${account.updated_at || ''}" disabled>
+                                        value="${
+                                          account.updated_at || ""
+                                        }" disabled>
                                 </div>
                               </div>
                               
@@ -129,8 +138,16 @@ export async function renderFormDetailAccount(account) {
                                           <i class="bi bi-toggle-on"></i>
                                       </span>
                                       <select id="account-status" class="form-select" disabled>
-                                          <option value="1" ${account.status == 1 ? "selected" : ""}>Hoạt động</option>
-                                          <option value="0" ${account.status == 0 ? "selected" : ""}>Khóa</option>
+                                          <option value="1" ${
+                                            account.status == 1
+                                              ? "selected"
+                                              : ""
+                                          }>Hoạt động</option>
+                                          <option value="0" ${
+                                            account.status == 0
+                                              ? "selected"
+                                              : ""
+                                          }>Khóa</option>
                                       </select>
                                   </div>
                               </div>
@@ -153,13 +170,14 @@ export async function renderFormDetailAccount(account) {
                           <div class="row">
                               
                             <div class="col-md-6">
-                                  <label for="account-position" class="form-label fw-medium">Position:</label>
+                                  <label for="account-position" class="form-label fw-medium">Chức vụ:</label>
                                   <div class="input-group">
                                       <span class="input-group-text bg-light">
-                                          <i class="bi bi-person"></i>
+                                          <i class="bi bi-person-badge"></i>
                                       </span>
-                                      <input type="text" id="account-fullName" class="form-control" 
-                                          value="${account.position || ''}" disabled>
+                                      <select id="account-position" class="form-select" disabled>
+                                          <!-- Options will be populated via JavaScript -->
+                                      </select>
                                   </div>
                               </div>
                               
@@ -180,93 +198,132 @@ export async function renderFormDetailAccount(account) {
           </div>
       </div>
   `;
-  
+
   // Thêm modal vào body
   document.body.insertAdjacentHTML("beforeend", modalHTML);
-  
+
   // Lấy danh sách roles và thêm vào select
   let roles = await callApi("/role");
   roles = roles.data;
-  
+
   const roleSelect = document.querySelector("#account-role");
   roles.forEach((role) => {
-      roleSelect.insertAdjacentHTML("beforeend", `
-          <option value="${role.roleID}" ${account.roleID === role.roleID ? "selected" : ""}>${role.roleName}</option>
-      `);
+    roleSelect.insertAdjacentHTML(
+      "beforeend",
+      `
+          <option value="${role.roleID}" ${
+        account.roleID === role.roleID ? "selected" : ""
+      }>${role.roleName}</option>
+      `
+    );
   });
-  
+
+  let response = await callApi("/position");
+  let positions = response.data;
+  const positionSelect = document.querySelector("#account-position");
+  positions.forEach((position) => {
+    positionSelect.insertAdjacentHTML(
+      "beforeend",
+      `
+          <option value="${position.PositionID}" ${
+        account.position === position.PositionID ? "selected" : ""
+      }>${position.PositionName}</option>
+      `
+    );
+  });
+
   // Khởi tạo modal Bootstrap
-  const modal = new bootstrap.Modal(document.getElementById('accountDetailModal'));
+  const modal = new bootstrap.Modal(
+    document.getElementById("accountDetailModal")
+  );
   modal.show();
-  
+
   // Xử lý đóng modal
-  document.getElementById('accountDetailModal').addEventListener('hidden.bs.modal', function () {
+  document
+    .getElementById("accountDetailModal")
+    .addEventListener("hidden.bs.modal", function () {
       // Xóa modal khỏi DOM sau khi đóng
       this.remove();
-  });
+    });
 
   setUpHandlers(account);
 }
 
 function setUpHandlers(account) {
-    edit(account);
-    resetPassword(account);
+  edit(account);
+  resetPassword(account);
 }
 
-export function edit(account){
-    document.querySelector("#detail-edit-submit").onclick = async function(){
-        document.querySelector("#account-role").disabled = false;
-        document.querySelector("#account-status").disabled = false;
-        document.querySelector("#reset-password").disabled = false;
+export function edit(account) {
+  document.querySelector("#detail-edit-submit").onclick = async function () {
+    document.querySelector("#account-role").disabled = false;
+    document.querySelector("#account-status").disabled = false;
+    document.querySelector("#reset-password").disabled = false;
+    document.querySelector("#account-fullName").disabled = false;
+    document.querySelector("#account-phone").disabled = false;
+    document.querySelector("#account-position").disabled = false;
 
-        document.querySelector("#detail-edit-submit").innerText = "Lưu";
-        document.querySelector("#detail-edit-submit").id = "save-edit-submit";
+    document.querySelector("#detail-edit-submit").innerText = "Lưu";
+    document.querySelector("#detail-edit-submit").id = "save-edit-submit";
 
-        document.querySelector("#save-edit-submit").onclick = async () => {
-            const roleID = document.querySelector("#account-role").value;
-            const status = document.querySelector("#account-status").value;
-            
-            const data = {
-                email: account.email,
-                roleID: roleID,      
-                status: status,
-                fullName: account.fullName,
-                phone: account.phone    
-            }
-            // console.log(data);
+    document.querySelector("#save-edit-submit").onclick = async () => {
+      const roleID = document.querySelector("#account-role").value;
+      const status = document.querySelector("#account-status").value;
+      const fullName = document.querySelector("#account-fullName").value;
+      const phone = document.querySelector("#account-phone").value;
+      const position = document.querySelector("#account-position").value;
 
-            try {
-              const response = await callApi("/user", "PUT", data);
-              // console.log(response);
-              const modalElement = document.getElementById('accountDetailModal');
-              const modalInstance = bootstrap.Modal.getInstance(modalElement);
-              modalInstance.hide(); // Ẩn modal
+      if(fullName === "" || phone === ""){
+        alert("Vui lòng nhập đầy đủ thông tin");
+        return;
+      }
 
-              renderContentUser();
-            } catch (error) {
-                console.log(error);
-                return;
-            }
+      const data = {
+        email: account.email,
+        roleID: roleID,
+        status: status,
+        fullName: fullName,
+        phone: phone,
+        position: position,
+      };
+      // console.log(data);
+      // let response = await callApi('/me', "POST");
+      // let accountCurrent = response.data;
+      // accountCurrent = accountCurrent.user;
+      // if(accountCurrent.roleID === account.roleID){
+      //     data.isResetToken = 1;
+      // }
+      try {
+        const response = await callApi("/user", "PUT", data);
+        console.log(response);
+        const modalElement = document.getElementById("accountDetailModal");
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        modalInstance.hide(); // Ẩn modal
 
-            const dataPassword = {
-              email: account.email
-            }
-
-            console.log(dataPassword);
-            try {
-                const response = await callApi("/user/password", "PUT", dataPassword);
-                console.log(response);
-            } catch (error) {
-                console.log(error);
-            }
-            }
-    }
+        renderContentUser();
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+    };
+  };
 }
 
-export function resetPassword(){
-    document.querySelector("#reset-password").onclick = async function(e){
-        e.preventDefault();
-        document.querySelector("#reset-password").innerText = "Đã khôi phục";
-        document.querySelector("#reset-password").disabled = true;
+export function resetPassword() {
+  document.querySelector("#reset-password").onclick = async function (e) {
+    e.preventDefault();
+    const email = document.querySelector("#account-email").value;
+    const dataPassword = {
+      email: email,
+    };
+    console.log(dataPassword);
+    try {
+      const response = await callApi("/user/password", "PUT", dataPassword);
+      console.log(response);
+    } catch (error) {
+      console.log(error);
     }
+    document.querySelector("#reset-password").innerText = "Đã khôi phục";
+    document.querySelector("#reset-password").disabled = true;
+  };
 }

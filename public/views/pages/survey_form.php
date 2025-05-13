@@ -53,7 +53,7 @@ include_once __DIR__ . '/../layouts/header.php';
     </div>
 </div>
 
-<script src="/public/js/survey_form.js"></script>
+<script src="/public/js/survey_form.js" type="module"></script>
 
 <?php
 include_once __DIR__ . '/../layouts/footer.php';

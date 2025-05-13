@@ -20,5 +20,5 @@ interface IFormService extends IBaseService
     function duplicate($id, $userId);
 
     function getFormWithSearchPagination($offset, $limit, $userId, $fName, $typeID, $majorID, $periodID);
-
+    function getStatistics();
 }

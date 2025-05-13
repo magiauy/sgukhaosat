@@ -118,4 +118,13 @@ function create($id, $data)
             throw new \Exception("Database Error: " . $e->getMessage(), 500);
         }
     }
+
+    function checkWhitelist($fid, $uid)
+    {
+        $pdo = $this->db->getConnection();
+        $sql = "SELECT * FROM whitelist_form WHERE FID = :fid AND UID = :uid";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['fid' => $fid, 'uid' => $uid]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
 }

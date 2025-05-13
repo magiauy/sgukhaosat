@@ -3,6 +3,8 @@ namespace Core;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+use PDO;
+use Repositories\Database;
 class AuthHelper
 {
     public static function verifyUserToken()
@@ -114,4 +116,99 @@ class AuthHelper
 
         return null;
     }
+
+    public static function verifyLoginUrlToken($token)
+    {
+        if (!$token) {
+            return null;
+        }
+
+        try {
+            // Decode the token (assuming it might be base64 encoded or similar)
+            $decodedToken = base64_decode($token);
+            error_log("Decoded token: " . $decodedToken);
+
+            // Connect to database
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+
+            // Query the database for this token
+            $stmt = $conn->prepare("SELECT * FROM login_tokens WHERE token = ? AND expires_at > NOW() AND is_used = 0 LIMIT 1");
+            $stmt->execute([$decodedToken]);
+            $loginToken = $stmt->fetch(PDO::FETCH_ASSOC);
+            error_log("Checking token Pass ");
+
+            if (!$loginToken) {
+                // Token not found, expired, or already used
+                return null;
+            }
+
+            // Mark token as used to prevent reuse
+            $stmt = $conn->prepare("UPDATE login_tokens SET is_used = 1, used_at = NOW() WHERE id = ?");
+            $stmt->execute([$loginToken['id']]);
+
+            // Get all user data except password
+            $stmt = $conn->prepare("SELECT u.email, u.fullName, u.email, u.phone, u.created_at, u.updated_at, u.roleID, 
+                                    r.roleName as role_name
+                                   FROM users u
+                                   JOIN roles r ON u.roleID = r.roleID
+                                   WHERE u.email = ?");
+            $stmt->execute([$loginToken['user_id']]);
+            $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$userData) {
+                return null;
+            }
+
+            error_log("User Pass ");
+            // Get permissions from role_perm table
+            $stmt = $conn->prepare("SELECT permID FROM role_permission WHERE roleID = ?");
+            $stmt->execute([$userData['roleID']]);
+            $permissionRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("Permission Pass ");
+
+            // Create session data with all user fields except password
+            $data = [
+                'user' => $userData,
+                'role' => $userData['role_name'],
+                'permissions' => $permissionRows
+            ];
+
+            // Create new access and refresh tokens
+            $jwtConfig = require __DIR__ . '/../../config/JwtConfig.php';
+            $accessToken = jwt_helper::createJWT($data, $jwtConfig['access_secret'], 600); // 10 minutes
+            $refreshToken = jwt_helper::createJWT($data, $jwtConfig['refresh_secret'], 604800); // 1 week
+
+            // Set cookies
+            setcookie('access_token', $accessToken, time() + 600, '/', '', false, true);
+            setcookie('refresh_token', $refreshToken, time() + 604800, '/', '', false, true);
+
+            return $data;
+        } catch (\Exception $e) {
+            error_log("Error verifying URL login token: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    public static function generateLoginToken($email): ?string
+    {
+        try {
+            // Connect to database
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+
+            // Generate a unique token
+            $token = bin2hex(random_bytes(16));
+
+            // Insert the token into the database with an expiration time
+            $stmt = $conn->prepare("INSERT INTO login_tokens (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 3 DAY))");
+            $stmt->execute([$email, $token]);
+
+            return base64_encode($token);
+        } catch (\Exception $e) {
+            error_log("Error generating login token: " . $e->getMessage());
+            return null;
+        }
+    }
+
 }

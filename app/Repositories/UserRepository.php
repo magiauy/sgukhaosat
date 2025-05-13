@@ -88,8 +88,10 @@ class UserRepository implements IAuthRepository {
     
 
     public function getById($id){
-        $sql = "SELECT * FROM users WHERE email = :email";
-        $stmt = $this->pdo->prepare($sql);
+        $sql = "SELECT u.*, p.PositionName 
+        FROM users u
+        LEFT JOIN position p ON u.position = p.PositionID
+        WHERE u.email = :email";        $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['email' => $id]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }

@@ -15,9 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Parse URL to determine if it's an API request
 $path = $_SERVER['REQUEST_URI'];
 
-// Route the request
 if (str_starts_with($path, '/api/')) {
-    // Handle API routes
+    // Handle regular API routes
     require_once __DIR__ . '/../app/Routes/api.php';
 } else {
     // Handle web routes

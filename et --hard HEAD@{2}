@@ -1,0 +1,43 @@
+[33m75aadcc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mKhang[m[33m)[m HEAD@{0}: reset: moving to HEAD
+[33m75aadcc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mKhang[m[33m)[m HEAD@{1}: checkout: moving from Khang to master
+[33m75aadcc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mKhang[m[33m)[m HEAD@{2}: pull origin master: Fast-forward
+[33macfe0ea[m[33m ([m[1;31morigin/Khang[m[33m)[m HEAD@{3}: checkout: moving from master to Khang
+[33m75aadcc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mKhang[m[33m)[m HEAD@{4}: pull: Fast-forward
+[33m42faf5e[m HEAD@{5}: checkout: moving from Khang to master
+[33macfe0ea[m[33m ([m[1;31morigin/Khang[m[33m)[m HEAD@{6}: pull origin master: Fast-forward
+[33mbfda462[m HEAD@{7}: checkout: moving from master to Khang
+[33m42faf5e[m HEAD@{8}: commit: route Statistics
+[33macfe0ea[m[33m ([m[1;31morigin/Khang[m[33m)[m HEAD@{9}: reset: moving to HEAD
+[33macfe0ea[m[33m ([m[1;31morigin/Khang[m[33m)[m HEAD@{10}: pull: Merge made by the 'ort' strategy.
+[33md4e7a83[m HEAD@{11}: checkout: moving from Khang to master
+[33mbfda462[m HEAD@{12}: reset: moving to HEAD
+[33mbfda462[m HEAD@{13}: reset: moving to HEAD
+[33mbfda462[m HEAD@{14}: checkout: moving from master to Khang
+[33md4e7a83[m HEAD@{15}: reset: moving to HEAD
+[33md4e7a83[m HEAD@{16}: commit: test Statistic
+[33m77d08ef[m HEAD@{17}: reset: moving to HEAD
+[33m77d08ef[m HEAD@{18}: reset: moving to HEAD
+[33m77d08ef[m HEAD@{19}: pull: Fast-forward
+[33mba9fbc2[m HEAD@{20}: checkout: moving from Khang to master
+[33mbfda462[m HEAD@{21}: commit: fix: submit, admin result manager page
+[33mdc5d761[m HEAD@{22}: checkout: moving from master to Khang
+[33mba9fbc2[m HEAD@{23}: checkout: moving from Khang to master
+[33mdc5d761[m HEAD@{24}: pull origin master: Fast-forward
+[33mba9fbc2[m HEAD@{25}: merge master: Fast-forward
+[33m0d0f4bb[m HEAD@{26}: checkout: moving from master to Khang
+[33mba9fbc2[m HEAD@{27}: checkout: moving from Khang to master
+[33m0d0f4bb[m HEAD@{28}: checkout: moving from master to Khang
+[33mba9fbc2[m HEAD@{29}: commit: .
+[33m61ae513[m HEAD@{30}: commit: Change : dam bao data tra ve dang json, them 1 ti bao loi
+[33mfd11638[m HEAD@{31}: commit: Add : (admin) Result management page
+[33m5602e4d[m HEAD@{32}: commit: Add : survey form page
+[33m26553a6[m HEAD@{33}: commit: Change : database config
+[33m0a4837e[m HEAD@{34}: commit: ben e no warning 'call to unknow method', tro ve cai class
+[33m3776e1b[m HEAD@{35}: commit: Add : Answer + Result service
+[33me042956[m HEAD@{36}: commit: Add : Answer + Result route
+[33mb5cbf79[m HEAD@{37}: commit: Add : Database error handler
+[33me56d21e[m HEAD@{38}: commit: Add : Answer + Result Repository
+[33mb1d79aa[m HEAD@{39}: commit: Add : Answer + Result controller
+[33md0f9b8e[m HEAD@{40}: pull: Fast-forward
+[33ma063e25[m HEAD@{41}: reset: moving to HEAD
+[33ma063e25[m HEAD@{42}: clone: from https://github.com/magiauy/sgukhaosat.git

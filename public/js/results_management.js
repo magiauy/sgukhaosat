@@ -1,11 +1,9 @@
+import {callApi} from "./apiService.js";
+let formQuestions = [];
+
 document.addEventListener('DOMContentLoaded', function() {
     let currentFormId = null;
-    let formQuestions = [];
-    let submissionsChart = null;
-    
-
     loadForms();
-
     document.getElementById('form-selector').addEventListener('change', function() {
         const formId = this.value;
         if (formId) {
@@ -42,26 +40,41 @@ document.addEventListener('DOMContentLoaded', function() {
 /**
  * Load available forms for the selector
  */
-function loadForms() {
 
-    fetch('/api/admin/forms/pagination?page=1&limit=100')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to load forms');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.status && data.data && data.data.forms) {
-                populateFormSelector(data.data.forms);
-            } else {
-                throw new Error(data.message || 'No forms available');
-            }
-        })
-        .catch(error => {
-            showAlert(`Error: ${error.message}`, 'danger');
-        });
+async function loadForms() {
+    try {
+        const response = await callApi('/admin/forms/pagination?page=1&limit=100', 'GET');
+        if (response.status && response.data && response.data.forms) {
+            populateFormSelector(response.data.forms);
+        } else {
+            throw new Error(response.message || 'No forms available');
+        }
+    } catch (error) {
+        showAlert(`Error: ${error.message}`, 'danger');
+    }
+
 }
+
+// function loadForms() {
+
+//     fetch('/api/admin/forms/pagination?page=1&limit=100')
+//         .then(response => {
+//             if (!response.ok) {
+//                 throw new Error('Failed to load forms');
+//             }
+//             return response.json();
+//         })
+//         .then(data => {
+//             if (data.status && data.data && data.data.forms) {
+//                 populateFormSelector(data.data.forms);
+//             } else {
+//                 throw new Error(data.message || 'No forms available');
+//             }
+//         })
+//         .catch(error => {
+//             showAlert(`Error: ${error.message}`, 'danger');
+//         });
+// }
 
 /**
  * Populate form selector with available forms

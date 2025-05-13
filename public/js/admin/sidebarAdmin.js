@@ -200,6 +200,7 @@ async function loadSectionContent(section) {
                 await loadContent(`/pages/survey`);
                 await loadSurveyFromAPI(0, 10);
                 break;
+            
             case "dashboard":
                 // Load dashboard content
                 document.getElementById('content').innerHTML = `
@@ -259,9 +260,15 @@ async function loadSectionContent(section) {
                                     <div>
                                         <h6 class="text-muted mb-1">Đang thực hiện</h6>
                                         <h3 class="mb-0">42</h3>
-                                    </div>
-                                </div>
+                                    </div>                        </div>
                             </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <a href="/admin/statistics-dashboard" class="btn btn-primary">
+                                <i class="bi bi-bar-chart-line me-2"></i>Xem thống kê nâng cao
+                            </a>
                         </div>
                     </div>
                 `;

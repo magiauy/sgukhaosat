@@ -80,7 +80,6 @@ class AnswerRepository implements IAnswerRepository
     function delete($id, \PDO $pdo): bool
     {
         try {
-            // Delete by question ID and result ID
             $sql = "DELETE FROM answer WHERE QID = :QID AND RID = :RID";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
@@ -167,6 +166,16 @@ class AnswerRepository implements IAnswerRepository
                 ':QID' => $questionId
             ]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode());
+        }
+    }
+    function countAll(){
+        try {
+            $sql = "SELECT COUNT(*) as total FROM answer";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         } catch (\PDOException $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode());
         }

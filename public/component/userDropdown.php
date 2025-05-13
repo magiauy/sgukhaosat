@@ -3,21 +3,34 @@
         <button class="btn dropdown-toggle d-flex align-items-center gap-2"
                 type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle fs-5"></i>
-            <span id="username"><?= $user->fullName ?? "User" ?></span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3"
+            <span id="username">
+                <?= is_object($user) ? ($user->fullName ?? "User") : ($user['fullName'] ?? "User") ?>
+            </span>        
+            
+            <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3"
             aria-labelledby="dropdownMenuButton">
             <li class="px-3 py-2">
-                <p class="mb-0 fw-bold text-dark" id="dropdown-username"><?= $user->fullName ?? "User" ?></p>
-                <small class="text-muted" id="dropdown-email"><?= $user->email ?? "" ?></small>
+                <p class="mb-0 fw-bold text-dark" id="dropdown-username">
+                    <?= is_object($user) ? ($user->fullName ?? "User") : ($user['fullName'] ?? "User") ?>
+                </p>
+                <small class="text-muted" id="dropdown-email">
+                    <?= is_object($user) ? ($user->email ?? "") : ($user['email'] ?? "") ?>
+                </small>
             </li>
             <li><hr class="dropdown-divider"></li>
             <?php
+            error_log("User data: " .json_encode($user));
             // Check if user has admin access permission
             $hasAdminAccess = false;
-            if (isset($data) && isset($data['permissions']) && is_array($data['permissions'])) {
+
+            // Kiểm tra nếu $data['permissions'] tồn tại và là mảng hoặc đối tượng
+            if (isset($data['permissions']) && (is_array($data['permissions']) || is_object($data['permissions']))) {
                 foreach ($data['permissions'] as $permission) {
-                    if (isset($permission->permID) && $permission->permID === 'ACCESS_ADMIN') {
+                    // Truy cập permID từ đối tượng hoặc mảng
+                    $permID = $permission->permID ?? ($permission['permID'] ?? null);
+                    
+                    // Kiểm tra quyền ACCESS_ADMIN
+                    if ($permID === 'ACCESS_ADMIN') {
                         $hasAdminAccess = true;
                         break;
                     }

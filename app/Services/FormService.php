@@ -12,6 +12,7 @@ use Repositories\QuestionRepository;
 use Repositories\WhitelistForm;
 use Services\Interface\IBaseService;
 use Repositories\FormRepository;
+use Repositories\AnswerRepository;
 use Services\Interface\IFormService;
 
 class FormService implements IFormService
@@ -20,8 +21,10 @@ class FormService implements IFormService
     private IQuestionRepository $questionRepository;
     private IDraftRepository $draftRepository;
     private IWhitelistForm $whitelistFormRepository;
+    private AnswerRepository $answerRepository;
     function __construct()
     {
+        $this->answerRepository = new AnswerRepository();
         $this->formRepository = new FormRepository();
         $this->questionRepository = new QuestionRepository();
         $this->draftRepository = new DraftRepository();
@@ -637,5 +640,30 @@ function duplicate($id, $userId)
         } catch (Exception $e) {
             throw new Exception("Lỗi khi lấy danh sách form: " . $e->getMessage(), $e->getCode() ?: 500, $e);
         }
+    }
+    public function getStatistics()
+    {
+        $totalSurveys = $this->formRepository->countAll();
+
+        // Lấy tổng số phản hồi
+        $totalResponses =  $this->formRepository->countCompleted();
+
+
+        // Lấy số khảo sát đang thực hiện
+        $ongoingSurveys = $this->formRepository->countOngoing();
+
+            // Lấy dữ liệu phản hồi theo khảo sát
+            $responsesBySurvey = $this->responseRepository->getResponsesBySurvey();
+
+            // Lấy dữ liệu phản hồi theo thời gian
+            $responsesByDate = $this->responseRepository->getResponsesByDate();
+
+        return [
+            'totalSurveys' => $totalSurveys,
+            'totalResponses' => $totalResponses,
+            'ongoingSurveys' => $ongoingSurveys,
+            'responsesBySurvey' => $responsesBySurvey,
+            'responsesByDate' => $responsesByDate
+        ];
     }
 }

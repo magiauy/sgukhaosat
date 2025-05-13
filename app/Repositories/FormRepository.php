@@ -409,4 +409,68 @@ public function delete($id, \PDO $pdo) {
 
         return $stmt->fetch(\PDO::FETCH_ASSOC)['total'];
     }
+    function countAll(){
+        $sql = "SELECT COUNT(*) as total FROM forms WHERE isDelete = 0";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+    }
+    function countCompleted(){
+        $sql = "SELECT COUNT(*) as total FROM result Where UID IS NOT NULL";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+    }
+    function countOnGoing(){
+        $sql = "SELECT COUNT(*) as total FROM forms WHERE Status = 1 AND isDelete = 0";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+    }
+
+    /**
+     * Get form counts
+     */
+    public function getFormCounts() {
+        $sql = "SELECT COUNT(*) as totalForms FROM forms WHERE isDelete = 0";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get statistics for a single form
+     */
+    public function getFormStatistics($formId) {
+        $sql = "SELECT f.FName as formName, COUNT(r.RID) as responseCount 
+                FROM forms f 
+                LEFT JOIN result r ON f.FID = r.FID 
+                WHERE f.FID = :formId AND f.isDelete = 0 
+                GROUP BY f.FID, f.FName";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':formId' => $formId]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get all statistics for export
+     */
+    public function getAllStatistics() {
+        $sql = "SELECT f.FName as formName, COUNT(r.RID) as responseCount 
+                FROM forms f 
+                LEFT JOIN result r ON f.FID = r.FID 
+                WHERE f.isDelete = 0 
+                GROUP BY f.FID, f.FName";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Generate a custom report
+     */
+    public function generateReport($reportData) {
+        // Placeholder implementation for generating a report
+        $sql = "SELECT * FROM forms WHERE isDelete = 0";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 }

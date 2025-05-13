@@ -17,9 +17,7 @@ class JwtMiddleware
     public function __construct()
     {
         self::$formController = new FormController();
-    }
-
-    public static function authenticate(Request $request, Response $response, $permission , $next): void
+    }    public static function authenticate(Request $request, Response $response, $permission , $next): void
     {
         try {
             $token = $_COOKIE['access_token'] ?? null;            
@@ -28,7 +26,8 @@ class JwtMiddleware
             }
             if (!$token) {
                 $response->json([
-                    'error' => 'Authorization token not provided'
+                    'status' => false,
+                    'message' => 'Authorization token not provided'
                 ], 401);
             }// Assuming you have a method to verify the token
             $jwtHelper = new jwt_helper();

@@ -15,6 +15,7 @@ use Controllers\PositionController;
 use Controllers\FormTypeController;
 use Controllers\ResultController;
 use Controllers\AnswerController;
+use Controllers\StatisticsController;
 use Services\DraftService;
 
 $request = new Request();
@@ -34,9 +35,9 @@ $positionController = new PositionController();
 $formTypeController = new FormTypeController();
 $resultController = new ResultController();
 $answerController = new AnswerController();
+$statisticsController = new StatisticsController();
 
     // User APIs
-
     $router->post('/api/user', fn() => $controller->create($response, $request));
     $router->put('/api/user', fn() => $controller->update($response, $request));
     $router->put('/api/user/password', fn() => $controller->resetPassword($response, $request));
@@ -306,6 +307,58 @@ $answerController = new AnswerController();
         $router->get('/api/answer/statistics', fn() =>
             JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getAnswerStatistics($res, $req))
         , ['formId', 'questionId']);
+
+        // Statistics APIs
+        $statisticsController = new \Controllers\StatisticsController();
+        // $router->get('/api/statistics/overview', fn() =>
+        //     JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getOverviewStatistics($res, $req))
+        // );
+        // $router->get('/api/statistics/form', fn() =>
+        //     JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getFormResponseStatistics($res, $req))
+        // , ['formId']);
+        // $router->get('/api/statistics/timeperiod', fn() =>
+        //     JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getResponsesByTimePeriod($res, $req))
+        // );
+        // $router->get('/api/statistics/questions', fn() =>
+        //     JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getQuestionResponseStatistics($res, $req))
+        // , ['formId']);
+
+        // Statistics API V2 - Enhanced with more specific endpoints and features
+        $router->get('/api/v2/statistics/dashboard', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getDashboardStats($res, $req))
+        );
+        
+        $router->get('/api/v2/statistics/forms/count', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getFormCountStats($res, $req))
+        );
+        
+        $router->get('/api/v2/statistics/forms/responses', fn() =>
+            JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $statisticsController->getFormResponseCounts($res, $req))
+        );
+        
+        $router->get('/api/v2/statistics/forms/{id}', fn($params) =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getSingleFormStats($res, $req, $params['id']))
+        );
+        
+        $router->get('/api/v2/statistics/forms/{id}/questions', fn($params) =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getFormQuestionStats($res, $req, $params['id']))
+        );
+        
+        $router->get('/api/v2/statistics/forms/{id}/responses/trend', fn($params) =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getFormResponseTrend($res, $req, $params['id']))
+        );
+        
+        $router->get('/api/v2/statistics/time-analysis', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->getTimeAnalysis($res, $req))
+        );
+        
+        $router->post('/api/v2/statistics/custom-report', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->generateCustomReport($res, $req))
+        );
+        
+        $router->get('/api/v2/statistics/export/csv', fn() =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->exportStatisticsCsv($res, $req))
+        );
 
         // Auth APIs
         $router->post('/api/auth/refresh', function() use ($response, $request) {

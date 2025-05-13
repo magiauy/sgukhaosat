@@ -464,4 +464,24 @@ class FormController implements IFormController{
         }
     }
 
+    public function getStatistics(Request $request, Response $response)
+    {
+        try {
+            // Lấy dữ liệu thống kê từ service
+            $statistics = $this->formService->getStatistics();
+
+            // Trả về dữ liệu dưới dạng JSON
+            $response->json([
+                'status' => true,
+                'data' => $statistics
+            ]);
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => 'Failed to retrieve statistics',
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
 }
+

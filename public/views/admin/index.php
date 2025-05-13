@@ -44,11 +44,16 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                 <i class="bi bi-grid-1x2 me-2"></i>Menu chính
             </div>
 
-            <ul class="nav-menu px-2 mb-4">
-                <li class="nav-item">
+            <ul class="nav-menu px-2 mb-4">                <li class="nav-item">
                     <a href="#" class="nav-link" data-section="dashboard">
                         <span class="nav-icon"><i class="bi bi-house-door"></i></span> 
                         <span class="nav-text">Thống kê</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/statistics-dashboard" class="nav-link">
+                        <span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span> 
+                        <span class="nav-text">Thống kê nâng cao</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -64,7 +69,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/admin/results" class="nav-link" data-section="results">
+                    <a href="#" class="nav-link" data-section="results">
                         <span class="nav-icon"><i class="bi bi-clipboard-data"></i></span>
                         <span class="nav-text">Kết quả khảo sát</span>
                     </a>

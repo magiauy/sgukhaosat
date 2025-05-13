@@ -1,91 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thống kê nâng cao</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Import statistics dashboard as a module to support ES6 imports -->
-    <script type="module" src="/public/js/admin/statistics.js"></script>
-    <script src="/public/js/config.js"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .card {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            transition: transform 0.2s;
-            border: none;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .stats-card {
-            text-align: center;
-            padding: 20px;
-        }
-        .stats-number {
-            font-size: 32px;
-            font-weight: bold;
-            color: #3f6ad8;
-        }
-        .stats-title {
-            color: #6c757d;
-            text-transform: uppercase;
-            font-size: 14px;
-        }
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-        .nav-tabs .nav-link {
-            color: #6c757d;
-            border: none;
-            border-bottom: 3px solid transparent;
-            padding: 0.75rem 1rem;
-        }
-        .nav-tabs .nav-link.active {
-            color: #3f6ad8;
-            border-bottom: 3px solid #3f6ad8;
-            background-color: transparent;
-        }
-        .nav-tabs .nav-link:hover {
-            border-color: transparent;
-            border-bottom: 3px solid #d1d3e2;
-        }
-        .dashboard-header {
-            background-color: #fff;
-            padding: 1.5rem 0;
-            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-            margin-bottom: 1.5rem;
-        }
-        .btn-primary {
-            background-color: #3f6ad8;
-            border-color: #3f6ad8;
-        }
-        .btn-outline-primary {
-            color: #3f6ad8;
-            border-color: #3f6ad8;
-        }
-        .btn-outline-primary:hover {
-            background-color: #3f6ad8;
-            border-color: #3f6ad8;
-        }
-        .loading-spinner {
-            display: inline-block;
-            width: 2rem;
-            height: 2rem;
-            border: 0.25rem solid rgba(0,0,0,0.1);
-            border-right-color: #3f6ad8;
-            border-radius: 50%;
-            animation: spinner-border .75s linear infinite;
-        }
-    </style>
-</head>
+<?php
+include __DIR__ . '/../views/layouts/header.php';
+use Core\AuthHelper;
+
+$data = AuthHelper::verifyUserTokenWithoutRedirect();
+$user = $data['user'] ?? null;
+require_once __DIR__ .'/layouts/nav-bar.php'
+?>
 <body>
     <!-- Dashboard Header -->
     <div class="dashboard-header">
@@ -424,8 +344,8 @@
             </div>
         </div>
     </div>
-      <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>    <script>
+    <script src="/public/js/admin/statistics.js" type="module"></script>
+    <script>
         // Setup dashboard features
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize tooltips
@@ -501,6 +421,5 @@
     </script>
 </body>
 <?php
-include __DIR__ . '/../layouts/footer.php';
+include __DIR__ . '/layouts/footer.php';
 ?>
-</html>

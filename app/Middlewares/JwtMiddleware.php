@@ -55,6 +55,7 @@ class JwtMiddleware
                 }
 
             }// Store user data in request for later use
+            error_log("Checking successfully");
             $request->addBody((array)$decoded);
             $next($request, $response);
         } catch (\Exception $e) {

@@ -1,4 +1,6 @@
 <?php
+
+use Controllers\MailerController;
 use Core\Request;
 use Core\Response;
 use Core\Router;
@@ -36,6 +38,7 @@ $formTypeController = new FormTypeController();
 $resultController = new ResultController();
 $answerController = new AnswerController();
 $statisticsController = new StatisticsController();
+$mailerController = new MailerController();
 
     // User APIs
     $router->post('/api/user', fn() => $controller->create($response, $request));
@@ -360,6 +363,23 @@ $statisticsController = new StatisticsController();
             JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->exportStatisticsCsv($res, $req))
         );
 
+        // Mailer API Routes
+        $router->post('/api/forms/{id}/send-emails', fn($params) =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) =>
+                $mailerController->sendEmail($req, $res)
+            )
+        );
+
+        $router->post('/api/forms/{id}/add-to-queue', fn($params) =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) =>
+                $mailerController->queueEmails($req, $res, $params['id'])
+            )
+        );
+        $router->get('/api/forms/{id}/email-queue', fn($params) =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) =>
+                $mailerController->getQueueEmails($req, $res, $params['id'])
+            )
+        );
         // Auth APIs
         $router->post('/api/auth/refresh', function() use ($response, $request) {
             JwtMiddleware::refresh($request, $response);
@@ -367,6 +387,8 @@ $statisticsController = new StatisticsController();
         $router->post('/api/auth/logout', function() use ($response, $request) {
             JwtMiddleware::logout($request, $response);
         });
+
+
 
 
     // Xử lý routing

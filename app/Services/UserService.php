@@ -452,6 +452,7 @@ class UserService implements IAuthService
             $accounts = $this->userRepository->getOnPagination($data);
             $roles = $this->roleRepo->getAll();
             foreach ($accounts as &$account) {
+                $account['status'] = (int) $account['status'];
                 foreach ($roles as $role) {
                     if ($account['roleID'] == $role['roleID']) {
                         $account['roleName'] = $role['roleName'];

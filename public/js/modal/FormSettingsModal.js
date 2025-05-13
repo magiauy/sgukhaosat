@@ -1,6 +1,7 @@
 import {callApi} from "../apiService.js";
 import ImportExcelModal from "./ImportExcelModal.js";
 import {cleanupModalBackdrops} from "../formsManager.js";
+import EmailSendModal from "./EmailSendModal.js";
 
 // Updated FormSettingsModal Class
 export default class FormSettingsModal {
@@ -33,8 +34,10 @@ export default class FormSettingsModal {
         formNameElement.textContent = `Form #${formId}: ${form.FName}`;
 
         const statusSelect = document.getElementById('formStatusSelect');
-        // console.log(form)
         statusSelect.value = form.Status;
+
+        const privacySelect = document.getElementById('formPrivacySelect');
+        privacySelect.value = form.Privacy || '0'; // Default to private if not set
 
         // Load whitelist data
         await this.loadUsersAndWhitelist(formId);
@@ -76,6 +79,10 @@ export default class FormSettingsModal {
                                                 <option value="1">Đã xuất bản</option>
                                                 <option value="2">Đã đóng</option>
                                             </select>
+                                            <select class="form-select mb-2" id="formPrivacySelect">
+                                                <option value="0">Không công khai</option>
+                                                <option value="1">Công khai</option>
+                                            </select>                                 
                                             <button type="button" class="btn btn-primary btn-sm w-100" id="saveStatusBtn">
                                                 <i class="bi bi-check-lg"></i> Lưu trạng thái
                                             </button>
@@ -88,12 +95,16 @@ export default class FormSettingsModal {
                                         </div>
                                         <div class="card-body">
                                             <div class="d-grid gap-2">
+                                                <button type="button" class="btn btn-primary btn-sm" id="sendMailBtn">
+                                                    <i class="bi bi-envelope"></i> Gửi mail
+                                                </button>
                                                 <button type="button" class="btn btn-info btn-sm" id="duplicateFormBtn">
                                                     <i class="bi bi-files"></i> Nhân bản
                                                 </button>
                                                 <button type="button" class="btn btn-danger btn-sm" id="deleteFormBtn">
                                                     <i class="bi bi-trash"></i> Xóa
                                                 </button>
+                                               
                                             </div>
                                         </div>
                                     </div>
@@ -299,7 +310,8 @@ export default class FormSettingsModal {
         // Form settings handlers
         document.getElementById('saveStatusBtn').addEventListener('click', async () => {
             const status = document.getElementById('formStatusSelect').value;
-            await updateFormStatus(formId, status);
+            const privacy = document.getElementById('formPrivacySelect').value;
+            await updateFormStatus(formId, status,privacy);
         });
 
         document.getElementById('deleteFormBtn').addEventListener('click', async () => {
@@ -414,6 +426,20 @@ export default class FormSettingsModal {
                 importExcelModal.open(formId, 'formSettingsModal');
             }, 50);
         });
+
+        document.getElementById('sendMailBtn').addEventListener('click', async () => {
+            const modalElement = document.getElementById('formSettingsModal');
+            const formSettingsModal = bootstrap.Modal.getInstance(modalElement);
+
+            const sendMailModal = new EmailSendModal(modalElement);
+            formSettingsModal.hide();
+            cleanupModalBackdrops();
+            document.getElementById('formSettingsModal').__settingsInstance = this;
+            setTimeout(() => {
+                sendMailModal.open(formId, 'formSettingsModal');
+            }, 50);
+        });
+
 
         // Handle shift+click for range selection on available users
         document.querySelector('#availableUsersList').addEventListener('click', (e) => {

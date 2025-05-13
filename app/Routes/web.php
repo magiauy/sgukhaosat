@@ -118,6 +118,12 @@ $router->get('/form', function() {
     require_once __DIR__ . '/../../public/views/pages/listform.php';
 });
 
+//contact
+$router->get('/contact', function() {
+    require_once __DIR__ . '/../../public/views/pages/contact.php';
+});
+
+
 // Error pages
 $router->get('/403', function() { showErrorPage(403); });
 $router->get('/401', function() { showErrorPage(401); });

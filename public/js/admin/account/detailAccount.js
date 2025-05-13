@@ -277,6 +277,9 @@ export function edit(account) {
                       confirmButtonText: 'Cập nhật',
                       cancelButtonText: 'Hủy'
                   });
+                  if(!confirmed) {
+                      return; 
+                  }
 
       const roleID = document.querySelector("#account-role").value;
       const status = document.querySelector("#account-status").value;

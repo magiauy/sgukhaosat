@@ -1,5 +1,8 @@
 import { callApi } from "../../apiService.js";
+import { validatePhoneNumber } from "../../checkInput.js";
+import { showSwalToast } from "../../form/utils/notifications.js";
 import { renderContentUser } from "./accountAdmin.js";
+import { showConfirmPopup } from "../../showConfirmPopup.js";
 
 export function showDetail() {
   document.querySelectorAll(".detail-account").forEach((detail) => {
@@ -267,16 +270,34 @@ export function edit(account) {
     document.querySelector("#detail-edit-submit").id = "save-edit-submit";
 
     document.querySelector("#save-edit-submit").onclick = async () => {
+      const confirmed = await showConfirmPopup({
+                      title: 'Xác nhận cập nhật tài khoản',
+                      message: `Bạn có chắc chắn muốn cập nhật tài khoản này không?`,
+                      type: 'info',
+                      confirmButtonText: 'Cập nhật',
+                      cancelButtonText: 'Hủy'
+                  });
+                  if(!confirmed) {
+                      return; 
+                  }
+
       const roleID = document.querySelector("#account-role").value;
       const status = document.querySelector("#account-status").value;
       const fullName = document.querySelector("#account-fullName").value;
       const phone = document.querySelector("#account-phone").value;
       const position = document.querySelector("#account-position").value;
 
+
       if(fullName === "" || phone === ""){
-        alert("Vui lòng nhập đầy đủ thông tin");
+        showSwalToast("Vui lòng nhập đầy đủ thông tin", "warning");
         return;
       }
+
+      if(validatePhoneNumber(phone).valid === false){
+        showSwalToast(validatePhoneNumber(phone).message, "warning");
+        return;
+      }
+      
 
       const data = {
         email: account.email,
@@ -286,13 +307,7 @@ export function edit(account) {
         phone: phone,
         position: position,
       };
-      // console.log(data);
-      // let response = await callApi('/me', "POST");
-      // let accountCurrent = response.data;
-      // accountCurrent = accountCurrent.user;
-      // if(accountCurrent.roleID === account.roleID){
-      //     data.isResetToken = 1;
-      // }
+
       try {
         const response = await callApi("/user", "PUT", data);
         console.log(response);
@@ -301,7 +316,9 @@ export function edit(account) {
         modalInstance.hide(); // Ẩn modal
 
         renderContentUser();
+        showSwalToast("Cập nhật tài khoản thành công", "success");
       } catch (error) {
+        showSwalToast("Cập nhật tài khoản thất bại", "error");
         console.log(error);
         return;
       }

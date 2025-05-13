@@ -50,6 +50,8 @@ async function initSidebar() {
 
 }
 
+
+
 // Xử lý toggle sidebar
 function setupToggleSidebar() {
     const toggleBtn = document.getElementById('toggleSidebar');
@@ -321,8 +323,13 @@ function adjustSidebarHeight() {
         console.log('Reset sizes - Content height:', contentHeight);
     }, 50);
 }
+
+
 // Initialize sidebar on page load
-document.addEventListener('DOMContentLoaded', initSidebar);
+document.addEventListener('DOMContentLoaded', () => {
+    initSidebar();
+    
+});
 
 
 

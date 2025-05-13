@@ -1,6 +1,8 @@
 import { callApi } from "../../apiService.js";
 import { renderListAccount, renderTableAccountOnPagination } from "./accountAdmin.js";
 import ImportExcelAccount from "../../modal/ImportExcelAccount.js";
+import { showSwalToast } from "../../form/utils/notifications.js";
+import { validateEmail } from "../../checkInput.js";
 
 // import * as XLSX from "xlsx";
 
@@ -130,21 +132,35 @@ function addAccount(){
         const password = document.querySelector("#account-password").value;
         const role = document.querySelector("#account-role").value;
 
+        if(!email || !password || !role) {
+            showSwalToast("Vui lòng điền đầy đủ thông tin", "warning");
+            return;
+        }
+        const checkEmail = validateEmail(email);
+        if (!checkEmail.valid) {
+            showSwalToast(checkEmail.message, "warning");
+            return;
+        }
+
         const data = {
             email: email,
             password: password,
             roleID: role
         };
 
-        // console.log(data);
         try {
             const response = await callApi("/user", "POST", data);
             console.log(response);
             document.querySelector("#popup-add-account").remove();
-            // document.querySelector("#add-account").click();
             await renderTableAccountOnPagination(0, 10);
+            if(!response.success){
+                showSwalToast("Tài khoản đã tồn tại", "error");
+                return;
+            }
+            showSwalToast("Thêm tài khoản thành công", "success");
         } catch (error) {
-            console.log(error);
+            showSwalToast("Có lỗi xảy ra khi thêm tài khoản", "error");
+            console.log(error.response);
         }
     }
 }
@@ -168,3 +184,5 @@ export function importUsers(){
         importAccount.open();
     }
 } 
+
+

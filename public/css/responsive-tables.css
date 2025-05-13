@@ -1,0 +1,262 @@
+/* Responsive Table Styles */
+
+/* Common styles for all responsive tables */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar styles */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+/* Mobile styles for tables */
+@media (max-width: 767.98px) {
+  /* Card layout for tables */
+  .mobile-card-table table {
+    border: none;
+    width: 100%;
+  }
+  
+  .mobile-card-table thead {
+    display: none;
+  }
+  
+  .mobile-card-table tbody, 
+  .mobile-card-table tr {
+    display: block;
+    width: 100%;
+  }
+  
+  .mobile-card-table tbody tr {
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background-color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .mobile-card-table td {
+    display: flex;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    text-align: right;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  
+  .mobile-card-table td:last-child {
+    border-bottom: none;
+  }
+  
+  .mobile-card-table td:before {
+    content: attr(data-label);
+    font-weight: 500;
+    margin-right: auto;
+    text-align: left;
+  }
+  
+  /* Special actions row styling */
+  .mobile-card-table td.actions-cell {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    background-color: rgba(0,0,0,0.02);
+    padding: 0.75rem;
+  }
+  
+  .mobile-card-table td.actions-cell:before {
+    display: none;
+  }
+  
+  /* Checkbox positioning */
+  .mobile-card-table td.checkbox-cell {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    border: none;
+    background: transparent;
+    z-index: 2;
+  }
+  
+  .mobile-card-table td.checkbox-cell:before {
+    display: none;
+  }
+  
+  /* For role table specifically */
+  #table-role.mobile-card-view,
+  #table-role.mobile-card-view tbody,
+  #table-role.mobile-card-view tr {
+    display: block;
+    width: 100%;
+  }
+  
+  #table-role.mobile-card-view thead {
+    display: none;
+  }
+  
+  #table-role.mobile-card-view tbody tr {
+    padding: 0;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    overflow: hidden;
+    position: relative;
+  }
+  
+  #table-role.mobile-card-view td {
+    display: block;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  #table-role.mobile-card-view td:last-child {
+    border-bottom: none;
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+  }
+  
+  /* Role row styling */
+  #table-role.mobile-card-view .role-row {
+    position: relative;
+    padding-top: 2.5rem;
+  }
+  
+  /* Hide regular cells and create mobile variants */
+  #table-role.mobile-card-view td:nth-child(2),
+  #table-role.mobile-card-view td:nth-child(3),
+  #table-role.mobile-card-view td:nth-child(4),
+  #table-role.mobile-card-view td:nth-child(5),
+  #table-role.mobile-card-view td:nth-child(6) {
+    display: none;
+  }
+  
+  /* Header section of the card */
+  #table-role.mobile-card-view tr:before {
+    content: "";
+    display: block;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    font-weight: bold;
+  }
+  
+  /* Add data labels */
+  #table-role.mobile-card-view tr .mobile-role-info {
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Checkbox positioning for role table */
+  #table-role.mobile-card-view td:first-child {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    width: auto;
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
+  
+  /* Custom mobile info display */
+  #table-role.mobile-card-view .mobile-role-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+  }
+  
+  #table-role.mobile-card-view .mobile-role-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+  
+  #table-role.mobile-card-view .mobile-role-info .data-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  #table-role.mobile-card-view .mobile-role-info .data-label {
+    font-weight: 500;
+    color: #6c757d;
+  }
+  
+  #table-role.mobile-card-view .mobile-role-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    gap: 0.5rem;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  /* Hide less important columns */
+  .table-responsive .table th:nth-child(5),
+  .table-responsive .table td:nth-child(5), .table-responsive .table th:nth-child(4),
+  .table-responsive .table td:nth-child(4) {
+    display: none;
+  }
+  
+  /* Make buttons smaller */
+  .table-responsive .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Prevent wrapping of action buttons */
+  .table-responsive .table td:last-child {
+    white-space: nowrap;
+  }
+}
+
+/* Row highlight on hover */
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.03);
+}
+
+/* Disabled row styling */
+.disabled-row {
+  background-color: rgba(0, 0, 0, 0.03);
+  opacity: 0.7;
+}
+
+/* Add this to your script.js to apply mobile view */
+@media (max-width: 767.98px) {
+  .table-responsive-info {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .table-responsive-badge {
+    margin-right: 0.5rem;
+  }
+}
+
+/* Helper class for min-width buttons */
+.min-width-120 {
+  min-width: 120px;
+}

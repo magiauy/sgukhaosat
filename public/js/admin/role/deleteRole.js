@@ -1,4 +1,5 @@
 import { callApi } from "../../apiService.js";
+import { showSwalToast } from "../../form/utils/notifications.js";
 import { renderTableOnPagination } from "./roleAdmin.js";
 import { selectedRoleIDs } from "./roleAdmin.js";
 
@@ -13,8 +14,10 @@ export async function handleDeleteRole(){
                 console.log(response);
                 await renderTableOnPagination(0, 10);
                 selectedRoleIDs.delete(roleID);
+                showSwalToast("Xóa vai trò thành công!", "success");
 
             } catch (error) {
+                showSwalToast("Xóa vai trò không thành công!", "error");
                 console.log("Lỗi khi xóa vai trò:", error);
             }
         }
@@ -32,8 +35,10 @@ export function handleDeleteSelectedRoles() {
             let response = await callApi(`/role/id`, 'DELETE', selectedRoleIds);
             console.log(response);
             await renderTableOnPagination(0, 10);
+            showSwalToast("Xóa vai trò thành công!", "success");
             selectedRoleIDs.clear();
         } catch (error) {
+            showSwalToast("Xóa vai trò không thành công!", "error");
             console.log("Lỗi khi xóa vai trò:", error);
         }          
        

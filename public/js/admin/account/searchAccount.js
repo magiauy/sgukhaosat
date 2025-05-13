@@ -1,4 +1,5 @@
 import { callApi } from "../../apiService.js";
+import { showSwalToast } from "../../form/utils/notifications.js";
 import { renderFormDetailAccount } from "./detailAccount.js";
 
 
@@ -8,6 +9,7 @@ export function searchAccount(){
         e.preventDefault();
         const email = document.querySelector("#id-search").value;
         if(email === ""){
+            showSwalToast("Vui lòng nhập email", "warning");
             return;
         }
 
@@ -16,12 +18,14 @@ export function searchAccount(){
             // console.log(email)
             let account = response.data;
             if(!account){
-                alert("No account found with this email");
+                showSwalToast("Không tìm thấy tài khoản", "warning");
                 return;
             }
             renderFormDetailAccount(account);
             document.querySelector("#id-search").value = "";
+            showSwalToast("Tìm thấy tài khoản", "success");
         } catch (error) {
+            showSwalToast("Có lỗi xảy ra khi tìm kiếm tài khoản", "error");
             console.error("Error fetching account data:", error);
         }
 

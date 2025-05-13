@@ -5,6 +5,8 @@ import { showDetail } from "./detailAccount.js";
 import { filterAccount } from "./filterAccount.js";
 import { searchAccount } from "./searchAccount.js";
 import PaginationComponent from "../../component/pagination.js";
+import { showConfirmPopup } from "../../showConfirmPopup.js";
+import { showSwalToast } from "../../form/utils/notifications.js";
 
 export let selectedAccountIDs = new Set();
 
@@ -475,12 +477,24 @@ function activateActionButtons() {
     document.querySelectorAll('.delete-account-i').forEach(btn => {
         btn.onclick = async function(e){
             e.preventDefault();
+            const confirmed = await showConfirmPopup({
+                title: 'Xác nhận xóa tài khoản',
+                message: `Bạn có chắc chắn muốn xóa tài khoản này không?`,
+                type: 'danger',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            });
+
+            if(!confirmed) return;
+
             const email = btn.getAttribute('data-id');
             try {
                 const response = await callApi("/user", "DELETE", [email]);
                 console.log(response);
                 renderTableAccountOnPagination(0, 10);
+                showSwalToast("Xóa tài khoản thành công", "success");
             } catch (error) {
+                showSwalToast("Có lỗi xảy ra khi xóa tài khoản", "error");
                 console.log(error);
             }
         };

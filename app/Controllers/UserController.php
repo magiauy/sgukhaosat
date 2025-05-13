@@ -27,6 +27,15 @@ class UserController implements IAuthController
     {
         try {
             $data = $request->getBody();
+             // Kiểm tra email tồn tại (tùy chọn)
+            if ($this->userService->isEmailExists($data['email'])) {
+                $response->json([
+                    'success' => false,
+                    'message' => 'Email đã tồn tại trong hệ thống'
+                ], 200);
+                return;
+            }
+
             $user = $this->userService->create($data);
 
             if ($user) {

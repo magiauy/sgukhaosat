@@ -139,4 +139,48 @@ class ResultRepository implements IResultRepository
             throw new \RuntimeException($e->getMessage(), $e->getCode());
         }
     }
+
+    /**
+     * Count all responses
+     */
+    public function countAll() {
+        $sql = "SELECT COUNT(*) as totalResponses FROM result";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['totalResponses'];
+    }
+
+    /**
+     * Get response counts grouped by form
+     */
+    public function getResponseCounts() {
+        $sql = "SELECT FID, COUNT(*) as responseCount FROM result GROUP BY FID";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get response trend for a form
+     */
+    public function getResponseTrend($formId, $timeframe, $days) {
+        $sql = "SELECT DATE(Date) as responseDate, COUNT(*) as responseCount 
+                FROM result 
+                WHERE FID = :formId AND Date >= DATE_SUB(CURDATE(), INTERVAL :days DAY) 
+                GROUP BY responseDate 
+                ORDER BY responseDate";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':formId' => $formId, ':days' => $days]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get time analysis statistics
+     */
+    public function getTimeAnalysis() {
+        $sql = "SELECT HOUR(Date) as hour, COUNT(*) as responseCount 
+                FROM result 
+                GROUP BY hour 
+                ORDER BY hour";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 }

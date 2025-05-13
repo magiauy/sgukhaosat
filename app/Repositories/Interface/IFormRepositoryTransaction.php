@@ -48,5 +48,7 @@ interface IFormRepositoryTransaction extends IBaseRepositoryTransaction
      * @return int Total number of forms matching the search criteria
      */
     function countFormsWithSearchPagination($userId, $fName = null, $typeID = null, $majorID = null, $periodID = null);
-
+    function countAll();
+    function countCompleted();
+    function countOngoing();
 }

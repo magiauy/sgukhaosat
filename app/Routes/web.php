@@ -9,51 +9,6 @@ $response = new Response();
 $router = new Router();
 $token = $_COOKIE['access_token'] ?? null;
 
-// <<<<<<< HEAD
-// switch (true) {
-//     case ($uri === ''):
-//         require_once __DIR__ . '/../../public/views/pages/home.php';
-//         break;
-//     case ($uri === 'login'):
-//         require_once __DIR__ . '/../../public/views/pages/login.php';
-//         break;
-//     case ($uri === 'admin' ):
-//         switch (JwtMiddleware::authenticatePage($token, "ACCESS_ADMIN")){   
-//                 case 200:
-//                     require_once __DIR__ . '/../../public/views/admin/index.php';
-//                     break;
-//                 case 403:
-//                     showErrorPage(403);
-//                     break;
-//                 case 401:
-//                     header('Location: /login');
-//                     break;
-//                 default:
-//                     showErrorPage(500);
-//                     break;
-//             }
-//         break;
-//     case ($uri === 'admin/form'):
-//         require_once __DIR__ . '/../../public/views/admin/form.php';
-//         break;
-//     case ($uri === '403'):
-//         showErrorPage(403);
-//         break;
-//     case ($uri === '401'):
-//         showErrorPage(401);
-//         break;
-//     case($uri === 'quytrinh/chuandaura'):
-//         require_once __DIR__ . '/../../public/views/pages/chuandaura.php';
-//         break;
-//     case (preg_match('/^admin\/form\/(\d+)\/edit\?status=draft$/', $uri, $matches)):
-//     case (preg_match('/^admin\/form\/(\d+)\/edit$/', $uri, $matches)):
-//         $formId = $matches[1];
-//         require_once __DIR__ . '/../../public/views/admin/Form_Editor.php';
-//         break;
-//         //URI: admin/form/{formId}/edit?status=draft
-//     case ($uri === 'admin/form/create'):
-//         switch (JwtMiddleware::authenticatePage($token, "MANAGE_FORMS")){
-// =======
 // Middleware function to handle authentication
 function authMiddleware($permission, $callback) {
     global $token;
@@ -101,8 +56,17 @@ $router->get('/admin/form/{id}/edit', function($params) {
     $formId = $params['id'];
     require_once __DIR__ . '/../../public/views/admin/Form_Editor.php';
 });
+
 $router->get('/admin/results', authMiddleware("MANAGE_RESULTS", function() {
     require_once __DIR__ . '/../../public/views/admin/results_management.php';
+}));
+
+$router->get('/admin/statistics-dashboard', authMiddleware("MANAGE_RESULTS", function() {
+    require_once __DIR__ . '/../../public/views/statistics-dashboard.php';
+}));
+
+$router->get('/admin/statistics', authMiddleware("MANAGE_RESULTS", function() {
+    require_once __DIR__ . '/../../public/views/statistics-dashboard.php';
 }));
 
 // Other pages

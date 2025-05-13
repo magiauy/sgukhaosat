@@ -243,4 +243,18 @@ class QuestionRepository implements IQuestionRepository
             throw new Exception($e->getMessage(), 500);
         }
     }
+
+    /**
+     * Get question statistics for a form
+     */
+    public function getQuestionStatistics($formId) {
+        $sql = "SELECT q.QContent as question, COUNT(a.AID) as responseCount 
+                FROM question q 
+                LEFT JOIN answer a ON q.QID = a.QID 
+                WHERE q.FID = :formId 
+                GROUP BY q.QID, q.QContent";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':formId' => $formId]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 }

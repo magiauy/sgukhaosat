@@ -87,3 +87,14 @@
     createAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     isDelete BOOLEAN DEFAULT FALSE
 ); -->
+
+ <!-- CREATE TABLE file (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_Doc INT,
+    id_major INT,
+    path_folder_url VARCHAR(500),
+    createAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    isDelete BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (id_Doc) REFERENCES document(id)
+);-->
+

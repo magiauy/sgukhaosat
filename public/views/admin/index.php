@@ -88,6 +88,12 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="documents">
+                        <span class="nav-icon"><i class="bi bi-file-earmark-text"></i></span>
+                        <span class="nav-text">Quản lý tài liệu</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="#" class="nav-link" data-section="majors">
                         <span class="nav-icon"><i class="bi bi-mortarboard"></i></span>
                         <span class="nav-text">Quản lý ngành</span>

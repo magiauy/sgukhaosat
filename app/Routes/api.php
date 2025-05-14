@@ -11,6 +11,8 @@ use Controllers\QuestionTypeController;
 use Controllers\DraftController;
 use Controllers\PeriodController;
 use Controllers\MajorController;
+use Controllers\DocumentController;
+use Controllers\FileController;
 use Controllers\PositionController;
 use Controllers\FormTypeController;
 use Controllers\ResultController;
@@ -31,6 +33,8 @@ $questionTypeController = new QuestionTypeController();
 $draftController = new DraftController(new DraftService());
 $periodController = new PeriodController();
 $majorController = new MajorController();
+$documentController = new DocumentController();
+$fileController = new FileController();
 $positionController = new PositionController();
 $formTypeController = new FormTypeController();
 $resultController = new ResultController();
@@ -88,6 +92,26 @@ $statisticsController = new StatisticsController();
         $_GET['id'] = $params['id'];
         $periodController->delete($response, $request);
     });
+    // Document APIs
+    $router->get('/api/document', fn() => $documentController->getAll($response));
+    $router->get('/api/document/search', fn() => $documentController->search($response, $request));
+    $router->get('/api/document/{id}', fn($params) => $documentController->getById($response, $params['id']));
+    $router->post('/api/document', fn() => $documentController->create($response, $request));
+    $router->put('/api/document/{id}', function($params) use ($response, $request, $documentController) {
+        $_GET['id'] = $params['id'];
+        $documentController->update($response, $request);
+    });
+    $router->delete('/api/document/{id}', function($params) use ($response, $request, $documentController) {
+        $_GET['id'] = $params['id'];
+        $documentController->delete($response, $request);
+    });
+
+    // File APIs
+    $router->get('/api/file', fn() => $fileController->getAllByDocumentId($response, $request));
+    $router->post('/api/file', fn() => $fileController->createMultiple($response, $request));
+    $router->delete('/api/file/{id}', fn($params) => $fileController->delete($response, $request, $params['id']));
+
+
 
     // Major APIs
     $router->post('/api/major', fn() => $majorController->create($response, $request));
@@ -104,7 +128,6 @@ $statisticsController = new StatisticsController();
         $_GET['id'] = $params['id'];
         $majorController->delete($response, $request);
     });
-
     // Position APIs
     $router->post('/api/position', fn() => $positionController->create($response, $request));
     $router->get('/api/position', fn() => $positionController->getAll($response));

@@ -6,6 +6,7 @@ import {initMajor} from "../major.js";
 import {initPeriod} from "../period.js";
 import {initFormType} from "../formType.js";
 import {initPosition} from "../position.js";
+import {initDocument} from "../document.js";
 import {renderFormDetailAccount} from "./account/detailAccount.js";
 
 // Khởi tạo sidebar
@@ -176,6 +177,10 @@ async function loadSectionContent(section) {
         switch (section) {
             case "accounts":
                 await renderContentUser();
+                break;
+            case "documents":
+                await loadContent('/pages/document');
+                await initDocument();
                 break;
             case "majors":
                 await loadContent('/pages/major');

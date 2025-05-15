@@ -8,8 +8,6 @@ require_once __DIR__ . '/../../../app/Services/FormService.php';
 error_log("Form editor page loaded");
 $data = AuthHelper::verifyUserToken();
 
-error_log("Decoded token: " . json_encode($data['permissions']));
-
 $user = $data['user'] ?? null;
 $permissions = $data['permissions'] ?? [];
 
@@ -37,6 +35,16 @@ $formId = $matches[1] ?? null;
 if ($formId) {
     $formService = new FormService(); // hoặc inject qua container nếu có
     try {
+        // Kiểm tra xem form có tồn tại kh
+        if(!$formService->checkFormExists($formId, $user->email)) {
+            http_response_code(404);
+            header('Location: /');
+            exit();
+        }
+        // Kiểm tra quyền truy cập form
+
+
+
         if (!$formService->checkPermission($formId, $user->email)) {
             http_response_code(403);
             header('Location: /');
@@ -97,7 +105,7 @@ include __DIR__ . '/../../views/layouts/header.php';
             <?php else: ?>
                 <span class="text-success fw-bold">Đã xuất bản</span>
             <?php endif; ?>
-            <div class="more-action justify-content-center align-items-center">
+            <div class="more-action-menu justify-content-center align-items-center">
                 <img src="/public/icons/three-dots-vertical.svg"  style="cursor: pointer; width: 28px; height: 28px;" alt="About action">
             </div>
             <!-- Dropdown người dùng -->

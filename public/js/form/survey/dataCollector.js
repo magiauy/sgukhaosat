@@ -49,7 +49,7 @@ function convertHTMLQuestionToJsonData(){
     // Loop through each question-item with an index.
     questionContainer.querySelectorAll('.question-item').forEach((questionItem, qIdx) => {
         const questionIndex = qIdx + 1;
-        const type = questionItem.querySelector('.form-select').value;
+        const type = questionItem.querySelector('.form-select')?.dataset.qtype || "SUBTITLE";
         const requiredCheckbox = questionItem.querySelector('.required-checkbox');
         const isRequired = requiredCheckbox ? (requiredCheckbox.checked ? 1 : 0) : 0;
         const question = {

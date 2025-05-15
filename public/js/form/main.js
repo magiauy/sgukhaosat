@@ -41,7 +41,6 @@ async function initApp() {
         const data = await callApi(`/admin/form/${formId}`);
         if (data.status) {
           renderSurvey(data.data);
-          console.log(data.data);
           formStatus = data.data.form.Status;
             form = data.data.form;
 
@@ -54,6 +53,11 @@ async function initApp() {
           }
         } else {
           showToast("Không thể tải biểu mẫu", "error");
+          localStorage.setItem('triggerAction', 'clickButton');
+          localStorage.setItem('targetSection', 'surveys');
+          history.replaceState(null, '', '/admin');
+          window.location.href = '/admin';
+          return;
         }
       } catch (error) {
         console.error("Error loading form:", error);
@@ -74,10 +78,10 @@ async function initApp() {
   } catch (error) {
     console.error("Error initializing app:", error);
     showToast("Lỗi khởi tạo ứng dụng", "error");
+    window.location.href = "/admin";
   } finally {
     // Hide loader when everything is done
     setTimeout(() => Loader.hide(), 600);
-    console.log("Form ID:", formId , "Form Status:", formStatus);
   }
 }
 

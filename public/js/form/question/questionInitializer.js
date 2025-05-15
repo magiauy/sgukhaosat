@@ -118,7 +118,6 @@ async function loadPeriod() {
         // Since you're using await, periodData already contains the resolved value
         globalPeriod.forEach(period => {
             const option = document.createElement('option');
-            console.log(period);
             option.value = period.periodID;
             option.textContent = period.startYear + '-' + period.endYear;
             periodSelect.appendChild(option);
@@ -130,7 +129,6 @@ async function loadPeriod() {
 function initFormConfig() {
     // Get form data
     const formData = getForm();
-    console.log("Initializing form configuration:", formData);
 
     if (!formData) return;
 
@@ -161,11 +159,9 @@ function initFormConfig() {
     }
 
     if (formData.PeriodID) {
-        console.log(String(formData.PeriodID).trim());
         const periodIdStr = String(formData.PeriodID).trim();
         for (let i = 0; i < selectsPeriod.options.length; i++) {
-            console.log(selectsPeriod.options[i].value);
-            console.log(periodIdStr);
+
             if (selectsPeriod.options[i].value === periodIdStr) {
                 selectsPeriod.selectedIndex = i;
                 break;

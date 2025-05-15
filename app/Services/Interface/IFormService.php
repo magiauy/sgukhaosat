@@ -21,4 +21,6 @@ interface IFormService extends IBaseService
 
     function getFormWithSearchPagination($offset, $limit, $userId, $fName, $typeID, $majorID, $periodID);
     function getStatistics();
+
+    function updateStatus($id, $data);
 }

@@ -1,8 +1,13 @@
+import {getForm, getFormId} from "../main.js";
+import FormSettingsModal from "../../modal/FormSettingsModal.js";
+import {showToast} from "../utils/notifications.js";
+
 function moreActionMenu() {
     // Remove all existing events and add them again
     document.querySelectorAll('.more-action').forEach(item => {
         item.addEventListener('click', handleMoreActionClick);
     });
+
 }
 
 function handleMoreActionClick(e) {
@@ -70,6 +75,7 @@ function handleMoreActionClick(e) {
             document.removeEventListener('click', onDocClick);
         }
     });
+
 }
 
 function handleMenuItemClick(ev, questionItem, hasDescription, menuBox) {

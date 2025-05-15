@@ -190,14 +190,22 @@ class UserService implements IAuthService
     function getAllWithoutWhitelist($id)
     {
         $allUsers = $this->getAll();
+        $allUsers = array_map(function($user) {
+            unset($user['password']);
+            unset($user['roleID']);
+            unset($user['created_at']);
+            unset($user['updated_at']);
+            return $user;
+        }, $allUsers);
+
         $whitelistUsers = $this->whitelistForm->getByFormID($id);
         // Extract UIDs from whitelist users
         $whitelistUIDs = array_column($whitelistUsers, 'UID');
 
         // Filter out users who are already in the whitelist
-        $filteredUsers = array_filter($allUsers, function ($user) use ($whitelistUIDs) {
+        $filteredUsers = array_values(array_filter($allUsers, function ($user) use ($whitelistUIDs) {
             return !in_array($user['email'], $whitelistUIDs);
-        });
+        }));
         return $filteredUsers; // Re-index array
     }
 

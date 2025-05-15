@@ -115,6 +115,7 @@ class FormController implements IFormController{
     }
 
     function getByIdForUser(Response $response,Request $request){
+        // error_log("getByIdForUser");
         $id = $request->getParam('id');
         try {
             $form = $this->formService->getByIdForUser($id);

@@ -25,10 +25,10 @@ import {callApi} from "./apiService.js";
         try {
         console.log('Form ID:', formId);
         const formData = await callApi(`/form?id=${formId}`);
+        // console.log('Form data:', formData);
         renderSurvey(formData['data']);
         } catch (error) {
         console.error('Error loading form:', error);
-        // Show an error message to the user if needed
         } finally {
             setTimeout(() => Loader.hide(), 600);
             // Loader.hide();
@@ -40,8 +40,9 @@ import {callApi} from "./apiService.js";
     // 1. Removes all drag handles, edit controls, and contenteditable features.
     // 2. Builds a basic read-only display for survey form data.
     // 3. Replaces interactive form fields with plain text or read-only inputs.
-    function renderSurvey(data) {
+    async function renderSurvey(data) {
         let surveyHtml = `
+        <form id="survey-form" onsubmit="return false;">
             <div id="survey-body" class="survey-body container py-4 px-3" style="max-width: 720px">
                 <div class="text-center mb-4">
                     <h2 class="fw-bold text-primary">${data.form.FName}</h2>
@@ -54,31 +55,21 @@ import {callApi} from "./apiService.js";
             surveyHtml += renderQuestion(question);
         });
 
+     
         surveyHtml += `
                 </div>
-                <div class="text-center mt-5">
-                    <button class="btn btn-success px-5 py-2 fw-bold btn-submit-form">Gửi khảo sát</button>
+                    <div class="text-center mt-5">
+                        <button type="button" class="btn btn-success px-5 py-2 fw-bold btn-submit-form">Gửi khảo sát</button>
+                    </div>
                 </div>
-            </div>
-            <div id="questionsContainer" class="d-flex flex-column gap-4">
-    `;
+            </form>
+        `;
 
-    data.questions.forEach(question => {
-        surveyHtml += renderQuestion(question);
-    });
-
-    surveyHtml += `
-            </div>
-            <div class="text-center mt-5">
-                <button class="btn btn-success px-5 py-2 fw-bold btn-submit-form">Gửi khảo sát</button>
-            </div>
-        </div>
-    `;
-
-    document.querySelector(".form-content").innerHTML = surveyHtml;
-    userId = getCurrentUser();
-    // Fix the event listener binding - was incorrectly calling the function immediately
-    document.querySelector(".btn-submit-form").addEventListener("click", () => submitSurvey(data.form.FID, userId));
+        document.querySelector(".form-content").innerHTML = surveyHtml;
+        const userId = await getCurrentUser();
+        document.querySelector(".btn-submit-form").addEventListener("click", () => {
+            submitSurvey(data.form.FID, userId);
+        });  
     }
 
 
@@ -113,6 +104,34 @@ async function getCurrentUser() {
     }
 }
 
+function validateRequiredCheckboxGroups() {
+    const checkboxGroups = document.querySelectorAll('input[type="checkbox"][data-required="true"]');
+    
+    // Get unique group names
+    const groupNames = new Set();
+    checkboxGroups.forEach(checkbox => {
+        groupNames.add(checkbox.name);
+    });
+    
+    let isValid = true;
+    
+    groupNames.forEach(name => {
+        const checked = document.querySelectorAll(`input[name="${name}"]:checked`).length > 0;
+        if (!checked) {
+            isValid = false;
+            const container = document.querySelector(`input[name="${name}"]`).closest('.questionContainer');
+            if (container && !container.querySelector('.invalid-feedback')) {
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback d-block';
+                feedback.textContent = 'Vui lòng chọn ít nhất một tùy chọn';
+                container.appendChild(feedback);
+            }
+        }
+    });
+    
+    return isValid;
+}
+
 function submitSurvey(formId, userId) {
     if (!formId){
         showError('Không tìm được form ID.');
@@ -123,6 +142,12 @@ function submitSurvey(formId, userId) {
         sleep(1000).then(() => {
             window.location.href = '/login';
         });
+        return;
+    }
+    
+    // Validate required checkbox groups
+    if (!validateRequiredCheckboxGroups()) {
+        showError('Vui lòng điền đầy đủ thông tin bắt buộc');
         return;
     }
     
@@ -234,7 +259,10 @@ function submitSurvey(formId, userId) {
                 break;
         }
     });
-    
+    if (answers.length === 0) {
+        showError('Vui lòng điền đầy đủ thông tin khảo sát');
+        return;
+    }
     const submitData = {
         formId: formId,
         userId: userId,
@@ -252,7 +280,7 @@ function submitSurvey(formId, userId) {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Failed to submit survey');
+            throw new Error('Gửi khảo sát thất bại (mã lỗi: ' + response.status + ')');
         }
         return response.json();
     })
@@ -260,8 +288,12 @@ function submitSurvey(formId, userId) {
         if (data.status) {
             const successModal = new bootstrap.Modal(document.getElementById('successModal'));
             successModal.show();
+            setTimeout(() => {
+                successModal.hide();
+                window.location.href = '/';
+            }, 2000);
         } else {
-            throw new Error(data.message || 'Failed to submit survey');
+            throw new Error(data.message || 'Gửi khảo sát thất bại');
         }
     })
     .catch(error => {
@@ -288,11 +320,13 @@ function showError(message) {
 
 
 function renderQuestion(question) {
+    // console.log('Rendering question:', question);
     const descriptionItem = question.children.find(option => option.QTypeID === "DESCRIPTION") || null;
+    const isRequired = question.QRequired === true || question.QRequired === 1;
 
     let html = `
-        <div class="card shadow-sm p-3 rounded question-item questionContainer" id="q${question.QID}" data-question-id="${question.QID}" data-question-type="${question.QTypeID}">
-            <p class="fw-semibold">${question.QIndex}. ${question.QContent}</p>
+        <div class="card shadow-sm p-3 rounded question-item questionContainer" id="q${question.QID}" data-question-id="${question.QID}" data-question-type="${question.QTypeID}" >
+            <p class="fw-semibold">${question.QIndex}. ${question.QContent}${isRequired ? ' <span class="text-danger">*</span>' : ''}</p>
     `;
     if (descriptionItem) {
         html += `
@@ -301,25 +335,25 @@ function renderQuestion(question) {
 
     switch (question.QTypeID) {
         case "MULTIPLE_CHOICE":
-            html += patternQuestionMultipleChoice(question);
+            html += patternQuestionMultipleChoice(question, isRequired);
             break;
         case "SHORT_TEXT":
-            html += `<input type="text" class="form-control mt-2" id="question_${question.QID}" name="question_${question.QID}" placeholder="Nhập câu trả lời">`;
+            html += `<input type="text" class="form-control mt-2" id="question_${question.QID}" name="question_${question.QID}" placeholder="Nhập câu trả lời"${isRequired ? ' required' : ''}>`;
             break;
         case "LONG_TEXT":
-            html += `<textarea class="form-control mt-2" id="question_${question.QID}" name="question_${question.QID}" rows="3" placeholder="Nhập câu trả lời"></textarea>`;
+            html += `<textarea class="form-control mt-2" id="question_${question.QID}" name="question_${question.QID}" rows="3" placeholder="Nhập câu trả lời"${isRequired ? ' required' : ''}></textarea>`;
             break;
         case "CHECKBOX":
-            html += patternQuestionCheckBox(question);
+            html += patternQuestionCheckBox(question, isRequired);
             break;
         case "GRID_MULTIPLE_CHOICE":
-            html += patternQuestionGridMultipleChoice(question);
+            html += patternQuestionGridMultipleChoice(question, isRequired);
             break;
         case "GRID_CHECKBOX":
-            html += patternQuestionGridCheckBox(question);
+            html += patternQuestionGridCheckBox(question, isRequired);
             break;
         case "DROPDOWN":
-            html += patternQuestionDropdown(question);
+            html += patternQuestionDropdown(question, isRequired);
             break;
     }
 
@@ -328,13 +362,13 @@ function renderQuestion(question) {
 }
 
 
-function patternQuestionDropdown(question) {
+function patternQuestionDropdown(question, isRequired) {
     let options = question.children.map(option => `
         <option value="${option.QID}" data-content="${option.QContent}">${option.QContent}</option>
     `).join('');
 
     return `
-        <select class="form-select mt-2" id="question_${question.QID}" name="question_${question.QID}">
+        <select class="form-select mt-2" id="question_${question.QID}" name="question_${question.QID}"${isRequired ? ' required' : ''}>
             <option selected disabled>Chọn câu trả lời</option>
             ${options}
         </select>
@@ -353,7 +387,8 @@ function patternQuestionCheckBox(question) {
                name="question_${question.QID}[]" 
                id="q${option.QID}" 
                value="${option.QID}"
-               data-content="${option.QContent}">
+               data-content="${option.QContent}"
+               data-required="${question.QRequired ? 'true' : 'false'}">
         <label class="form-check-label" for="q${option.QID}">${option.QContent}</label>
     </div>
   `)
@@ -366,7 +401,8 @@ function patternQuestionCheckBox(question) {
                name="question_${question.QID}[]" 
                id="q${anotherOption.QID}" 
                value="other"
-               data-content="${anotherOption.QContent}">
+               data-content="${anotherOption.QContent}"
+               data-required="${question.QRequired ? 'true' : 'false'}">
         <label class="form-check-label" for="q${anotherOption.QID}">${anotherOption.QContent}</label>
         <input type="text" 
                class="form-control ms-2" 

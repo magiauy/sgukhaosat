@@ -244,6 +244,7 @@ $mailerController = new MailerController();
             JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getAll($res, $req))
         );
         $router->get('/api/form', fn() =>
+            // error_log("no di vao router form")
             JwtMiddleware::authenticate($request, $response, "", fn($req, $res) => $formController->getByIdForUser($res, $req))
         , ['id']);
         $router->post('/api/admin/form', fn() =>

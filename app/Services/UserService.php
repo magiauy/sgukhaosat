@@ -4,7 +4,7 @@ namespace Services;
 use Core\jwt_helper;
 use Exception;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use Repositories\Interface\IBaseRepository;
+use Repositories\Interface\IAuthRepository;
 use Repositories\Interface\IWhitelistForm;
 use Repositories\UserRepository;
 use Repositories\Interface\IBaseRepositoryTransaction;
@@ -18,7 +18,7 @@ use Utils\PasswordUtils;
 
 class UserService implements IAuthService
 {
-    private IBaseRepository $userRepository;
+    private IAuthRepository $userRepository;
     private IBaseRepositoryTransaction $roleRepo;
     private IBaseService $roleService;
     private IWhitelistForm $whitelistForm;
@@ -106,7 +106,6 @@ class UserService implements IAuthService
 
             // Try to login with repository
             $user['user'] = $this->userRepository->login($data);
-
             if ($user['user']) {
                 // Debug log - remove in production
                 error_log("User found, fetching role data");

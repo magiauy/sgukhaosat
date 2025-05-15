@@ -181,7 +181,7 @@ class QuestionRepository implements IQuestionRepository
 
     public function getByFormID($formID): array
     {
-
+        // error_log("getByForaaaaaamID: " . $formID);
         try {
             $sql = "SELECT * FROM question WHERE FID = :FID AND `isDeleted` = 0";
             $stmt = $this->pdo->prepare($sql);
@@ -196,6 +196,8 @@ class QuestionRepository implements IQuestionRepository
                 $question['isDeleted'] = (int)$question['isDeleted'];
                 // Cast any other integer fields as needed
             }
+            // error_log("da chay toi dayyyyyyyyyyy");
+            // error_log("questions: " . json_encode($questions));
             return $this->buildQuestionTree($questions);
         } catch (Exception $e) {
             throw new \Exception("Lỗi khi lấy câu hỏi: " . $e->getMessage(), 500);
@@ -220,7 +222,6 @@ class QuestionRepository implements IQuestionRepository
                 $tree[] = &$q;
             }
         }
-
         return $tree;
     }
 

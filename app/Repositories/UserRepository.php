@@ -113,6 +113,7 @@ class UserRepository implements IAuthRepository {
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute(['email' => $data['email']]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            // error_log("User: " . json_encode($user));
             if (!$user || !password_verify($data['password'], $user['password'])) {
                 // Throw with 401 status code for invalid credentials
                 throw new Exception("Sai tài khoản hoặc mật khẩu", 401);

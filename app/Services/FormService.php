@@ -465,6 +465,7 @@ function normalizeForComparison($question) {
 
     function getByIdForUser($id)
     {
+        // error_log("getByIdForUser called with ID: $id");
         try {
             $forms = $this->formRepository->getByIdForUser($id);
             if (!$forms) {

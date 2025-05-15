@@ -24,6 +24,7 @@ export async function callApi(endpoint, method = "GET", data = null,FormData=nul
         delete headers["Content-Type"]; // Let the browser set the correct Content-Type
     }
     const response = await fetch(`${config.apiUrl}${endpoint}`, options);
+    // alert("link : " + `${config.apiUrl}${endpoint}`);
     if (!response.ok) {
         if (response.status === 401 && !isRetry) {
             // Try to refresh token only once

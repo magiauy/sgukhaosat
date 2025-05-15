@@ -2,10 +2,11 @@ import { setupDeleteHandlers } from "./deleteHandlers.js";
 import { setupOptionHandlers, setupOptionContentHandlers } from "./optionHandlers.js";
 import { setupQuestionHandlers } from "./questionHandlers.js";
 import { setupSaveHandlers, setupSubmitHandler } from "./saveHandlers.js";
+import { setupPreviewHandler } from './previewHandler.js';
 
 let isGlobalClickListenerAdded = false;
 
-function setupEventHandlers() {
+export function setupEventHandlers() {
     if (isGlobalClickListenerAdded) return;
 
     setupOptionContentHandlers();
@@ -19,8 +20,8 @@ function setupEventHandlers() {
 
         window.isDeleteListenerAdded = true;
     }
+    
+    setupPreviewHandler();
 
     isGlobalClickListenerAdded = true;
 }
-
-export { setupEventHandlers };

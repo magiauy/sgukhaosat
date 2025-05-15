@@ -10,6 +10,7 @@ import { MCIcon, CheckBoxIcon } from "./constants/icons.js";
 // Global state
 let formId = null;
 let formStatus = null;
+let form = null;
 let autoSaveInterval = null;
 let draggedElement = null;
 let isDragging = false;
@@ -42,6 +43,7 @@ async function initApp() {
           renderSurvey(data.data);
           console.log(data.data);
           formStatus = data.data.form.Status;
+            form = data.data.form;
 
           // Enable auto-save for drafts
           if (formStatus === "0") {
@@ -118,6 +120,13 @@ function getIsDragging() {
 function setIsDragging(dragging) {
   isDragging = dragging;
 }
+// Initialize question types and other data
+function getForm() {
+  return form;
+}
+function setForm(data) {
+    form = data;
+}
 // Execute when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initApp);
 
@@ -128,5 +137,6 @@ export {
   getFormStatus, setFormStatus,
   getAutoSaveInterval, setAutoSaveInterval,
   getDraggedElement, setDraggedElement,
-  getIsDragging, setIsDragging
+  getIsDragging, setIsDragging,
+    getForm, setForm
 };

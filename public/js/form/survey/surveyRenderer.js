@@ -48,62 +48,11 @@ function renderSurvey(data=null) {
     showSurvey(surveyHtml);
     initQuestion();
     initForm(data?.form || {});
-    initSelectElements();
+
     clearBrTag();
     setupPasteHandlers();
 }
-async function initSelectElements() {
-    try {
-        const response = await callApi('/form-type');
-        const typeSelect = document.getElementById('typeid');
-        const typeData = Array.isArray(response) ? response : (response.data || []);
 
-        // Since you're using await, typeData already contains the resolved value
-        typeData.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type.FTypeID;
-            option.textContent = type.FTypeName;
-            typeSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error loading form types:', error);
-    }
-
-    try {
-        const response = await callApi('/major');
-        const majorSelect = document.getElementById('majorid');
-        const majorData = Array.isArray(response) ? response : (response.data || []);
-
-        // Since you're using await, majorData already contains the resolved value
-        majorData.forEach(major => {
-            const option = document.createElement('option');
-            option.value = major.MajorID;
-            option.textContent = major.MajorName;
-            majorSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error loading form majors:', error);
-    }
-
-    try {
-        const response = await callApi('/period');
-        const periodSelect = document.getElementById('periodid');
-        const periodData = Array.isArray(response) ? response : (response.data || []);
-
-        // Since you're using await, periodData already contains the resolved value
-        periodData.forEach(period => {
-            const option = document.createElement('option');
-            option.value = period.PeriodID;
-            option.textContent = period.PeriodName;
-            periodSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error loading form periods:', error);
-    }
-
-
-
-}
 
 
 function buildFormHtml(form) {
@@ -120,16 +69,11 @@ function buildFormHtml(form) {
       <div style="flex: 1;">
         <label for="typeid">Loại hình khảo sát:</label>
         <select id="typeid" name="typeid" class="form-control">
-          <option value="">Chọn loại</option>
         </select>
       </div>
       <div style="flex: 1;">
         <label for="majorid">Khối Ngành:</label>
         <select id="majorid" name="majorid" class="form-control">
-          <option value="">Chọn ngành</option>
-          <option value="7480201" ${form.MajorID === '7480201' ? 'selected' : ''}>Công nghệ thông tin</option>
-          <option value="7480201CLC" ${form.MajorID === '7480201CLC' ? 'selected' : ''}>Công nghệ thông tin (chương trình chất lượng cao)</option>
-          <option value="ce" ${form.MajorID === 'ce' ? 'selected' : ''}>Kỹ thuật điện</option>
         </select>
       </div>
     </div>
@@ -139,14 +83,6 @@ function buildFormHtml(form) {
       <div style="flex: 1;">
         <label for="periodid">Chu Kỳ:</label>
         <select id="periodid" name="periodid" class="form-control">
-          <option value="">Chọn kỳ</option>
-          <option value="1" ${form.PeriodID === '1' ? 'selected' : ''}>2000-2004</option>
-          <option value="2" ${form.PeriodID === '2' ? 'selected' : ''}>2004-2008</option>
-          <option value="3" ${form.PeriodID === '3' ? 'selected' : ''}>2008-2012</option>
-          <option value="4" ${form.PeriodID === '4' ? 'selected' : ''}>2012-2016</option>
-          <option value="5" ${form.PeriodID === '5' ? 'selected' : ''}>2016-2024</option>
-          <option value="6" ${form.PeriodID === '6' ? 'selected' : ''}>2020-2024</option>
-          <option value="7" ${form.PeriodID === '7' ? 'selected' : ''}>2024-2028</option>
         </select>
       </div>
       <div style="flex: 1;">

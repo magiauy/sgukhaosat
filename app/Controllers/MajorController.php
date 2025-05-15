@@ -23,11 +23,14 @@ class MajorController {
         ]);
 
         $Major = $this->service->getById($id);
+        //return ['message' => 'Lấy thông tin thành công', 'status'= false];
+        //$respone -> json ([ ' message' => $Major['message'], 'status' => $Major['status']]);
     
         if ($Major) {
             $response->json([
                 'data' => $Major,
-                'status' => true
+                'status' => true,
+                'message' => 'Lấy thông tin thành công'
             ]);
         } else {
             $response->json([

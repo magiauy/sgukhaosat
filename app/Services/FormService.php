@@ -108,8 +108,6 @@ class FormService implements IFormService
             $this->draftRepository->deleteByFormID($form['FID'], $pdo);
             $this->formRepository->update($form['FID'], $form, $pdo);
             // Kiểm tra xem có thất bại không (trả về false, null, 0, '')
-
-
 //            print_r($questions);
             $questionsCreated = $this->questionRepository->createQuestion($questions,$form['FID'], $pdo);
             // Kiểm tra xem có thất bại không

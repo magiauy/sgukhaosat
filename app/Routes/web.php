@@ -79,6 +79,10 @@ $router->get('/quytrinh/chuandaura', function() {
     require_once __DIR__ . '/../../public/views/pages/chuandaura.php';
 });
 
+$router->get('/quytrinh/chuky', function() {
+    require_once __DIR__ . '/../../public/views/pages/chuky.php';
+});
+
 $router->get('/form/{id}', function($params) {
     require_once __DIR__ . '/../../public/views/pages/form.php';
 });
@@ -90,6 +94,11 @@ $router->get('/form', function() {
 //contact
 $router->get('/contact', function() {
     require_once __DIR__ . '/../../public/views/pages/contact.php';
+});
+
+//quy trình
+$router->get('/quytrinh', function() {
+    require_once __DIR__ . '/../../public/views/pages/quytrinh.php';
 });
 
 

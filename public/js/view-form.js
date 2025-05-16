@@ -68,6 +68,15 @@ import {callApi} from "./apiService.js";
         document.querySelector(".form-content").innerHTML = surveyHtml;
         const userId = await getCurrentUser();
         document.querySelector(".btn-submit-form").addEventListener("click", () => {
+            const form = document.getElementById('survey-form');
+            if(!form.checkValidity()) {
+                showError('Vui lòng điền đầy đủ thông tin khảo sát');
+                const firstInvalidElement = form.querySelector(':invalid');
+                if (firstInvalidElement) {
+                    firstInvalidElement.focus();
+                }
+                return;
+            }
             submitSurvey(data.form.FID, userId);
         });  
     }
@@ -290,7 +299,7 @@ function submitSurvey(formId, userId) {
             successModal.show();
             setTimeout(() => {
                 successModal.hide();
-                window.location.href = '/';
+                // window.location.href = '/';
             }, 2000);
         } else {
             throw new Error(data.message || 'Gửi khảo sát thất bại');
@@ -415,6 +424,7 @@ function patternQuestionCheckBox(question) {
 }
 
 function patternQuestionMultipleChoice(question) {
+    console.log('Rendering question:', question);
   const options = question.children.filter(option => option.QTypeID !== "ANOTHER_OPTION");
   const anotherOption = question.children.find(option => option.QTypeID === "ANOTHER_OPTION");
 
@@ -444,7 +454,7 @@ function patternQuestionMultipleChoice(question) {
         <input type="text" 
                class="form-control ms-2" 
                id="other_text_${question.QID}"
-               placeholder="Enter custom answer">
+               placeholder="Nhập câu trả lời khác">
     </div>
   ` : '';
 

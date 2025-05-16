@@ -119,8 +119,7 @@ class DocumentController {
             'totalCount' => $totalCount
         ]);
     }
-    
-    public function search(Response $response, Request $request) {
+      public function search(Response $response, Request $request) {
         $keyword = $request->getParam('search') ?? '';
         $limit = (int)($request->getParam('limit') ?? 10);
         $offset = (int)($request->getParam('offset') ?? 0);
@@ -132,4 +131,41 @@ class DocumentController {
         ]);
     }
     
+    /**
+     * Get documents by type with pagination for UI pages
+     *
+     * @param Response $response
+     * @param Request $request
+     * @param string $type Document type
+     * @return void
+     */
+    public function getDocumentsByType(Response $response, Request $request, $type) {
+        $page = (int)($request->getParam("page") ?? 1);
+        $limit = (int)($request->getParam("limit") ?? 5);
+        $offset = ($page - 1) * $limit;
+        
+        $result = $this->service->getDocumentsByType($type, $limit, $offset);
+        
+        $response->json([
+            'documents' => $result['documents'],
+            'totalCount' => $result['totalCount'],
+            'status' => true
+        ]);
+    }
+    
+    /**
+     * Get files associated with a document
+     *
+     * @param Response $response
+     * @param int $documentId
+     * @return void
+     */
+    public function getFilesByDocumentId(Response $response, $documentId) {
+        $files = $this->service->getFilesByDocumentId((int)$documentId);
+        
+        $response->json([
+            'files' => $files,
+            'status' => true
+        ]);
+    }
 }

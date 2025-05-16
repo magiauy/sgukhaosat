@@ -83,13 +83,69 @@ class DocumentRepository {
         return $stmt->fetchAll();
     }
 
-    
-    public function searchCount($keyword) {
+      public function searchCount($keyword) {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM document WHERE isDelete = FALSE AND (DocumentTitle LIKE :kw OR DocumentID LIKE :kw)");
         $stmt->bindValue(':kw', "%$keyword%");
         $stmt->execute();
         return $stmt->fetchColumn();
     }
-
     
+    /**
+     * Get documents by type with pagination
+     *
+     * @param string $type The document type (quy_trinh_khao_sat, quy_trinh_cap_nhat_chuan_dau_ra, danh_sach_quy_trinh_cac_chu_ky)
+     * @param int $limit Number of items per page
+     * @param int $offset Starting position for pagination
+     * @return array Documents and total count
+     */
+    public function getDocumentsByType(string $type, int $limit, int $offset): array
+    {
+        try {
+            // Get total count for pagination
+            $countStmt = $this->pdo->prepare("SELECT COUNT(*) FROM document WHERE type = :type AND isDelete = FALSE");
+            $countStmt->bindParam(':type', $type, PDO::PARAM_STR);
+            $countStmt->execute();
+            $totalCount = $countStmt->fetchColumn();
+
+            // Get documents with pagination
+            $stmt = $this->pdo->prepare("SELECT * FROM document WHERE type = :type AND isDelete = FALSE ORDER BY createAt DESC LIMIT :limit OFFSET :offset");
+            $stmt->bindParam(':type', $type, PDO::PARAM_STR);
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+            $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return [
+                'documents' => $documents,
+                'totalCount' => $totalCount
+            ];
+        } catch (\PDOException $e) {
+            // Log the error
+            error_log("Error fetching documents: " . $e->getMessage());
+            return [
+                'documents' => [],
+                'totalCount' => 0
+            ];
+        }
+    }
+
+    /**
+     * Get files associated with a document
+     *
+     * @param int $documentId The document ID
+     * @return array Associated files
+     */
+    public function getFilesByDocumentId(int $documentId): array
+    {
+        try {
+            $stmt = $this->pdo->prepare("SELECT * FROM file WHERE id_Doc = :documentId AND isDelete = FALSE");
+            $stmt->bindParam(':documentId', $documentId, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // Log the error
+            error_log("Error fetching files: " . $e->getMessage());
+            return [];
+        }
+    }
 }

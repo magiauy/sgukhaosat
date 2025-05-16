@@ -1,5 +1,5 @@
 import PaginationComponent from './component/pagination.js';
-import FormSettingsModal from "./modal/formSettingsModal.js";
+import FormSettingsModal from "./modal/FormSettingsModal.js";
 import {callApi} from "./apiService.js";
 import {showSwalToast} from "./form/utils/notifications.js";
 
@@ -51,6 +51,9 @@ async function loadSurveyTable(data) {
                 <button class="btn btn-outline-secondary btn-settings btn-setting-form" data-id="${item.FID}">
                     <i class="bi bi-gear-fill"></i>
                 </button>
+                    <button class="btn btn-outline-info btn-statistics" data-id="${item.FID}">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </button>
             </td>
         `;
         table.appendChild(row);
@@ -69,7 +72,9 @@ async function loadSurveyTable(data) {
                 } else if (this.classList.contains('btn-setting-form')) {
                     const form = data.forms.find(item => item.FID == fid);
 
-                    await formSettingsModal.open(fid, form);
+                    await formSettingsModal.open(fid, form,'formManager');
+                }else if (this.classList.contains('btn-statistics')) {
+                    window.location.href = `${config.Url}/admin/form/${fid}/statistics`;
                 }
             }
         });

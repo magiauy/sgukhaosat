@@ -9,7 +9,8 @@ import {
 import { getIconForType } from "../utils/iconHelpers.js";
 import { createElementFromHTML, placeCaretAtEnd } from "../utils/domHelpers.js"; // Added placeCaretAtEnd
 import { setupFormEditListeners } from "../ui/formListeners.js";
-import { initQuestionSelects } from "../question/questionSelect.js"; // Fixed extension
+import { initQuestionSelects } from "../question/questionSelect.js";
+import {setupPasteHandlers} from "../utils/editableContent.js"; // Fixed extension
 
 function handleNewOptionClick(event, wrapperSelector, containerClosestSelector, itemQuerySelector, type="option") {
 
@@ -58,6 +59,7 @@ function handleNewOptionClick(event, wrapperSelector, containerClosestSelector, 
     const newItem = optionContainer.querySelector(itemQuerySelector + ":last-child");
     const inputToFocus = newItem.querySelector('input, textarea, [contenteditable="true"]');
     clearBrTag();
+    setupPasteHandlers();
     const btnSave = document.querySelector('.btn-save');
     if (btnSave) {
         btnSave.disabled = false;

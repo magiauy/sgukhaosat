@@ -17,10 +17,19 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Load data from API
     await loadStatisticsData();
+    await setUpHandlers();
 
     // Set up event listeners
     setupEventListeners();
 });
+
+async function setUpHandlers() {
+    document.getElementById('export-pdf')?.addEventListener('click', handleExportPdf);
+    document.getElementById('export-excel')?.addEventListener('click', handleExportExcel);
+    document.getElementById('export-report')?.addEventListener('click', handleExportReport);
+    document.getElementById('export-csv')?.addEventListener('click', handleExportCsv);
+
+}
 
 async function loadStatisticsData() {
     try {
@@ -35,138 +44,6 @@ async function loadStatisticsData() {
 
         // Call API to get statistics data
         const result = await callApi(`/statistic/form/${formId}`, 'GET');
-        // console.log(test);
-        //
-        // const result = {
-        //     "status": true,
-        //     "data": {
-        //         "formId": "123",
-        //         "formTitle": "Khảo sát mức độ hài lòng",
-        //         "totalResponses": 150,
-        //         "questions": [
-        //             {
-        //                 "QID": "1",
-        //                 "QTypeID": "MULTI_CHOICE",
-        //                 "QContent": "Bạn đánh giá chất lượng dịch vụ như thế nào?",
-        //                 "responses": [
-        //                     { "answer": "Rất tốt", "count": 45 },
-        //                     { "answer": "Tốt", "count": 65 },
-        //                     { "answer": "Bình thường", "count": 25 },
-        //                     { "answer": "Cần cải thiện", "count": 15 }
-        //                 ]
-        //             },
-        //             {
-        //                 "QID": "2",
-        //                 "QTypeID": "CHECKBOX",
-        //                 "QContent": "Bạn thường sử dụng dịch vụ nào? (có thể chọn nhiều)",
-        //                 "responses": [
-        //                     { "answer": "Dịch vụ A", "count": 85 },
-        //                     { "answer": "Dịch vụ B", "count": 92 },
-        //                     { "answer": "Dịch vụ C", "count": 43 },
-        //                     { "answer": "Dịch vụ D", "count": 67 }
-        //                 ]
-        //             },
-        //             {
-        //                 "QID": "3",
-        //                 "QTypeID": "DROPDOWN",
-        //                 "QContent": "Bạn biết đến dịch vụ qua kênh nào?",
-        //                 "responses": [
-        //                     { "answer": "Mạng xã hội", "count": 78 },
-        //                     { "answer": "Bạn bè giới thiệu", "count": 45 },
-        //                     { "answer": "Quảng cáo", "count": 27 }
-        //                 ]
-        //             },
-        //             {
-        //                 "QID": "4",
-        //                 "QTypeID": "SHORT_TEXT",
-        //                 "QContent": "Đánh giá mức độ hài lòng (1-5)",
-        //                 "responses": [
-        //                     { "answer": "1", "count": 5 },
-        //                     { "answer": "2", "count": 15 },
-        //                     { "answer": "3", "count": 35 },
-        //                     { "answer": "4", "count": 55 },
-        //                     { "answer": "5", "count": 40 }
-        //                 ]
-        //             },
-        //             {
-        //                 "QID": "5",
-        //                 "QTypeID": "SHORT_TEXT",
-        //                 "QContent": "Nhận xét thêm",
-        //                 "responses": [
-        //                     { "answer": "Dịch vụ tốt", "count": 25 },
-        //                     { "answer": "Giá cả hợp lý", "count": 18 },
-        //                     { "answer": "Cần cải thiện thái độ", "count": 12 },
-        //                     { "answer": "Thời gian chờ hơi lâu", "count": 15 }
-        //                 ]
-        //             },
-        //             {
-        //                 "QID": "6",
-        //                 "QTypeID": "GRID_MC",
-        //                 "QContent": "Đánh giá các khía cạnh dịch vụ",
-        //                 "responses": [
-        //                     { "answer": "Chất lượng - Rất tốt", "count": 35 },
-        //                     { "answer": "Chất lượng - Tốt", "count": 45 },
-        //                     { "answer": "Chất lượng - Trung bình", "count": 20 },
-        //                     { "answer": "Giá cả - Rất tốt", "count": 25 },
-        //                     { "answer": "Giá cả - Tốt", "count": 55 },
-        //                     { "answer": "Giá cả - Trung bình", "count": 30 },
-        //                     { "answer": "Phục vụ - Rất tốt", "count": 40 },
-        //                     { "answer": "Phục vụ - Tốt", "count": 35 },
-        //                     { "answer": "Phục vụ - Trung bình", "count": 25 },
-        //                     { "answer": "Thời gian - Rất tốt", "count": 50 },
-        //                     { "answer": "Thời gian - Tốt", "count": 40 },
-        //                     { "answer": "Thời gian - Trung bình", "count": 20 },
-        //                     //Không gian
-        //                     { "answer": "Không gian - Rất tốt", "count": 30 },
-        //                     { "answer": "Không gian - Tốt", "count": 25 },
-        //                     { "answer": "Không gian - Trung bình", "count": 15 },
-        //                     { "answer": "Không gian - Kém", "count": 10 },
-        //                     { "answer": "Mức độ hài lòng về chất lượng tư vấn của nhân viên - Rất hài lòng", "count": 35 },
-        //                     { "answer": "Mức độ hài lòng về chất lượng tư vấn của nhân viên - Hài lòng", "count": 45 },
-        //                     { "answer": "Mức độ hài lòng về chất lượng tư vấn của nhân viên - Bình thường", "count": 20 },
-        //                     { "answer": "Mức độ hài lòng về thời gian chờ đợi và xử lý thủ tục - Rất hài lòng", "count": 30 },
-        //                     { "answer": "Mức độ hài lòng về thời gian chờ đợi và xử lý thủ tục - Hài lòng", "count": 50 },
-        //                     { "answer": "Mức độ hài lòng về thời gian chờ đợi và xử lý thủ tục - Bình thường", "count": 25 },
-        //                     { "answer": "Mức độ hài lòng về cơ sở vật chất và không gian làm việc - Rất hài lòng", "count": 40 },
-        //                     { "answer": "Mức độ hài lòng về cơ sở vật chất và không gian làm việc - Hài lòng", "count": 35 },
-        //                     { "answer": "Mức độ hài lòng về cơ sở vật chất và không gian làm việc - Bình thường", "count": 15 }
-        //                     //Một đoạn text dài
-        //
-        //
-        //                 ]
-        //             },
-        //             {
-        //                 "QID": "7",
-        //                 "QTypeID": "GRID_CB",
-        //                 "QContent": "Chọn các dịch vụ bạn đã sử dụng ở mỗi chi nhánh",
-        //                 "responses": [
-        //                     { "answer": "Chi nhánh A - Dịch vụ 1", "count": 45 },
-        //                     { "answer": "Chi nhánh A - Dịch vụ 2", "count": 35 },
-        //                     { "answer": "Chi nhánh B - Dịch vụ 1", "count": 55 },
-        //                     { "answer": "Chi nhánh B - Dịch vụ 2", "count": 40 },
-        //                     { "answer": "Chi nhánh C - Dịch vụ 1", "count": 30 },
-        //                     { "answer": "Chi nhánh C - Dịch vụ 2", "count": 25 }
-        //                 ]
-        //             }
-        //         ],
-        //         "users": [
-        //             {
-        //                 "id": "user1",
-        //                 "name": "Nguyễn Văn A",
-        //                 "email": "nguyenvana@example.com",
-        //                 "responseDate": "2024-03-15T08:30:00Z"
-        //             },
-        //             {
-        //                 "id": "user2",
-        //                 "name": "Trần Thị B",
-        //                 "email": "tranthib@example.com",
-        //                 "responseDate": "2024-03-15T09:45:00Z"
-        //             }
-        //         ]
-        //     },
-        //     "message": "Lấy dữ liệu thống kê thành công"
-        // }
-        // console.log(result);
         if (!result.status) {
             showError(result.message || "Không thể tải dữ liệu thống kê");
             return;
@@ -716,6 +593,89 @@ function setupEventListeners() {
         });
     }
 }
+function handleExportPdf(event) {
+    // Import the ExportPdfModal dynamically
+    import('../modal/ExportPdfModal.js')
+        .then(module => {
+            const ExportPdfModal = module.default;
+            const modal = new ExportPdfModal({});
+            modal.open(formId, null);
+        })
+        .catch(error => {
+            console.error("Error loading ExportPdfModal:", error);
+            showError("Không thể tải modal xuất PDF");
+        });
+}
+
+/**
+ * Handler for Excel export button click
+ * @param {Event} event - Click event
+ */
+function handleExportExcel(event) {
+    // TODO: Implement Excel export logic
+    // 1. Get form ID from current URL
+    // 2. Show loading indicator
+    // 3. Call API endpoint for Excel generation
+    // 4. Handle response and trigger download
+    // 5. Show success/error notification
+    console.log('Export to Excel clicked');
+}
+
+/**
+ * Handler for Report export button click
+ * @param {Event} event - Click event
+ */
+function handleExportReport(event) {
+    // TODO: Implement Report export logic
+    // 1. Get form ID from current URL
+    // 2. Show loading indicator
+    // 3. Call API endpoint for Report generation
+    // 4. Handle response and trigger download
+    // 5. Show success/error notification
+    console.log('Export to Report clicked');
+}
+
+/**
+ * Handler for CSV export button click
+ * @param {Event} event - Click event
+ */
+function handleExportCsv(event) {
+    // TODO: Implement CSV export logic
+    // 1. Get form ID from current URL
+    // 2. Show loading indicator
+    // 3. Call API endpoint for CSV generation
+    // 4. Handle response and trigger download
+    // 5. Show success/error notification
+    console.log('Export to CSV clicked');
+}
+
+/**
+ * Helper function to extract form ID from URL
+ * @returns {string|null} Form ID if found, null otherwise
+ */
+function getFormIdFromUrl() {
+    // TODO: Extract and return form ID from current URL
+    // Example: /admin/form/123/edit -> return "123"
+    return null;
+}
+
+/**
+ * Helper function to show loading state
+ * @param {string} exportType - Type of export being performed
+ */
+function showExportLoading(exportType) {
+    // TODO: Implement loading indicator for export process
+}
+
+/**
+ * Helper function to handle file download from response
+ * @param {Blob} blob - File blob from API response
+ * @param {string} filename - Suggested filename for download
+ */
+function triggerFileDownload(blob, filename) {
+    // TODO: Implement file download logic
+}
+
 
 function showError(message) {
     Swal.fire({

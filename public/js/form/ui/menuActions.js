@@ -1,6 +1,7 @@
 import {getForm, getFormId} from "../main.js";
 import FormSettingsModal from "../../modal/FormSettingsModal.js";
 import {showToast} from "../utils/notifications.js";
+import {setupPasteHandlers} from "../utils/editableContent.js";
 
 function moreActionMenu() {
     // Remove all existing events and add them again
@@ -89,6 +90,7 @@ function handleMenuItemClick(ev, questionItem, hasDescription, menuBox) {
         `;
         if (questionContent) {
             questionContent.insertAdjacentElement('afterend', questionDescription);
+            setupPasteHandlers();
         }
     } else {
         const questionDescription = questionItem.querySelector('.question-description');

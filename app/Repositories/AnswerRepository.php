@@ -180,4 +180,16 @@ class AnswerRepository implements IAnswerRepository
             throw new \RuntimeException($e->getMessage(), $e->getCode());
         }
     }
+
+    public function getByResultAndQuestion(mixed $RID, mixed $QID)
+    {
+        try {
+            $sql = "SELECT * FROM answer WHERE RID = :RID AND QID = :QID";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':RID' => $RID, ':QID' => $QID]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode());
+        }
+    }
 }

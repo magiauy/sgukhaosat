@@ -2,6 +2,8 @@ import {initQuestionSelects} from "./questionSelect.js";
 import {initQuestion} from "./questionInitializer.js";
 import {moreActionMenu} from "../ui/menuActions.js";
 import {renderQuestion} from "./questionRenderer.js";
+import {clearBrTag} from "../utils/contentHelpers.js";
+import {setupPasteHandlers} from "../utils/editableContent.js";
 
 function duplicateQuestionItem(item, desiredValue) {
     // get duplicated HTML from the original element
@@ -10,13 +12,22 @@ function duplicateQuestionItem(item, desiredValue) {
     // create a temporary container to modify the duplicated HTML
     const tempContainer = document.createElement('div');
     tempContainer.innerHTML = newQuestionHtml;
+    //Tìm element có Attribute là data-paste-handler-attached để xóa
+    const existingElement = tempContainer.querySelectorAll('[data-paste-handler-attached]');
+    existingElement.forEach(element => {
+        element.removeAttribute('data-paste-handler-attached');
+
+    });
 
     // Find the select element in the duplicated HTML and update its value
     const selectElement = tempContainer.querySelector('select.form-select');
+    //Clear data-paste-handler-attached
+
     if (selectElement) {
         selectElement.value = desiredValue;
         // Reset the initialization flag so it is re-initialized
         delete selectElement.dataset.initialized;
+        selectElement.removeAttribute('data-paste-handler-attached');
     }
 
     // Insert the modified HTML after the original question-item
@@ -25,6 +36,8 @@ function duplicateQuestionItem(item, desiredValue) {
     // Reinitialize the select elements (new duplicated select will be initialized)
     initQuestionSelects();
     moreActionMenu();
+    clearBrTag();
+    setupPasteHandlers();
 }
 function swapPatternQuestion(questionElement,type) {
 
@@ -132,6 +145,8 @@ function swapPatternQuestion(questionElement,type) {
     }
     questionElement.outerHTML = renderQuestion(question);
     initQuestion();
+    clearBrTag();
+    setupPasteHandlers();
 }
 
 export {duplicateQuestionItem, swapPatternQuestion};

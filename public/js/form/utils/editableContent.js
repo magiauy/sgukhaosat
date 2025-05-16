@@ -5,12 +5,17 @@ function sanitizeText(text) {
 }
 
 function setupPasteHandlers() {
-    const editableDivs = document.querySelectorAll(".editable-content,.editable-option-content");
+    const editableDivs = document.querySelectorAll(".editable-content,.editable-option-content,.editable-description-content");
 
     editableDivs.forEach(div => {
+        // Skip elements that already have paste handlers attached
+        if (div.getAttribute("data-paste-handler-attached") === "true") {
+            return;
+        }
+
         div.addEventListener("paste", (e) => {
             e.preventDefault();
-
+            console.log("pasteevent");
             try {
                 // Get and sanitize pasted text
                 const text = sanitizeText(
@@ -35,6 +40,9 @@ function setupPasteHandlers() {
                 console.error("Paste handler error:", error);
             }
         });
+
+        // Mark this element as having a paste handler attached
+        div.setAttribute("data-paste-handler-attached", "true");
     });
 }
 

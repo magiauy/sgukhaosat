@@ -2,7 +2,7 @@ import {globalQuestionTypes} from "./questionInitializer.js";
 import { swapPatternQuestion } from "./questionActions.js";
 
 function populateSelect(selectElement, currentQTypeID) {
-    if (!globalQuestionTypes) return;
+    if (!selectElement || !globalQuestionTypes) return;
     // Clear any existing options
     selectElement.innerHTML = '';
 

@@ -3,6 +3,7 @@ import { focusNewItem } from "../utils/domHelpers.js";
 import { clearBrTag } from "../utils/contentHelpers.js";
 import { initQuestionSelects } from "../question/questionSelect.js";
 import {moreActionMenu} from "../ui/menuActions.js";
+import {setupPasteHandlers} from "../utils/editableContent.js";
 
 function setupQuestionHandlers() {
     // Add title/description
@@ -26,6 +27,9 @@ function setupQuestionHandlers() {
         moreActionMenu()
         focusNewItem(newItem);
         clearBrTag();
+        setupPasteHandlers();
+        document.querySelector('.btn-save').disabled = false;
+
     });
 
     // Add question
@@ -48,6 +52,7 @@ function setupQuestionHandlers() {
         clearBrTag();
         moreActionMenu()
         focusNewItem(newItem);
+        setupPasteHandlers();
         document.querySelector('.btn-save').disabled = false;
     });
 }

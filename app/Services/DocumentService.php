@@ -63,9 +63,50 @@ class DocumentService {
             'limit' => $limit
         ];
     }
-    
-    public function searchCount($keyword) {
+      public function searchCount($keyword) {
         return $this->repo->searchCount($keyword);
     }
     
+    /**
+     * Get documents by type with pagination
+     *
+     * @param string $type The document type
+     * @param int $limit Items per page
+     * @param int $offset Starting offset
+     * @return array Documents and count
+     */
+    public function getDocumentsByType(string $type, int $limit, int $offset): array {
+        $result = $this->repo->getDocumentsByType($type, $limit, $offset);
+        $documents = $result['documents'];
+        $totalCount = $result['totalCount'];
+        
+        // Format data for UI
+        $formattedDocuments = [];
+        foreach ($documents as $doc) {
+            $files = $this->getFilesByDocumentId((int)$doc['DocumentID']);
+            $formattedDocuments[] = [
+                'id' => $doc['DocumentID'],
+                'title' => $doc['DocumentTitle'],
+                'createAt' => $doc['createAt'],
+                'files' => $files
+            ];
+        }
+        
+        return [
+            'documents' => $formattedDocuments,
+            'totalCount' => $totalCount,
+            'currentPage' => $offset / $limit + 1,
+            'totalPages' => ceil($totalCount / $limit)
+        ];
+    }
+    
+    /**
+     * Get files associated with a document
+     *
+     * @param int $documentId The document ID
+     * @return array Associated files
+     */
+    public function getFilesByDocumentId(int $documentId): array {
+        return $this->repo->getFilesByDocumentId($documentId);
+    }
 }

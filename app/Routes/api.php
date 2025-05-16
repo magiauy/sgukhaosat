@@ -94,11 +94,12 @@ $mailerController = new MailerController();
     $router->delete('/api/period/{id}', function($params) use ($response, $request, $periodController) {
         $_GET['id'] = $params['id'];
         $periodController->delete($response, $request);
-    });
-    // Document APIs
+    });    // Document APIs
     $router->get('/api/document', fn() => $documentController->getAll($response));
     $router->get('/api/document/search', fn() => $documentController->search($response, $request));
     $router->get('/api/document/{id}', fn($params) => $documentController->getById($response, $params['id']));
+    $router->get('/api/document/type/{type}', fn($params) => $documentController->getDocumentsByType($response, $request, $params['type']));
+    $router->get('/api/document/{id}/files', fn($params) => $documentController->getFilesByDocumentId($response, $params['id']));
     $router->post('/api/document', fn() => $documentController->create($response, $request));
     $router->put('/api/document/{id}', function($params) use ($response, $request, $documentController) {
         $_GET['id'] = $params['id'];

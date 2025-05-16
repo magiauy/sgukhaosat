@@ -349,13 +349,17 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
     }
 
     public function updateInformation($data){
-        $sql = "UPDATE users SET phone = :phone, fullName = :fullName, updated_at = NOW(), position = :position WHERE email = :email";
+        $sql = "UPDATE users SET 
+        phone = :phone, fullName = :fullName, updated_at = NOW(), position = :position 
+        isFirstLogin = CASE WHEN :isFirstLogin = 1 THEN 0 ELSE isFirstLogin END 
+        WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'phone' => $data['phone'],
             'email' => $data['email'],
             'fullName' => $data['fullName'],
             'position' => $data['position'],
+            'isFirstLogin' => $data['isFirstLogin'],
         ]);
         return $stmt->rowCount() === 1;
     }

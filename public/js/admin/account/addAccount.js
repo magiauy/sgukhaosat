@@ -3,6 +3,7 @@ import { renderListAccount, renderTableAccountOnPagination } from "./accountAdmi
 import ImportExcelAccount from "../../modal/ImportExcelAccount.js";
 import { showSwalToast } from "../../form/utils/notifications.js";
 import { validateEmail } from "../../checkInput.js";
+import {renderContentUser} from "./accountAdmin.js";
 
 // import * as XLSX from "xlsx";
 
@@ -182,6 +183,11 @@ export function importUsers(){
         // console.log(123)
         const importAccount = new ImportExcelAccount(config);
         importAccount.open();
+        if( document.querySelector("#importExcelModal")){
+            document.querySelector("#importExcelModal").addEventListener("hide.bs.modal", function () {
+                renderContentUser();
+            });
+        }
     }
 } 
 

@@ -11,7 +11,7 @@ $formService = new FormService();
 //var_dump($user->email);
 // $userCurrent = (array)$user;
 
-// var_dump($user);
+var_dump($user);
 
 
 try {
@@ -59,10 +59,13 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
         // Import hàm showFormUpdate từ file script.js
         import { showFormUpdate } from '/public/js/script.js';
         import { callApi } from '/public/js/apiService.js';
+        import { showSwalToast } from '/public/js/form/utils/notifications.js';
+        import {validatePhoneNumber}    from '/public/js/checkInput.js';
+        let account = <?php echo json_encode($user); ?>;
+
         
         <?php if ($user->isFirstLogin == 1): ?>
             // Chuyển đổi PHP object thành JavaScript object
-            const account = <?php echo json_encode($user); ?>;
             
             const modalHTML = `
             <div class="modal fade" id="accountDetailModal" tabindex="-1" aria-labelledby="accountDetailModalLabel" aria-hidden="true">
@@ -72,7 +75,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                         <div class="modal-header">
                             <h5 class="modal-title" id="accountDetailModalLabel">
                                 <i class="bi bi-person-badge me-2"></i>
-                                Thông tin tài khoản
+                                Thông tin tài khoản (Chỉ xuất hiện lần đầu tiên)
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -93,7 +96,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                                         <i class="bi bi-envelope"></i>
                                                     </span>
                                                     <input type="email" id="account-email" class="form-control" 
-                                                        value="${account.email || ''}" disabled>
+                                                        value="${account.email || ''}"  disabled>
                                                 </div>
                                             </div>
                                             
@@ -105,7 +108,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                                         <i class="bi bi-person"></i>
                                                     </span>
                                                     <input type="text" id="account-fullName" class="form-control" 
-                                                        value="${account.fullName || ''}" disabled>
+                                                        value="${account.fullName || ''}" >
                                                 </div>
                                             </div>
                                         
@@ -117,7 +120,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                                         <i class="bi bi-telephone"></i>
                                                     </span>
                                                     <input type="text" id="account-phone" class="form-control" 
-                                                        value="${account.phone || ''}" disabled>
+                                                        value="${account.phone || ''}" >
                                                 </div>
                                             </div>
 
@@ -128,7 +131,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                                     <span class="input-group-text bg-light">
                                                         <i class="bi bi-briefcase"></i>
                                                     </span>
-                                                    <select id="account-position" class="form-select" disabled>
+                                                    <select id="account-position" class="form-select" >
                                                         <!-- Options will be populated via JavaScript -->
                                                     </select>
                                                 </div>
@@ -179,7 +182,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                         <!-- Buttons for personal info section -->
                                     <div class="d-flex justify-content-end mt-4 pt-3 border-top">
                                     
-                                        <button type="button" class="btn btn-primary" id="detail-edit-information">
+                                        <button type="button" class="btn btn-primary" id="submit-update-info">
                                             <i class="bi bi-pencil-square me-2"></i>Sửa thông tin
                                         </button>
                                     </div>
@@ -208,12 +211,17 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
             // Khởi tạo modal Bootstrap
             const modal = new bootstrap.Modal(document.getElementById('accountDetailModal'));
             modal.show();
+
+            let update = false;
             
             // Xử lý đóng modal
             document.getElementById('accountDetailModal').addEventListener('hidden.bs.modal', function () {
                 // Xóa modal khỏi DOM sau khi đóng
                 this.remove();
-                window.location.href = "/";
+                if(!update) {
+                    window.location.href = "/";
+                }
+                
             });
             
             // Xử lý chức năng hiện/ẩn mật khẩu
@@ -234,6 +242,51 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                     }
                 });
             });
+
+            document.querySelector("#submit-update-info").onclick = async (e) => {
+                e.preventDefault();
+                const password = document.querySelector("#new-password").value;
+                const confirmPassword = document.querySelector("#confirm-password").value;
+                const position = document.querySelector("#account-position").value;
+                const fullName = document.querySelector("#account-fullName").value;
+                const phone = document.querySelector("#account-phone").value;
+                const email = document.querySelector("#account-email").value;
+                if(fullName === "" || phone === "" || password === "" || confirmPassword === "" || position === "") {
+                    showSwalToast("Vui lòng nhập đầy đủ thông tin", "warning");
+                    return;
+                }
+                if(password !== confirmPassword) {
+                     showSwalToast("Mật khẩu không khớp", "warning");
+                    return;
+                }
+                if(!validatePhoneNumber(phone).valid) {
+                    showSwalToast(validatePhoneNumber(phone).message, "warning");
+                    return;
+                }
+                
+                // console.log(user);
+                account.fullName = fullName;
+                account.phone = phone;
+                account.position = position;
+                account.password = password;
+                account.isFirstLogin = 0;
+                try {
+                    const response = await callApi("/user/information", "POST", account);
+                    console.log(response);
+                    showSwalToast("Cập nhật thông tin thành công", "success");
+                    update = true;
+                  
+                    // Xử lý đóng modal
+                   modal.hide();
+                  
+
+                } catch (error) {
+                    console.error("Error updating user:", error);
+                    showSwalToast("Có lỗi xảy ra khi cập nhật thông tin", "error");
+                    return;
+                }
+
+            }
 
            
             

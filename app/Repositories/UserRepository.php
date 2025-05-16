@@ -53,7 +53,7 @@ class UserRepository implements IAuthRepository {
         // var_dump($data);
         $sql = "UPDATE users SET roleID = :roleID, phone = :phone, 
                 status = :status, updated_at = NOW(), position = :position,
-                fullName = :fullName 
+                fullName = :fullName, isFirstLogin = :isFirstLogin
                 WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
@@ -63,6 +63,7 @@ class UserRepository implements IAuthRepository {
             'status' => $data['status'],
             'position' => $data['position'],
             'fullName' => $data['fullName'],
+            'isFirstLogin' => $data['isFirstLogin'],
         ]);
         return $stmt->rowCount() === 1;
     }
@@ -351,8 +352,8 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
 
     public function updateInformation($data){
         $sql = "UPDATE users SET 
-        phone = :phone, fullName = :fullName, updated_at = NOW(), position = :position 
-        isFirstLogin = CASE WHEN :isFirstLogin = 1 THEN 0 ELSE isFirstLogin END 
+        phone = :phone, fullName = :fullName, updated_at = NOW(), position = :position, 
+        isFirstLogin = :isFirstLogin  
         WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([

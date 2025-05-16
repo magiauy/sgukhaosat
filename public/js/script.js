@@ -24,10 +24,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 })
-
-document.getElementById('btn-admin').addEventListener('click', function(e) {
-    window.location.href = '/admin';
-});
+if(document.getElementById('btn-admin')) {
+    document.getElementById('btn-admin').addEventListener('click', function(e) {
+        window.location.href = '/admin';
+    });
+}
 function handleClickInformation(){
     if(!document.querySelector("#btn-information")) return;
     document.querySelector("#btn-information").onclick = async (e) => {
@@ -46,7 +47,7 @@ function handleClickInformation(){
 
 handleClickInformation();
 
-function handleClickEditInformation(){
+function handleClickEditInformation(account){
     document.querySelector("#detail-edit-information").onclick = async (e) => {
         e.preventDefault();
         document.querySelector("#detail-edit-information").innerText = "Lưu";
@@ -75,7 +76,9 @@ function handleClickEditInformation(){
                 email,
                 fullName,
                 phone,
-                position
+                position,
+                isFirstLogin: account.isFirstLogin,
+
             }
             console.log(data);
             try {
@@ -326,7 +329,7 @@ export async function showFormUpdate(account){
         });
     });
 
-    handleClickEditInformation();
+    handleClickEditInformation(account);
     handleClickChangePassword(account);
 }
 

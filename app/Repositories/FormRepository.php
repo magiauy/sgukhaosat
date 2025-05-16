@@ -481,4 +481,17 @@ public function delete($id, \PDO $pdo) {
         $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    function updateStatusPrivacy($ids, $status, $privacy)
+    {
+        $sql = "UPDATE forms SET Status = :Status, isPublic = :isPublic WHERE FID = :FID ";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':FID' => $ids,
+            ':Status' => $status,
+            ':isPublic' => $privacy
+        ]);
+        return $stmt->rowCount() > 0;
+
+    }
 }

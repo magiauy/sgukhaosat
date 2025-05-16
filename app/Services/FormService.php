@@ -108,8 +108,6 @@ class FormService implements IFormService
             $this->draftRepository->deleteByFormID($form['FID'], $pdo);
             $this->formRepository->update($form['FID'], $form, $pdo);
             // Kiểm tra xem có thất bại không (trả về false, null, 0, '')
-
-
 //            print_r($questions);
             $questionsCreated = $this->questionRepository->createQuestion($questions,$form['FID'], $pdo);
             // Kiểm tra xem có thất bại không
@@ -314,7 +312,7 @@ function normalizeForComparison($question) {
         try {
             $form = $this->formRepository->getById($id);
             if (!$form) {
-                throw new Exception("Không tìm thấy form với ID: $id", 404);
+                throw new Exception("Không tìm thấy form với ID: ${id['id']}", 404);
             }
 //            print_r($form['FID']);
             if ($form['Status'] == 0) {
@@ -338,20 +336,36 @@ function normalizeForComparison($question) {
         }
     }
 
-    function sortQuestion($question)
-    {
-        $sortedQuestions = [];
-        foreach ($question as $q) {
-            if (isset($q['children']) && is_array($q['children'])) {
-                $q['children'] = $this->sortQuestion($q['children']);
-            }
-            $sortedQuestions[] = $q;
-        }
-        usort($sortedQuestions, function ($a, $b) {
-            return strcmp($a['QIndex'], $b['QIndex']);
-        });
-        return $sortedQuestions;
-    }
+   function sortQuestion($question)
+   {
+       $sortedQuestions = [];
+       foreach ($question as $q) {
+           if (isset($q['children']) && is_array($q['children'])) {
+               $q['children'] = $this->sortQuestion($q['children']);
+           }
+           $sortedQuestions[] = $q;
+       }
+
+       usort($sortedQuestions, function ($a, $b) {
+           $aIndex = explode('.', $a['QIndex']);
+           $bIndex = explode('.', $b['QIndex']);
+
+           // Compare first level index as numbers
+           $mainCompare = intval($aIndex[0]) - intval($bIndex[0]);
+           if ($mainCompare !== 0) {
+               return $mainCompare;
+           }
+
+           // If main indexes are equal and there are subindexes, compare them
+           if (isset($aIndex[1]) && isset($bIndex[1])) {
+               return intval($aIndex[1]) - intval($bIndex[1]);
+           }
+
+           return 0;
+       });
+
+       return $sortedQuestions;
+   }
     function getAll()
     {
         try {
@@ -430,9 +444,9 @@ function normalizeForComparison($question) {
                 }
 
                 if ($form['isPublic'] == 0) {
-                    $form['isPublic'] = 'Riêng tư';
+                    $form['isPublicText'] = 'Riêng tư';
                 } else {
-                    $form['isPublic'] = 'Công khai';
+                    $form['isPublicText'] = 'Công khai';
                 }
 
             }
@@ -676,5 +690,58 @@ function duplicate($id, $userId)
             'responsesBySurvey' => $responsesBySurvey,
             'responsesByDate' => $responsesByDate
         ];
+    }
+
+    function updateStatus($id, $data)
+    {
+        try {
+
+            if (!$this->formRepository->checkPermission($id,$data['user']->email)) {
+                throw new Exception("Bạn không có quyền cập nhật trạng thái biểu mẫu này.", 403);
+            }
+            // Get form data
+            $form = $this->formRepository->getById(['id' => $id, 'email' => $data['user']->email ?? null]);
+            if (!$form) {
+                throw new Exception("Không tìm thấy biểu mẫu có ID: " . $id, 404);
+            }
+
+            // Check if form status is valid (not draft)
+            if ($form['Status'] == 0) {
+                throw new Exception("Biểu mẫu chưa được công bố, không thể cập nhật trạng thái.", 400);
+            }
+
+            // Extract status and privacy from data
+            $status = $data['status'] ?? null;
+            $privacy = $data['privacy'] ?? null;
+
+            if ($status === null && $privacy === null) {
+                throw new Exception("Không có dữ liệu cập nhật hợp lệ.", 400);
+            }
+
+
+            // Update in repository
+            $result = $this->formRepository->updateStatusPrivacy($id, $status, $privacy);
+            if (!$result) {
+                throw new Exception("Lỗi khi cập nhật trạng thái biểu mẫu.", 500);
+            }
+            return [
+                'formId' => $id,
+                'status' => $status !== null ? (int)$status : $form['Status'],
+                'privacy' => $privacy !== null ? (int)$privacy : $form['isPublic']
+            ];
+        } catch (Exception $e) {
+            throw new Exception("Lỗi khi cập nhật trạng thái biểu mẫu: " . $e->getMessage(),
+                is_numeric($e->getCode()) ? (int)$e->getCode() : 500, $e);
+        }
+    }
+
+    public function checkFormExists(string $formId, string $userId): bool
+    {
+        try {
+            $form = $this->formRepository->getById(['id' => $formId, 'email' => $userId]);
+            return !empty($form);
+        } catch (Exception $e) {
+            throw new Exception("Lỗi khi kiểm tra form tồn tại: " . $e->getMessage(), 500, $e);
+        }
     }
 }

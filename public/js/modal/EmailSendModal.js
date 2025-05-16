@@ -2,54 +2,97 @@ import {callApi} from "../apiService.js";
 import {cleanupModalBackdrops} from "../formsManager.js";
 
 export default class EmailSendModal {
-    constructor(formManager) {
-        this.formManager = formManager;
+    constructor(config) {
+        this.config = config;
         this.modalId = 'emailSendModal';
+        this.formId = null;
+        this.parentModal = null;
         this.initialized = false;
         this.queuedEmails = [];
         this.sentEmails = [];
+        this.whitelistUsers = [];
         this.activeTab = 'compose'; // compose, queue, sent
         this.sendingInterval = null;
     }
 
-    async open(formId, formName) {
-        try {
-            // Hide the current settings modal
-            const formSettingsModal = bootstrap.Modal.getInstance(document.getElementById('formSettingsModal'));
-            formSettingsModal.hide();
+    async open(formId, parentModal) {
+        this.formId = formId;
+        this.parentModal = parentModal;
 
-            // Clean up any stray backdrops
-            cleanupModalBackdrops();
+        // Create modal if it doesn't exist or remove existing one
+        let modalElement = document.getElementById(this.modalId);
+        if (modalElement) {
+            // If modal exists, dispose the old instance first
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalElement.remove();
+        }
 
-            // Create or update the modal
-            this.initializeModal();
+        // Create new modal
+        document.body.insertAdjacentHTML('beforeend', this.getHTML());
+        modalElement = document.getElementById(this.modalId);
 
-            // Store form info
-            const modalElement = document.getElementById(this.modalId);
-            modalElement.dataset.formId = formId;
-            modalElement.dataset.formName = formName;
+        // Store form info
+        modalElement.dataset.formId = formId;
 
-            // Load initial data for the form
-            await this.loadFormEmailData(formId);
+        // Setup handlers
+        this.setupHandlers();
 
-            // Show the modal
-            const modal = new bootstrap.Modal(modalElement);
-            modal.show();
-            modalElement.addEventListener('hide.bs.modal', (event) => {
-                if (this.sendingInterval) {
-                    event.preventDefault();
-                    this.showToast('warning', 'Vui lòng dừng quá trình gửi tự động trước khi đóng');
-                    return false;
+        // Load initial data for the form
+        await this.loadFormEmailData(formId);
+
+        // If we have a parent modal, hide it
+        if (this.parentModal) {
+            const parentModalElement = document.getElementById(this.parentModal);
+            if (parentModalElement) {
+                const parentModalInstance = bootstrap.Modal.getInstance(parentModalElement);
+                if (parentModalInstance) {
+                    parentModalInstance.hide();
+                    // Remove backdrop from parent modal
+                    cleanupModalBackdrops();
                 }
+            }
+        }
+
+        // Show the modal after a short delay to allow backdrop cleanup
+        setTimeout(() => {
+            const modal = new bootstrap.Modal(modalElement, {
+                keyboard: false
             });
+            modal.show();
+
             // Initialize active tab
             this.switchTab('compose');
-        } catch (error) {
-            console.error("Error preparing email modal:", error);
-            this.showToast('error', 'Lỗi khi chuẩn bị giao diện gửi email');
-        }
-    }
+        }, 50);
 
+        // When this modal is hidden, show parent modal again and clean up
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            cleanupModalBackdrops();
+
+            if (this.parentModal) {
+                setTimeout(() => {
+                    const parentModalElement = document.getElementById(this.parentModal);
+                    if (parentModalElement) {
+                        const parentModalInstance = bootstrap.Modal.getInstance(parentModalElement);
+                        // If instance exists, show it, otherwise create a new one
+                        if (parentModalInstance) {
+                            parentModalInstance.show();
+                        } else if (parentModalElement.__settingsInstance) {
+                            // If we have a stored reference to the settings instance
+                            parentModalElement.__settingsInstance.open(
+                                this.formId,
+                                parentModalElement.__settingsInstance.form
+                            );
+                        }
+                    }
+                }, 50);
+            }
+        }, { once: true });
+
+        this.initialized = true;
+    }
     async loadFormEmailData(formId) {
         try {
             // Load whitelist users
@@ -150,21 +193,6 @@ export default class EmailSendModal {
             btn.addEventListener('click', (e) => this.resendEmail(e.target.dataset.id));
         });
     }
-
-    initializeModal() {
-        if (this.initialized) {
-            return; // Modal already exists
-        }
-
-        // Create modal if it doesn't exist
-        document.body.insertAdjacentHTML('beforeend', this.getHTML());
-
-        // Setup the event handlers
-        this.setupHandlers();
-
-        this.initialized = true;
-    }
-
     getHTML() {
         return `
         <div class="modal fade" id="${this.modalId}" tabindex="-1" aria-hidden="true">
@@ -834,11 +862,12 @@ export default class EmailSendModal {
         emailModal.hide();
 
         // Clean up backdrops
-        cleanupModalBackdrops();
+        // cleanupModalBackdrops();
 
         // Show settings modal again
         setTimeout(() => {
             const settingsModal = new bootstrap.Modal(document.getElementById('formSettingsModal'));
+            // cleanupModalBackdrops();
             settingsModal.show();
         }, 100);
     }

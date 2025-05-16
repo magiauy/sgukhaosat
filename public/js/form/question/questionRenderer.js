@@ -7,15 +7,24 @@ function renderQuestion(question) {
         <img src="/public/icons/grip-dots.svg" alt="Grip Dots" style="width: 24px; height: 24px" />
     </div>
         <div class="question-content d-flex align-items-start gap-2 mb-1">
-          ${question.QContent ? `
-            <div class="editable-content" contenteditable="true" data-placeholder="${question.QTypeID === 'SUBTITLE' ? 'Tiêu đề' : 'Câu hỏi'}">
-                 ${question.QContent}
-            </div>` :
-        `<div class="editable-content" contenteditable="true" data-placeholder="${question.QTypeID === 'SUBTITLE' ? 'Tiêu đề' : 'Câu hỏi'}"></div>`}
-          <select class="form-select" data-qtype="${question.QTypeID}">
-            <option>Option 1</option>
-            <option>Option 2</option>
-          </select>
+            ${question.QContent ? `
+                <div class="editable-content" contenteditable="true" data-placeholder="${question.QTypeID === 'SUBTITLE' ? 'Tiêu đề' : 'Câu hỏi'}">
+                    ${question.QContent}
+                </div>` :
+                `<div class="editable-content" contenteditable="true" data-placeholder="${question.QTypeID === 'SUBTITLE' ? 'Tiêu đề' : 'Câu hỏi'}"></div>`}
+            ${question.QTypeID === "SUBTITLE" ? 
+                `<div class="d-flex justify-content-end actions_container2 px-2 gap-2">
+                    <img src="/public/icons/trashcan.svg" alt="Delete" class="delete-question-handle" style="cursor: pointer; width: 34px; height: 34px;">
+                    <img src="/public/icons/copy.svg" alt="Duplicate" class="duplicate-question-handle" style="cursor: pointer; width: 34px; height: 34px;">
+                    <div class="more-action justify-content-center align-items-center">
+                        <img src="/public/icons/three-dots-vertical.svg" style="cursor: pointer; width: 28px; height: 28px;" alt="About action">
+                    </div>
+                </div>` :
+                `<select class="form-select" data-qtype="${question.QTypeID}">
+                    <option>Option 1</option>
+                    <option>Option 2</option>
+                </select>`
+            }
         </div>
 
         ${descriptionItem ? `<div class="question-description" id="q${descriptionItem.QID}">
@@ -41,19 +50,21 @@ function renderQuestion(question) {
         html += patternQuestionDropdown(question);
     }
     // Actions buttons
-    html += `<div class="d-flex justify-content-end mt-2 actions_container px-2 pt-2 gap-2">
+// Actions buttons
+    html += `${question.QTypeID === "SUBTITLE" ? "" : `
+        <div class="d-flex justify-content-end mt-2 actions_container px-2 pt-2 gap-2">
             <img src="/public/icons/trashcan.svg" alt="Delete" class="delete-question-handle" style="cursor: pointer; width: 34px; height: 34px;">
             <img src="/public/icons/copy.svg" alt="Duplicate" class="duplicate-question-handle" style="cursor: pointer; width: 34px; height: 34px;">
-            ${question.QTypeID === "SUBTITLE" ? "" : `            
             <label class="switch">
-              <input type="checkbox" id="required" class="required-checkbox" ${question.QRequired ? "checked" : ""}>
-              <span class="slider round"></span>
+                <input type="checkbox" id="required" class="required-checkbox" ${question.QRequired ? "checked" : ""}>
+                <span class="slider round"></span>
             </label>
-            <span>Bắt buộc</span>`}
+            <span>Bắt buộc</span>
             <div class="more-action justify-content-center align-items-center">
-                <img src="/public/icons/three-dots-vertical.svg"  style="cursor: pointer; width: 28px; height: 28px;" alt="About action">
+                <img src="/public/icons/three-dots-vertical.svg" style="cursor: pointer; width: 28px; height: 28px;" alt="About action">
             </div>
-    </div>`;
+        </div>
+    `}`;
 
     html += `</div>
           <div class="hover-zone"></div>

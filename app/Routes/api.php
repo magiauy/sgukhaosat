@@ -271,6 +271,13 @@ $mailerController = new MailerController();
         $router->post('/api/admin/forms/pagination', fn() =>
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getFormWithSearchPagination($req, $res))
         );
+        // Form Status Update endpoint
+        $router->put('/api/admin/form/status/{id}', function($params) use ($request, $response, $formController) {
+            $_GET['id'] = (int) $params['id'];
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+                fn($req, $res) => $formController->updateStatus($res, $req));
+        });
+
 
 
 // Question Type

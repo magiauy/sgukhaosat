@@ -10,6 +10,7 @@ import { MCIcon, CheckBoxIcon } from "./constants/icons.js";
 // Global state
 let formId = null;
 let formStatus = null;
+let form = null;
 let autoSaveInterval = null;
 let draggedElement = null;
 let isDragging = false;
@@ -40,8 +41,8 @@ async function initApp() {
         const data = await callApi(`/admin/form/${formId}`);
         if (data.status) {
           renderSurvey(data.data);
-          console.log(data.data);
           formStatus = data.data.form.Status;
+            form = data.data.form;
 
           // Enable auto-save for drafts
           if (formStatus === "0") {
@@ -52,6 +53,11 @@ async function initApp() {
           }
         } else {
           showToast("Không thể tải biểu mẫu", "error");
+          localStorage.setItem('triggerAction', 'clickButton');
+          localStorage.setItem('targetSection', 'surveys');
+          history.replaceState(null, '', '/admin');
+          window.location.href = '/admin';
+          return;
         }
       } catch (error) {
         console.error("Error loading form:", error);
@@ -72,10 +78,10 @@ async function initApp() {
   } catch (error) {
     console.error("Error initializing app:", error);
     showToast("Lỗi khởi tạo ứng dụng", "error");
+    window.location.href = "/admin";
   } finally {
     // Hide loader when everything is done
     setTimeout(() => Loader.hide(), 600);
-    console.log("Form ID:", formId , "Form Status:", formStatus);
   }
 }
 
@@ -118,6 +124,13 @@ function getIsDragging() {
 function setIsDragging(dragging) {
   isDragging = dragging;
 }
+// Initialize question types and other data
+function getForm() {
+  return form;
+}
+function setForm(data) {
+    form = data;
+}
 // Execute when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initApp);
 
@@ -128,5 +141,6 @@ export {
   getFormStatus, setFormStatus,
   getAutoSaveInterval, setAutoSaveInterval,
   getDraggedElement, setDraggedElement,
-  getIsDragging, setIsDragging
+  getIsDragging, setIsDragging,
+    getForm, setForm
 };

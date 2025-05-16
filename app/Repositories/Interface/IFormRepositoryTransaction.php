@@ -51,4 +51,6 @@ interface IFormRepositoryTransaction extends IBaseRepositoryTransaction
     function countAll();
     function countCompleted();
     function countOngoing();
+
+    function updateStatusPrivacy($ids, $status,$privacy);
 }

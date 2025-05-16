@@ -29,7 +29,7 @@ function setupDeleteHandlers() {
         const duplicate = event.target.closest('.duplicate-question-handle');
         if (!duplicate) return;
         const item = duplicate.closest('.question-item');
-        const selectElement = item.querySelector('.form-select').dataset.qtype;
+        const selectElement = item.querySelector('.form-select')?.dataset.qtype || "SUBTITLE";
         if (item) {
             duplicateQuestionItem(item, selectElement)
         }

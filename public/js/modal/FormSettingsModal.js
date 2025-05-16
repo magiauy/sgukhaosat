@@ -12,38 +12,87 @@ export default class FormSettingsModal {
         this.form = null;
         this.lastCheckedUser = null;
         this.lastCheckedWhitelist = null;
+        this.page = null;
     }
 
-    async open(formId, form) {
+    async open(formId, form,page) {
         this.formId = formId;
         this.form = form;
+        this.page = page;
 
-        // Create modal if it doesn't exist
         let modalElement = document.getElementById('formSettingsModal');
-        if (!modalElement) {
-            document.body.insertAdjacentHTML('beforeend', this.getModalHTML());
-            modalElement = document.getElementById('formSettingsModal');
+        if (modalElement) {
+            // Dispose Bootstrap modal instance if it exists
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+
+            // Remove the element completely to clear all event listeners
+            modalElement.remove();
         }
+
+        // Create new modal - use getModalHTML instead of getHTML
+        document.body.insertAdjacentHTML('beforeend', this.getModalHTML());
+        modalElement = document.getElementById('formSettingsModal');
 
         // Set form ID as data attribute
         modalElement.dataset.formId = formId;
 
         // Update form name and status
         const formNameElement = modalElement.querySelector('.form-name');
-        // console.log(form);
         formNameElement.textContent = `Form #${formId}: ${form.FName}`;
 
         const statusSelect = document.getElementById('formStatusSelect');
         statusSelect.value = form.Status;
 
+        // Reset any previous disabled states first
+        statusSelect.disabled = false;
+        const option0 = statusSelect.querySelector('option[value="0"]');
+        if (option0) option0.disabled = false;
+
+        // Apply status restrictions
+        if (form.Status == '0') {
+            statusSelect.disabled = true;
+        } else if (form.Status == '1') {
+            if (option0) option0.disabled = true;
+        }
+
         const privacySelect = document.getElementById('formPrivacySelect');
-        privacySelect.value = form.Privacy || '0'; // Default to private if not set
+        privacySelect.value = form.isPublic || '0'; // Default to private if not set
 
         // Load whitelist data
         await this.loadUsersAndWhitelist(formId);
 
         // Setup event handlers
-        this.setupHandlers(formId);
+        await this.setupHandlers(formId);
+
+        // Handle accessibility for the modal
+        modalElement.addEventListener('show.bs.modal', function() {
+            // Set aria-hidden to false BEFORE the modal is shown
+            this.setAttribute('aria-hidden', 'false');
+        });
+
+        modalElement.addEventListener('shown.bs.modal', function() {
+            // Ensure aria-hidden remains false after showing
+            this.setAttribute('aria-hidden', 'false');
+
+            // Auto-focus the first interactive element
+            const firstFocusable = this.querySelector('button, [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            }
+        });
+
+        modalElement.addEventListener('hide.bs.modal', function() {
+            // Move focus away from modal elements before closing
+            document.activeElement.blur();
+        });
+
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            // Reset aria-hidden when modal is fully closed
+            this.setAttribute('aria-hidden', 'true');
+        });
 
         // Show the modal
         const modal = new bootstrap.Modal(modalElement, {
@@ -230,6 +279,31 @@ export default class FormSettingsModal {
         ]);
     }
 
+    async updateFormStatus(formId, status, privacy) {
+        try {
+            const result = await callApi(`/admin/form/status/${formId}`, 'PUT', {status, privacy});
+
+            if (!result.status) {
+                this.showToast('error', result.message || 'Không thể cập nhật trạng thái biểu mẫu');
+                return;
+            }
+
+            // Success message
+            this.showToast('success', 'Đã cập nhật trạng thái biểu mẫu');
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('formSettingsModal'));
+            modal.hide();
+
+            // Reload the page or update the UI as needed
+            // window.location.reload();
+        } catch (error) {
+            console.error("Error updating form status:", error);
+            this.showToast('error', 'Lỗi khi cập nhật trạng thái biểu mẫu');
+        }
+
+    }
+
     // Load available users
     async loadAvailableUsers(formId) {
         try {
@@ -311,7 +385,7 @@ export default class FormSettingsModal {
         document.getElementById('saveStatusBtn').addEventListener('click', async () => {
             const status = document.getElementById('formStatusSelect').value;
             const privacy = document.getElementById('formPrivacySelect').value;
-            await updateFormStatus(formId, status,privacy);
+            await this.updateFormStatus(formId, status,privacy);
         });
 
         document.getElementById('deleteFormBtn').addEventListener('click', async () => {
@@ -405,6 +479,7 @@ export default class FormSettingsModal {
 
         // Import Excel file
         document.getElementById('importExcel').addEventListener('click', async () => {
+            console.log("Import Excel button clicked");
             // Reference the modal and get instance
             const modalElement = document.getElementById('formSettingsModal');
             const formSettingsModal = bootstrap.Modal.getInstance(modalElement);
@@ -426,15 +501,25 @@ export default class FormSettingsModal {
                 importExcelModal.open(formId, 'formSettingsModal');
             }, 50);
         });
-
-        document.getElementById('sendMailBtn').addEventListener('click', async () => {
+     document.getElementById('sendMailBtn').addEventListener('click', async () => {
+         console.log("Send mail button clicked");
+            // Reference the modal and get instance
             const modalElement = document.getElementById('formSettingsModal');
             const formSettingsModal = bootstrap.Modal.getInstance(modalElement);
 
-            const sendMailModal = new EmailSendModal(modalElement);
+            // Initialize email modal
+            const sendMailModal = new EmailSendModal(this.config);
+
+            // Hide settings modal
             formSettingsModal.hide();
+
+            // Clean up any stray backdrops
             cleanupModalBackdrops();
+
+            // Store this instance for reference
             document.getElementById('formSettingsModal').__settingsInstance = this;
+
+            // Open email modal after a short delay (consistent with ImportExcelModal)
             setTimeout(() => {
                 sendMailModal.open(formId, 'formSettingsModal');
             }, 50);
@@ -602,7 +687,7 @@ export default class FormSettingsModal {
                 positionSelect.appendChild(option);
             });
 
-            positionSelect.value = ''; // Reset to default option
+
 
         } catch (error) {
             console.error("Error loading positions:", error);
@@ -678,8 +763,20 @@ export default class FormSettingsModal {
 
             // Reload the page or update the UI as needed
             // window.location.reload();
-            const formsManagerModule = await import('../formsManager.js');
-            await formsManagerModule.loadSurveyFromAPI(0, 10); // Reload first page with default limit
+            if (this.page === 'formManager') {
+                const formsManagerModule = await import('../formsManager.js');
+                await formsManagerModule.loadSurveyFromAPI(0, 10); // Reload first page with default limit
+            }else {
+                //Chuyển hướng về admin
+                localStorage.setItem('triggerAction', 'clickButton');
+                localStorage.setItem('targetSection', 'surveys'); // Set the section you want to load
+
+                setTimeout(() => {
+                    history.replaceState(null, '', '/admin');
+                    window.location.href = '/admin';
+                    }, 1000);
+            }
+
             // Show success message
             this.showToast('success', 'Đã cập nhật danh sách biểu mẫu');
         } catch (error) {

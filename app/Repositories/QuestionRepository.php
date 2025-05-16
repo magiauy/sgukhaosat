@@ -69,6 +69,7 @@ class QuestionRepository implements IQuestionRepository
                             ':QContent' => $child['QContent'] ?? null,
                             ':QParent' => $child['QParent'] ?? null,
                             ':QTypeID' => $child['QTypeID'] ?? null,
+                            'QRequired' => $child['QRequired'] ?? null,
                             ':FID' => $FID ?? null,
                             ':QIndex' => $child['QIndex'] ?? null
                         ]);

@@ -320,17 +320,16 @@ export async function renderTableRole(roles) {
     const tableBody = document.querySelector("#table-role tbody");
     tableBody.innerHTML = "";
 
-    const indexCurrent = roles.findIndex(role => role.roleID === roleIDCurrent);
+    // const indexCurrent = roles.findIndex(role => role.roleID === roleIDCurrent);
 
     roles.forEach((role, index) => {
         // Kiểm tra xem role này có trong danh sách đã chọn hay không
         const isChecked = selectedRoleIDs.has(role.roleID) ? 'checked' : '';
         let isCheckedCurrent = '';
-        if(indexCurrent === index){
-            isCheckedCurrent = 'disabled-row';
-        }
+        if(role.roleID !== roleIDCurrent){
+            
         tableBody.innerHTML += `
-            <tr class="role-row ${isCheckedCurrent}">
+            <tr class="role-row">
                 <td class="ps-4">
                     <div class="form-check">
                         <input type="checkbox" class="form-check-input role-checkbox" data-id="${role.roleID}" ${isChecked}>
@@ -369,6 +368,7 @@ export async function renderTableRole(roles) {
                 </td>
             </tr>
         `;
+        }
     });
 
     logicCheckbox();

@@ -293,8 +293,12 @@ export async function renderTableAccountOnPagination(offset, limit){
    
 }
 
-export function renderListAccount(users) {
+export async function renderListAccount(users) {
     const tableBody = document.querySelector("#table-account tbody");
+    let response = await callApi("/me", "POST");
+    let result = response.data;
+    result = result.user;
+    let emailCurrent = result.email;
     
     if (!tableBody) return;
     
@@ -332,6 +336,7 @@ export function renderListAccount(users) {
         // Kiểm tra xem email đã được chọn trước đó chưa
         const isChecked = selectedAccountIDs.has(user.email) ? 'checked' : '';
         
+        if(user.email !== emailCurrent) {
         bodyTable += `
             <tr>
                 <td class="ps-4 text-center">
@@ -377,6 +382,7 @@ export function renderListAccount(users) {
                 </td>
             </tr>
         `;
+        }
     });
 
     tableBody.innerHTML = bodyTable;

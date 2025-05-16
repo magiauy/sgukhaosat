@@ -498,7 +498,7 @@ export default class FormSettingsModal {
 
             // Open import modal after a short delay
             setTimeout(() => {
-                importExcelModal.open(formId, 'formSettingsModal');
+                importExcelModal.open(formId, 'formSettingsModal',this.page);
             }, 50);
         });
      document.getElementById('sendMailBtn').addEventListener('click', async () => {
@@ -521,7 +521,7 @@ export default class FormSettingsModal {
 
             // Open email modal after a short delay (consistent with ImportExcelModal)
             setTimeout(() => {
-                sendMailModal.open(formId, 'formSettingsModal');
+                sendMailModal.open(formId, 'formSettingsModal',this.page);
             }, 50);
         });
 

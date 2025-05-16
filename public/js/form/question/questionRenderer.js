@@ -6,26 +6,24 @@ function renderQuestion(question) {
     <div class="drag-handle me-2 text-center" style="cursor: move;">
         <img src="/public/icons/grip-dots.svg" alt="Grip Dots" style="width: 24px; height: 24px" />
     </div>
-        <div class="question-content d-flex align-items-start gap-2 mb-1">
-            ${question.QContent ? `
-                <div class="editable-content" contenteditable="true" data-placeholder="${question.QTypeID === 'SUBTITLE' ? 'Tiêu đề' : 'Câu hỏi'}">
-                    ${question.QContent}
-                </div>` :
-                `<div class="editable-content" contenteditable="true" data-placeholder="${question.QTypeID === 'SUBTITLE' ? 'Tiêu đề' : 'Câu hỏi'}"></div>`}
-            ${question.QTypeID === "SUBTITLE" ? 
-                `<div class="d-flex justify-content-end actions_container2 px-2 gap-2">
-                    <img src="/public/icons/trashcan.svg" alt="Delete" class="delete-question-handle" style="cursor: pointer; width: 34px; height: 34px;">
-                    <img src="/public/icons/copy.svg" alt="Duplicate" class="duplicate-question-handle" style="cursor: pointer; width: 34px; height: 34px;">
-                    <div class="more-action justify-content-center align-items-center">
-                        <img src="/public/icons/three-dots-vertical.svg" style="cursor: pointer; width: 28px; height: 28px;" alt="About action">
-                    </div>
-                </div>` :
-                `<select class="form-select" data-qtype="${question.QTypeID}">
-                    <option>Option 1</option>
-                    <option>Option 2</option>
-                </select>`
-            }
-        </div>
+        <div class="question-content d-flex align-items-start gap-2 mb-1 w-100">
+    <div class="editable-content" contenteditable="true" data-placeholder="${question.QTypeID === 'SUBTITLE' ? 'Tiêu đề' : 'Câu hỏi'}">
+        ${question.QContent}
+    </div>
+    ${question.QTypeID === "SUBTITLE" ?
+        `<div class="actions_container2 ms-auto px-2 gap-2 d-flex">
+            <img src="/public/icons/trashcan.svg" alt="Delete" class="delete-question-handle" style="cursor: pointer; width: 34px; height: 34px;">
+            <img src="/public/icons/copy.svg" alt="Duplicate" class="duplicate-question-handle" style="cursor: pointer; width: 34px; height: 34px;">
+            <div class="more-action justify-content-center align-items-center">
+                <img src="/public/icons/three-dots-vertical.svg" style="cursor: pointer; width: 28px; height: 28px;" alt="About action">
+            </div>
+        </div>` :
+        `<select class="form-select" data-qtype="${question.QTypeID}">
+            <option>Option 1</option>
+            <option>Option 2</option>
+        </select>`
+    }
+</div>
 
         ${descriptionItem ? `<div class="question-description" id="q${descriptionItem.QID}">
                ${descriptionItem.QContent ? `

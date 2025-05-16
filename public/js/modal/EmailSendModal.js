@@ -15,7 +15,7 @@ export default class EmailSendModal {
         this.sendingInterval = null;
     }
 
-    async open(formId, parentModal) {
+    async open(formId, parentModal,page) {
         this.formId = formId;
         this.parentModal = parentModal;
 
@@ -83,7 +83,8 @@ export default class EmailSendModal {
                             // If we have a stored reference to the settings instance
                             parentModalElement.__settingsInstance.open(
                                 this.formId,
-                                parentModalElement.__settingsInstance.form
+                                parentModalElement.__settingsInstance.form,
+                                page
                             );
                         }
                     }

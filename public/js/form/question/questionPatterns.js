@@ -59,7 +59,7 @@ function patternQuestionDropdown(question) {
     if (!question.children || !Array.isArray(question.children) || question.children.length === 0) {
         html += buildOptionHtml("Câu trả lời 1", count);
         html += `</div>`;
-        html += `<div>`
+        html += `<div class="create-new-container">`
         html += buildOptionWrapper();
         html += `</div>`
         return html;
@@ -68,7 +68,7 @@ function patternQuestionDropdown(question) {
         html += buildOptionHtml(option.QContent, count, "",option.QID);
     });
     html += `</div>`;
-    html += `<div>`
+    html += `<div class="create-new-container">`
     html += buildOptionWrapper()
     html+=`</div>`;
     return html;

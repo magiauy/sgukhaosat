@@ -20,6 +20,7 @@ use Controllers\FormTypeController;
 use Controllers\ResultController;
 use Controllers\AnswerController;
 use Controllers\StatisticsController;
+use Controllers\ResultStatisticController;
 use Services\DraftService;
 
 $request = new Request();
@@ -43,6 +44,7 @@ $resultController = new ResultController();
 $answerController = new AnswerController();
 $statisticsController = new StatisticsController();
 $mailerController = new MailerController();
+$resultStatisticController = new ResultStatisticController();
 
     // User APIs
     $router->post('/api/user', fn() => $controller->create($response, $request));
@@ -386,6 +388,13 @@ $mailerController = new MailerController();
             JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->exportStatisticsCsv($res, $req))
         );
 
+        $router->get('/api/statistic/form/{id}', function($params) use ($request, $response, $resultStatisticController) {
+            $_GET['id'] = (int) $params['id'];
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS",
+                fn($req, $res) => $resultStatisticController->getStatisticByForm($req, $res, $params['id'])
+            );
+        });
+
         // Mailer API Routes
         $router->post('/api/forms/{id}/send-emails', fn($params) =>
             JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) =>
@@ -410,6 +419,7 @@ $mailerController = new MailerController();
         $router->post('/api/auth/logout', function() use ($response, $request) {
             JwtMiddleware::logout($request, $response);
         });
+
 
 
 

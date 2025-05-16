@@ -56,6 +56,11 @@ $router->get('/admin/form/{id}/edit', function($params) {
     $formId = $params['id'];
     require_once __DIR__ . '/../../public/views/admin/Form_Editor.php';
 });
+$router->get('/admin/form/{id}/statistics', function($params) {
+    $formId = $params['id'];
+    require_once __DIR__ . '/../../public/views/admin/Form_Statistics.php';
+});
+
 
 $router->get('/admin/results', authMiddleware("MANAGE_RESULTS", function() {
     require_once __DIR__ . '/../../public/views/admin/results_management.php';

@@ -147,6 +147,7 @@ class UserService implements IAuthService
                 error_log(json_encode($user['refreshToken']));
                 unset($user['user']['password']);
 
+                // error_log("Login successful, returning user data" . json_encode($user));
                 return $user;
             }
 
@@ -453,8 +454,9 @@ class UserService implements IAuthService
             $accounts = $this->userRepository->getOnPagination($data);
             $roles = $this->roleRepo->getAll();
             foreach ($accounts as &$account) {
-                $account['status'] = (int) $account['status'];
+                $account['status'] = (int)  $account['status'];
                 foreach ($roles as $role) {
+                    
                     if ($account['roleID'] == $role['roleID']) {
                         $account['roleName'] = $role['roleName'];
                         break;

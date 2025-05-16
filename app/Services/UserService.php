@@ -4,7 +4,7 @@ namespace Services;
 use Core\jwt_helper;
 use Exception;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use Repositories\Interface\IBaseRepository;
+use Repositories\Interface\IAuthRepository;
 use Repositories\Interface\IWhitelistForm;
 use Repositories\UserRepository;
 use Repositories\Interface\IBaseRepositoryTransaction;
@@ -18,7 +18,7 @@ use Utils\PasswordUtils;
 
 class UserService implements IAuthService
 {
-    private IBaseRepository $userRepository;
+    private IAuthRepository $userRepository;
     private IBaseRepositoryTransaction $roleRepo;
     private IBaseService $roleService;
     private IWhitelistForm $whitelistForm;
@@ -106,7 +106,6 @@ class UserService implements IAuthService
 
             // Try to login with repository
             $user['user'] = $this->userRepository->login($data);
-
             if ($user['user']) {
                 // Debug log - remove in production
                 error_log("User found, fetching role data");
@@ -192,14 +191,22 @@ class UserService implements IAuthService
     function getAllWithoutWhitelist($id)
     {
         $allUsers = $this->getAll();
+        $allUsers = array_map(function($user) {
+            unset($user['password']);
+            unset($user['roleID']);
+            unset($user['created_at']);
+            unset($user['updated_at']);
+            return $user;
+        }, $allUsers);
+
         $whitelistUsers = $this->whitelistForm->getByFormID($id);
         // Extract UIDs from whitelist users
         $whitelistUIDs = array_column($whitelistUsers, 'UID');
 
         // Filter out users who are already in the whitelist
-        $filteredUsers = array_filter($allUsers, function ($user) use ($whitelistUIDs) {
+        $filteredUsers = array_values(array_filter($allUsers, function ($user) use ($whitelistUIDs) {
             return !in_array($user['email'], $whitelistUIDs);
-        });
+        }));
         return $filteredUsers; // Re-index array
     }
 
@@ -447,7 +454,7 @@ class UserService implements IAuthService
             $accounts = $this->userRepository->getOnPagination($data);
             $roles = $this->roleRepo->getAll();
             foreach ($accounts as &$account) {
-                $account['status'] = (int)  $account['status'];
+                $account['status'] = (int) $account['status'];
                 foreach ($roles as $role) {
                     
                     if ($account['roleID'] == $role['roleID']) {

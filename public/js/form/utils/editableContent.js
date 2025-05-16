@@ -1,18 +1,39 @@
+function sanitizeText(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.textContent;
+}
+
 function setupPasteHandlers() {
     const editableDivs = document.querySelectorAll(".editable-content,.editable-option-content");
+
     editableDivs.forEach(div => {
-        div.addEventListener("paste", function (e) {
+        div.addEventListener("paste", (e) => {
             e.preventDefault();
-            const text = (e.clipboardData || window.clipboardData).getData("text/plain");
-            const selection = window.getSelection();
-            if (!selection.rangeCount) {
-                console.warn("⚠️ No selection range found");
-                return;
+
+            try {
+                // Get and sanitize pasted text
+                const text = sanitizeText(
+                    (e.clipboardData || window.clipboardData).getData("text/plain")
+                );
+
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+
+                // Insert sanitized text
+                const textNode = document.createTextNode(text);
+                range.insertNode(textNode);
+                range.collapse(false);
+
+                // Trigger input event for change detection
+                div.dispatchEvent(new Event('input', { bubbles: true }));
+
+            } catch (error) {
+                console.error("Paste handler error:", error);
             }
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(document.createTextNode(text));
-            range.collapse(false);
         });
     });
 }

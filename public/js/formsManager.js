@@ -1,11 +1,10 @@
 import PaginationComponent from './component/pagination.js';
-import FormSettingsModal from "./modal/formSettingsModal.js";
+import FormSettingsModal from "./modal/FormSettingsModal.js";
 import {callApi} from "./apiService.js";
 import {showSwalToast} from "./form/utils/notifications.js";
 
 const formSettingsModal = new FormSettingsModal(config);
 async function loadSurveyTable(data) {
-    // console.log(data);
 
     if (!data || !data.forms) {
         console.error("Invalid survey data.");
@@ -52,6 +51,9 @@ async function loadSurveyTable(data) {
                 <button class="btn btn-outline-secondary btn-settings btn-setting-form" data-id="${item.FID}">
                     <i class="bi bi-gear-fill"></i>
                 </button>
+                    <button class="btn btn-outline-info btn-statistics" data-id="${item.FID}">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </button>
             </td>
         `;
         table.appendChild(row);
@@ -65,14 +67,14 @@ async function loadSurveyTable(data) {
             if (firstTd) {
                 const checkbox = firstTd.querySelector('.form-check-input');
                 const fid = checkbox ? checkbox.value : null;
-                console.log("Selected FID:", fid);
-                // console.log(fid);
                 if (this.classList.contains('btn-edit-form')) {
                     window.location.href = `${config.Url}/admin/form/${fid}/edit`;
                 } else if (this.classList.contains('btn-setting-form')) {
                     const form = data.forms.find(item => item.FID == fid);
 
-                    await formSettingsModal.open(fid, form);
+                    await formSettingsModal.open(fid, form,'formManager');
+                }else if (this.classList.contains('btn-statistics')) {
+                    window.location.href = `${config.Url}/admin/form/${fid}/statistics`;
                 }
             }
         });

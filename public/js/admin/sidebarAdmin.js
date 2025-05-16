@@ -6,6 +6,7 @@ import {initMajor} from "../major.js";
 import {initPeriod} from "../period.js";
 import {initFormType} from "../formType.js";
 import {initPosition} from "../position.js";
+import {initDocument} from "../document.js";
 import {renderFormDetailAccount} from "./account/detailAccount.js";
 
 // Khởi tạo sidebar
@@ -177,6 +178,10 @@ async function loadSectionContent(section) {
             case "accounts":
                 await renderContentUser();
                 break;
+            case "documents":
+                await loadContent('/pages/document');
+                await initDocument();
+                break;
             case "majors":
                 await loadContent('/pages/major');
                 await initMajor();
@@ -325,10 +330,38 @@ function adjustSidebarHeight() {
 }
 
 
+async function initClick() {
+    if (localStorage.getItem('triggerAction') === 'clickButton') {
+        // Clear the flags
+        localStorage.removeItem('triggerAction');
+        const targetSection = localStorage.getItem('targetSection');
+        localStorage.removeItem('targetSection');
+
+        if (targetSection) {
+            // Find and activate the corresponding nav link
+            const navLink = document.querySelector(`.nav-link[data-section="${targetSection}"]`);
+            if (navLink) {
+                // Remove active class from all links
+                document.querySelectorAll("#sidebar .nav-link").forEach(link => {
+                    link.classList.remove('active');
+                });
+
+                // Add active class to target link
+                navLink.classList.add('active');
+
+                // Update breadcrumb
+                updateBreadcrumb(navLink.querySelector('.nav-text').textContent.trim());
+
+                // Load the section content
+                await loadSectionContent(targetSection);
+            }
+        }
+    }
+}
 // Initialize sidebar on page load
-document.addEventListener('DOMContentLoaded', () => {
-    initSidebar();
-    
+document.addEventListener('DOMContentLoaded', async () => {
+    await initSidebar();
+    await initClick();
 });
 
 

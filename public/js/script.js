@@ -25,7 +25,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 })
 
-
+document.getElementById('btn-admin').addEventListener('click', function(e) {
+    window.location.href = '/admin';
+});
 function handleClickInformation(){
     if(!document.querySelector("#btn-information")) return;
     document.querySelector("#btn-information").onclick = async (e) => {

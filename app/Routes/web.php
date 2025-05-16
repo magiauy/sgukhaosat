@@ -56,6 +56,11 @@ $router->get('/admin/form/{id}/edit', function($params) {
     $formId = $params['id'];
     require_once __DIR__ . '/../../public/views/admin/Form_Editor.php';
 });
+$router->get('/admin/form/{id}/statistics', function($params) {
+    $formId = $params['id'];
+    require_once __DIR__ . '/../../public/views/admin/Form_Statistics.php';
+});
+
 
 $router->get('/admin/results', authMiddleware("MANAGE_RESULTS", function() {
     require_once __DIR__ . '/../../public/views/admin/results_management.php';
@@ -74,6 +79,10 @@ $router->get('/quytrinh/chuandaura', function() {
     require_once __DIR__ . '/../../public/views/pages/chuandaura.php';
 });
 
+$router->get('/quytrinh/chuky', function() {
+    require_once __DIR__ . '/../../public/views/pages/chuky.php';
+});
+
 $router->get('/form/{id}', function($params) {
     require_once __DIR__ . '/../../public/views/pages/form.php';
 });
@@ -85,6 +94,11 @@ $router->get('/form', function() {
 //contact
 $router->get('/contact', function() {
     require_once __DIR__ . '/../../public/views/pages/contact.php';
+});
+
+//quy trình
+$router->get('/quytrinh', function() {
+    require_once __DIR__ . '/../../public/views/pages/quytrinh.php';
 });
 
 

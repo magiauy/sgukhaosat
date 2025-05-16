@@ -251,6 +251,11 @@ body {
     margin-top: 10px;
     border-top: #ccc solid 1px;
 }
+.actions_container2{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
 .switch {
     position: relative;

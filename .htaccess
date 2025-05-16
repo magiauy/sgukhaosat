@@ -1,20 +1,31 @@
+# Bật mod_rewrite
 RewriteEngine On
 RewriteBase /
 
-# Chuyển hướng tất cả các yêu cầu đến public/index.php
-RewriteRule ^$ public/index.php [L]
-
-# Ngăn chặn truy cập đến các tệp PHP trong thư mục public/views/pages/
-RewriteCond %{REQUEST_URI} ^/public/views/pages/.*\.php$
-RewriteRule ^ - [F,L]  # Trả về mã lỗi 403 Forbidden
-
-# Kiểm tra nếu tệp hoặc thư mục không tồn tại, chuyển hướng về index.php
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.+)$ index.php [L]
-
-# Deny access to .htaccess files
-<Files .htaccess>
-    Order deny,allow
+# KHẨN CẤP: Chặn truy cập file nhạy cảm - CÁCH 1
+<Files ~ "\.(env|git|htaccess|json|lock|md)$">
+    order allow,deny
     Deny from all
 </Files>
+
+# Chặn truy cập thư mục nhạy cảm
+RedirectMatch 403 ^/.git/.*$
+RedirectMatch 403 ^/app/.*$
+RedirectMatch 403 ^/vendor/.*$
+RedirectMatch 403 ^/database/.*$
+RedirectMatch 403 ^/node_modules/.*$
+
+# Các quy tắc khác giữ nguyên
+RewriteCond %{REQUEST_URI} ^/public/views/pages/.*\.php$
+RewriteRule ^ - [F,L]
+
+# Cho phép truy cập tài nguyên tĩnh
+RewriteRule ^(public/assets|public/css|public/js|public/images)/ - [L]
+
+# Chuyển hướng trang chủ vào public/index.php
+RewriteRule ^$ public/index.php [L]
+
+# Kiểm tra nếu tệp hoặc thư mục không tồn tại, chuyển hướng về public/index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ public/index.php [L]

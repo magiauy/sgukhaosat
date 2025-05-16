@@ -62,8 +62,8 @@ include_once __DIR__ . '/../../views/layouts/nav-bar.php';
                     Khảo sát của bạn đã được gửi đi
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="btn-go-home">Go to Home</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <a href="/"><button type="button" class="btn btn-primary" id="btn-go-home">Về trang chủ</button></a>
                 </div>
             </div>
         </div>

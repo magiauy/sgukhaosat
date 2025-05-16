@@ -115,6 +115,7 @@ class FormController implements IFormController{
     }
 
     function getByIdForUser(Response $response,Request $request){
+        // error_log("getByIdForUser");
         $id = $request->getParam('id');
         try {
             $form = $this->formService->getByIdForUser($id);
@@ -157,12 +158,10 @@ class FormController implements IFormController{
             ]);
             return;
         } catch (\Exception $e) {
-            $code = $e->getCode() ?: 500;
-
             $response->json([
                 'status' => false,
                 'message' => $e->getMessage(),
-            ], $code);
+            ]);
             return;
 
         }
@@ -481,6 +480,33 @@ class FormController implements IFormController{
                 'message' => 'Failed to retrieve statistics',
                 'error' => $e->getMessage()
             ]);
+        }
+    }
+
+    public function updateStatus($res, $req)
+    {
+        $data = $req->getBody();
+        $id = $req->getParam('id');
+        try {
+            $result = $this->formService->updateStatus($id, $data);
+            if ($result) {
+                $res->json([
+                    'status' => true,
+                    'message' => 'Form updated successfully',
+                    'data' => $result
+                ]);
+            } else {
+                $res->json([
+                    'status' => false,
+                    'message' => 'Failed to update form'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            $res->json([
+                'status' => false,
+                'message' => 'Failed to update form',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

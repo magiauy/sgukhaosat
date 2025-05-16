@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     formId = pathParts[pathParts.length - 1];
 
     const userId = await getCurrentUser(); 
+    // console.log('User ID:', userId);
     if (!formId) {
         showError('Khong tim duoc form ID.');
         return;
@@ -43,7 +44,7 @@ async function getCurrentUser() {
             const userInfo = reData.data.user;
             return userInfo.email || null;
         } else {
-            // alert('User data not found in response');
+            alert('User data not found in response');
             throw new Error('User data not found in response');
         }
     }

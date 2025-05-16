@@ -1,4 +1,6 @@
 <?php
+
+use Controllers\MailerController;
 use Core\Request;
 use Core\Response;
 use Core\Router;
@@ -11,11 +13,14 @@ use Controllers\QuestionTypeController;
 use Controllers\DraftController;
 use Controllers\PeriodController;
 use Controllers\MajorController;
+use Controllers\DocumentController;
+use Controllers\FileController;
 use Controllers\PositionController;
 use Controllers\FormTypeController;
 use Controllers\ResultController;
 use Controllers\AnswerController;
 use Controllers\StatisticsController;
+use Controllers\ResultStatisticController;
 use Services\DraftService;
 
 $request = new Request();
@@ -31,11 +36,15 @@ $questionTypeController = new QuestionTypeController();
 $draftController = new DraftController(new DraftService());
 $periodController = new PeriodController();
 $majorController = new MajorController();
+$documentController = new DocumentController();
+$fileController = new FileController();
 $positionController = new PositionController();
 $formTypeController = new FormTypeController();
 $resultController = new ResultController();
 $answerController = new AnswerController();
 $statisticsController = new StatisticsController();
+$mailerController = new MailerController();
+$resultStatisticController = new ResultStatisticController();
 
     // User APIs
     $router->post('/api/user', fn() => $controller->create($response, $request));
@@ -87,7 +96,28 @@ $statisticsController = new StatisticsController();
     $router->delete('/api/period/{id}', function($params) use ($response, $request, $periodController) {
         $_GET['id'] = $params['id'];
         $periodController->delete($response, $request);
+    });    // Document APIs
+    $router->get('/api/document', fn() => $documentController->getAll($response));
+    $router->get('/api/document/search', fn() => $documentController->search($response, $request));
+    $router->get('/api/document/{id}', fn($params) => $documentController->getById($response, $params['id']));
+    $router->get('/api/document/type/{type}', fn($params) => $documentController->getDocumentsByType($response, $request, $params['type']));
+    $router->get('/api/document/{id}/files', fn($params) => $documentController->getFilesByDocumentId($response, $params['id']));
+    $router->post('/api/document', fn() => $documentController->create($response, $request));
+    $router->put('/api/document/{id}', function($params) use ($response, $request, $documentController) {
+        $_GET['id'] = $params['id'];
+        $documentController->update($response, $request);
     });
+    $router->delete('/api/document/{id}', function($params) use ($response, $request, $documentController) {
+        $_GET['id'] = $params['id'];
+        $documentController->delete($response, $request);
+    });
+
+    // File APIs
+    $router->get('/api/file', fn() => $fileController->getAllByDocumentId($response, $request));
+    $router->post('/api/file', fn() => $fileController->createMultiple($response, $request));
+    $router->delete('/api/file/{id}', fn($params) => $fileController->delete($response, $request, $params['id']));
+
+
 
     // Major APIs
     $router->post('/api/major', fn() => $majorController->create($response, $request));
@@ -104,7 +134,6 @@ $statisticsController = new StatisticsController();
         $_GET['id'] = $params['id'];
         $majorController->delete($response, $request);
     });
-
     // Position APIs
     $router->post('/api/position', fn() => $positionController->create($response, $request));
     $router->get('/api/position', fn() => $positionController->getAll($response));
@@ -218,6 +247,7 @@ $statisticsController = new StatisticsController();
             JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getAll($res, $req))
         );
         $router->get('/api/form', fn() =>
+            // error_log("no di vao router form")
             JwtMiddleware::authenticate($request, $response, "", fn($req, $res) => $formController->getByIdForUser($res, $req))
         , ['id']);
         $router->post('/api/admin/form', fn() =>
@@ -244,6 +274,13 @@ $statisticsController = new StatisticsController();
         $router->post('/api/admin/forms/pagination', fn() =>
         JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) => $formController->getFormWithSearchPagination($req, $res))
         );
+        // Form Status Update endpoint
+        $router->put('/api/admin/form/status/{id}', function($params) use ($request, $response, $formController) {
+            $_GET['id'] = (int) $params['id'];
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS",
+                fn($req, $res) => $formController->updateStatus($res, $req));
+        });
+
 
 
 // Question Type
@@ -352,6 +389,30 @@ $statisticsController = new StatisticsController();
             JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $statisticsController->exportStatisticsCsv($res, $req))
         );
 
+        $router->get('/api/statistic/form/{id}', function($params) use ($request, $response, $resultStatisticController) {
+            $_GET['id'] = (int) $params['id'];
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS",
+                fn($req, $res) => $resultStatisticController->getStatisticByForm($req, $res, $params['id'])
+            );
+        });
+
+        // Mailer API Routes
+        $router->post('/api/forms/{id}/send-emails', fn($params) =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) =>
+                $mailerController->sendEmail($req, $res)
+            )
+        );
+
+        $router->post('/api/forms/{id}/add-to-queue', fn($params) =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) =>
+                $mailerController->queueEmails($req, $res, $params['id'])
+            )
+        );
+        $router->get('/api/forms/{id}/email-queue', fn($params) =>
+            JwtMiddleware::authenticate($request, $response, "MANAGE_FORMS", fn($req, $res) =>
+                $mailerController->getQueueEmails($req, $res, $params['id'])
+            )
+        );
         // Auth APIs
         $router->post('/api/auth/refresh', function() use ($response, $request) {
             JwtMiddleware::refresh($request, $response);
@@ -359,6 +420,9 @@ $statisticsController = new StatisticsController();
         $router->post('/api/auth/logout', function() use ($response, $request) {
             JwtMiddleware::logout($request, $response);
         });
+
+
+
 
 
     // Xử lý routing

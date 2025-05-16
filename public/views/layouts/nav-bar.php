@@ -12,12 +12,18 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
                     <a class="nav-link" href="/">Trang chủ</a>
-                </li>
-                <li class="nav-item">
+                </li>                <li class="nav-item">
                     <a class="nav-link" href="/form">Khảo sát</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Quy trình</a>
+                </li>                
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Quy trình
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="/quytrinh">Quy Trình Khảo Sát</a></li>
+                        <li><a class="dropdown-item" href="/quytrinh/chuandaura">Quy Trình Cập Nhật Chuẩn Đầu Ra</a></li>
+                        <li><a class="dropdown-item" href="/quytrinh/chuky">Danh Sách Quy Trình Các Chu Kỳ</a></li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/contact">Liên hệ</a>

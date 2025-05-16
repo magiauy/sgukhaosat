@@ -1,7 +1,7 @@
 <?php
 
 namespace Middlewares;
-require 'vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Core\Response;
 use Core\Request;

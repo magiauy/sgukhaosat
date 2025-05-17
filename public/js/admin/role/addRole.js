@@ -498,6 +498,13 @@ function createRole() {
         // console.log(data);
 
         try {
+            let responseExist = await callApi(`/role/${roleID}`);
+            console.log(responseExist);
+            if(responseExist.status === true) {
+                showSwalToast("ID vai trò đã tồn tại!", "warning");
+                return;
+            }
+
             const response = await callApi('/role', 'POST', data);
             console.log(response);
             showSwalToast("Tạo vai trò thành công!", "success");

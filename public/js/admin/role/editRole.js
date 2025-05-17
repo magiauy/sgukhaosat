@@ -20,11 +20,12 @@ export async function updateRole(roleID) {
         e.preventDefault();
         const roleName = document.getElementById("roleName").value;
         const selectedPermissions = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.getAttribute("data-id"));
-        
+        console.log(selectedPermissions);
+
         const data = {
             roleName: roleName,
             roleID: roleID,
-            permissions: selectedPermissions
+            permissionsCurrent: selectedPermissions
         };
         // console.log(data);
         try {

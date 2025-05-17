@@ -16,11 +16,14 @@ class Role_PermRepository implements IBaseRepositoryTransaction
     function create($data, \PDO $pdo)
     {
         // error_log("Create permission for role" . json_encode($data['roleID']) . json_encode($data['permissions']));
+        
         $roleID = $data['roleID'];
-        $arrPermID = array_values($data['permissions']);
-        // error_log("array perm for role: " . $arrPermID);
+        error_log("RoleID đang chỉnh sửa" . json_encode($roleID));
+        $arrPermID = array_values($data['permissionsCurrent']);
+
+        error_log("array perm for role: " . json_encode($arrPermID));
         foreach($arrPermID as $permID){
-            $arrValue[] = "('{$roleID}', '{$permID->permID}')";
+            $arrValue[] = "('{$roleID}', '{$permID}')";
         }
         
         $valuesString = implode(", ", $arrValue);

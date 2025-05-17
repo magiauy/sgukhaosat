@@ -47,11 +47,7 @@ function handleClickInformation(){
 
 handleClickInformation();
 
-<<<<<<< HEAD
 function handleClickEditInformation(account){
-=======
-function handleClickEditInformation(){
->>>>>>> temp-fix
     document.querySelector("#detail-edit-information").onclick = async (e) => {
         e.preventDefault();
         document.querySelector("#detail-edit-information").innerText = "Lưu";
@@ -80,13 +76,9 @@ function handleClickEditInformation(){
                 email,
                 fullName,
                 phone,
-<<<<<<< HEAD
                 position,
                 isFirstLogin: account.isFirstLogin,
 
-=======
-                position
->>>>>>> temp-fix
             }
             console.log(data);
             try {
@@ -144,7 +136,6 @@ function handleClickChangePassword(account){
             console.log(error);
         }
     }
-<<<<<<< HEAD
 }
 
 export async function showFormUpdate(account){
@@ -340,8 +331,6 @@ export async function showFormUpdate(account){
 
     handleClickEditInformation(account);
     handleClickChangePassword(account);
-=======
->>>>>>> temp-fix
 }
 
 export async function showFormUpdate(account){

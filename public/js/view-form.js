@@ -299,7 +299,7 @@ function submitSurvey(formId, userId) {
             successModal.show();
             setTimeout(() => {
                 successModal.hide();
-                // window.location.href = '/';
+                window.location.href = '/';
             }, 2000);
         } else {
             throw new Error(data.message || 'Gửi khảo sát thất bại');

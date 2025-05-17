@@ -6,7 +6,6 @@ $data = AuthHelper::verifyUserTokenWithoutRedirect();
 $user = $data['user'] ?? null;
 require_once __DIR__ .'/../layouts/nav-bar.php';
 
-// The actual data will be loaded dynamically via JavaScript
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 ?>
 
@@ -50,7 +49,8 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                                     <th>Ngày tạo</th>
                                     <th>Tệp đính kèm</th>
                                 </tr>
-                            </thead>                            <tbody id="documentTableBody">
+                            </thead>                            
+                            <tbody id="documentTableBody">
                                 <tr>
                                     <td colspan="4" class="text-center">
                                         <div class="d-flex justify-content-center">

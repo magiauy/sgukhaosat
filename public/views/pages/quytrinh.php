@@ -268,7 +268,7 @@ require_once __DIR__ .'/../layouts/nav-bar.php'
         </div>    </div>
 
     <!-- Documents section -->
-    <div class="row mb-5">
+    <!-- <div class="row mb-5">
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-primary text-white">
@@ -299,7 +299,7 @@ require_once __DIR__ .'/../layouts/nav-bar.php'
                             </tbody>
                         </table>
                     </div>
-                    
+                     -->
                     <!-- Pagination -->
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center mt-4">

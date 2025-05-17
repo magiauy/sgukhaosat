@@ -145,7 +145,7 @@ class DocumentController {
         $offset = ($page - 1) * $limit;
         
         $result = $this->service->getDocumentsByType($type, $limit, $offset);
-        
+        // error_log(json_encode($result));
         $response->json([
             'documents' => $result['documents'],
             'totalCount' => $result['totalCount'],

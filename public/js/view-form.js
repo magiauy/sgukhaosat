@@ -112,17 +112,39 @@ async function getCurrentUser() {
         return null; 
     }
 }
-
-function validateRequiredCheckboxGroups() {
+function validateRequired() {
+    const multipleChoiceQuestions = document.querySelectorAll('input[type="radio"][data-required="true"]');
+    
+    let isValid = true;
+    let firstInvalidElement = null;
+    
+    multipleChoiceQuestions.forEach(radio => {
+        const questionContainer = radio.closest('.questionContainer');
+        if (questionContainer) {
+            const checked = questionContainer.querySelector('input[type="radio"]:checked');
+            if (!checked) {
+                isValid = false;
+                if (!questionContainer.querySelector('.invalid-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'invalid-feedback d-block';
+                    feedback.textContent = 'Vui lòng chọn một tùy chọn';
+                    questionContainer.appendChild(feedback);
+                }
+                
+                // Store the first radio button in this group for focusing
+                if (!firstInvalidElement) {
+                    firstInvalidElement = questionContainer.querySelector('input[type="radio"]');
+                }
+            }
+        }
+    });
+    
     const checkboxGroups = document.querySelectorAll('input[type="checkbox"][data-required="true"]');
     
-    // Get unique group names
     const groupNames = new Set();
     checkboxGroups.forEach(checkbox => {
         groupNames.add(checkbox.name);
     });
-    
-    let isValid = true;
     
     groupNames.forEach(name => {
         const checked = document.querySelectorAll(`input[name="${name}"]:checked`).length > 0;
@@ -135,12 +157,20 @@ function validateRequiredCheckboxGroups() {
                 feedback.textContent = 'Vui lòng chọn ít nhất một tùy chọn';
                 container.appendChild(feedback);
             }
+            
+            if (!firstInvalidElement) {
+                firstInvalidElement = document.querySelector(`input[name="${name}"]`);
+            }
         }
     });
     
+    if (!isValid && firstInvalidElement) {
+        firstInvalidElement.focus();
+        firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
     return isValid;
 }
-
 function submitSurvey(formId, userId) {
     if (!formId){
         showError('Không tìm được form ID.');
@@ -155,11 +185,10 @@ function submitSurvey(formId, userId) {
     }
     
     // Validate required checkbox groups
-    if (!validateRequiredCheckboxGroups()) {
-        showError('Vui lòng điền đầy đủ thông tin bắt buộc');
+    if (!validateRequired()) {
+        showError('Vui lòng điền đầy đủ thông tin khảo sát');
         return;
     }
-    
     const questionContainers = document.querySelectorAll('.questionContainer');
     const answers = [];
     
@@ -324,7 +353,7 @@ function showError(message) {
     
     container.insertAdjacentElement('beforebegin', errorDiv);
     
-    errorDiv.scrollIntoView({ bhavior: 'smooth' });
+    // errorDiv.scrollIntoView({ bhavior: 'smooth' });
 }
 function formatContentLineBreaks(text) {
     console.log('formatContentLineBreaks', text);
@@ -389,7 +418,7 @@ function patternQuestionDropdown(question, isRequired) {
 
     return `
         <select class="form-select mt-2" id="question_${question.QID}" name="question_${question.QID}"${isRequired ? ' required' : ''}>
-            <option selected disabled>Chọn câu trả lời</option>
+            <option value = "" selected disabled>Chọn câu trả lời</option>
             ${options}
         </select>
     `;
@@ -434,7 +463,7 @@ function patternQuestionCheckBox(question) {
     return optionsHtml + anotherHtml;
 }
 
-function patternQuestionMultipleChoice(question) {
+function patternQuestionMultipleChoice(question, isRequired) {
     console.log('Rendering question:', question);
   const options = question.children.filter(option => option.QTypeID !== "ANOTHER_OPTION");
   const anotherOption = question.children.find(option => option.QTypeID === "ANOTHER_OPTION");
@@ -447,7 +476,8 @@ function patternQuestionMultipleChoice(question) {
                name="question_${question.QID}" 
                id="q${option.QID}" 
                value="${option.QID}"
-               data-content="${option.QContent}">
+               data-content="${option.QContent}"
+               data-required="${isRequired ? 'true' : 'false'}">
         <label class="form-check-label" for="q${option.QID}">${option.QContent}</label>
     </div>
   `)

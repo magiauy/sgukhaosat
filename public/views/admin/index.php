@@ -48,13 +48,13 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
             <ul class="nav-menu px-2 mb-4">   
                 <li class="nav-item">
                     <a href="#" class="nav-link" data-section="dashboard">
-                        <span class="nav-icon"><i class="bi bi-house-door"></i></span> 
+                        <span class="nav-icon"><i class="bi bi-pie-chart"></i></span> 
                         <span class="nav-text">Thống kê</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="/admin/statistics-dashboard" class="nav-link">
-                        <span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span> 
+                        <span class="nav-icon"><i class="bi bi-pie-chart"></i></span> 
                         <span class="nav-text">Thống kê nâng cao</span>
                     </a>
                 </li>    
@@ -72,18 +72,20 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                             case 'MANAGE_FORMS':
                                 echo '<li class="nav-item">
                                     <a href="#" class="nav-link" data-section="surveys">
-                                        <span class="nav-icon"><i class="bi bi-bar-chart"></i></span> 
+                                        <span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>
                                         <span class="nav-text">Khảo sát</span>
                                     </a>
                                 </li>';
                             break;
-                            case 'MANAGE_RESULTS':
-                                echo '  <li class="nav-item">
-                                    <a href="#" class="nav-link" data-section="results">
-                                        <span class="nav-icon"><i class="bi bi-clipboard-data"></i></span>
-                                        <span class="nav-text">Kết quả khảo sát</span>
-                                    </a>
-                                </li>';
+                            // case 'MANAGE_RESULTS':
+                            //     echo '  <li class="nav-item">
+                            //         <a href="#" class="nav-link" data-section="results">
+                            //             <span class="nav-icon"><i class="bi bi-clipboard-data"></i></span>
+                            //             <span class="nav-text">Kết quả khảo sát</span>
+                            //         </a>
+                            //     </li>';
+                            //     break;
+                            default:
                                 break;
                         }
             
@@ -156,16 +158,6 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
             
                     }
                 ?>    
-               
-                
-
-                
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="settings">
-                        <span class="nav-icon"><i class="bi bi-gear"></i></span>
-                        <span class="nav-text">Cài đặt</span>
-                    </a>
-                </li>
             </ul>
         </nav>
     </div>

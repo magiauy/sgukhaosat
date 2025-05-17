@@ -78,53 +78,53 @@ class ResultService implements IResultService
         try {
             $pdo = Database::getInstance()->getConnection();
             
-            $questions = $this->questionRepository->getByFormID($formId);
-            
-            $requiredQuestions = [];
-            foreach ($questions as $question) { 
-                if ($question['QRequired'] == 1) {
-                    $requiredQuestions[$question['QID']] = $question;
-                }
-            }
-            
-            $providedAnswers = [];
-            foreach ($answers as $answer) {
-                $providedAnswers[$answer['QID']] = $answer;
-            }
-            
-            $missingRequired = [];
-            foreach ($requiredQuestions as $qid => $question) {
-                if (!isset($providedAnswers[$qid])) {
-                    $missingRequired[] = $qid;
-                    continue;
-                }
-                
-                $answer = $providedAnswers[$qid];
-                $content = $answer['AContent'];                
-                $isEmpty = false;
-                
-                if (is_array($content)) {
-                    $isEmpty = empty($content);
-                } else if (is_string($content)) {
-                    $isEmpty = trim($content) === '';
-                } else {
-                    $isEmpty = empty($content);
-                }
-                
-                if ($isEmpty) {
-                    $missingRequired[] = $qid;
-                }
-            }
-            
-            if (!empty($missingRequired)) {
-                return [
-                    'success' => false,
-                    'error' => 'MISSING_REQUIRED_FIELDS',
-                    'missingFields' => $missingRequired,
-                    'message' => 'Vui lòng điền đầy đủ các trường bắt buộc.'
-                ];
-            }
-            
+//            $questions = $this->questionRepository->getByFormID($formId);
+//
+//            $requiredQuestions = [];
+//            foreach ($questions as $question) {
+//                if ($question['QRequired'] == 1) {
+//                    $requiredQuestions[$question['QID']] = $question;
+//                }
+//            }
+//
+//            $providedAnswers = [];
+//            foreach ($answers as $answer) {
+//                $providedAnswers[$answer['QID']] = $answer;
+//            }
+//
+//            $missingRequired = [];
+//            foreach ($requiredQuestions as $qid => $question) {
+//                if (!isset($providedAnswers[$qid])) {
+//                    $missingRequired[] = $qid;
+//                    continue;
+//                }
+//
+//                $answer = $providedAnswers[$qid];
+//                $content = $answer['AContent'];
+//                $isEmpty = false;
+//
+//                if (is_array($content)) {
+//                    $isEmpty = empty($content);
+//                } else if (is_string($content)) {
+//                    $isEmpty = trim($content) === '';
+//                } else {
+//                    $isEmpty = empty($content);
+//                }
+//
+//                if ($isEmpty) {
+//                    $missingRequired[] = $qid;
+//                }
+//            }
+//
+//            if (!empty($missingRequired)) {
+//                return [
+//                    'success' => false,
+//                    'error' => 'MISSING_REQUIRED_FIELDS',
+//                    'missingFields' => $missingRequired,
+//                    'message' => 'Vui lòng điền đầy đủ các trường bắt buộc.'
+//                ];
+//            }
+//
             $pdo->beginTransaction();
 
             $resultData = [

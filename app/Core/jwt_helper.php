@@ -20,9 +20,15 @@ class jwt_helper
             return null;
         }
     }
-    public function createRefreshToken($user, mixed $secret, int $int)
+    static function createRefreshToken($user, $secret, $expTime)
     {
-        $payload = array_merge($user, ["exp" => time() + $int]);
-        return JWT::encode($payload, $secret, 'HS256');
+        // Refresh token chỉ cần thông tin tối thiểu
+        $minimalPayload = [
+            "user" => $user['user'],
+            "exp" => time() + $expTime
+        ];
+        error_log("Refresh token payload: " . json_encode($minimalPayload));
+
+        return JWT::encode($minimalPayload, $secret, 'HS256');
     }
 }

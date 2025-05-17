@@ -96,10 +96,10 @@ class RoleRepository implements IBaseRepositoryTransaction
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'fromDateCreate' => $data['fromDateCreate'] ?? 0,
-            'toDateCreate' => $data['toDateCreate'] ?? 0,
-            'fromDateUpdate' => $data['fromDateUpdate'] ?? 0,
-            'toDateUpdate' => $data['toDateUpdate'] ?? 0,
+            'fromDateCreate' => $data['fromDateCreate'] ?? null,
+            'toDateCreate' => $data['toDateCreate'] ?? null,
+            'fromDateUpdate' => $data['fromDateUpdate'] ?? null,
+            'toDateUpdate' => $data['toDateUpdate'] ?? null,
             'isCreate' => $data['isCreate'] ?? 0,
             'isUpdate' => $data['isUpdate'] ?? 0,
             'isFilter' => $data['isFilter'],

@@ -5,6 +5,8 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use PDO;
 use Repositories\Database;
+use Repositories\RoleRepository;
+use Repositories\Role_PermRepository;
 class AuthHelper
 {
     public static function verifyUserToken()
@@ -38,11 +40,28 @@ class AuthHelper
             error_log('Refresh token found, attempting to verify.');
             $decoded = jwt_helper::verifyJWT($refreshToken, $jwtConfig['refresh_secret']);
             if ($decoded) {
+
                 // Valid refresh token, generate new access token
                 $user = $decoded->user ?? null;
+                $db = Database::getInstance();
+                $conn = $db->getConnection();
+
+// Get role data
+                $roleStmt = $conn->prepare("SELECT * FROM roles WHERE roleID = ?");
+                $roleStmt->execute([$user['roleID']]);
+                $role = $roleStmt->fetch(PDO::FETCH_ASSOC);
+                error_log("Role: " . json_encode($role));
+
+// Get permissions for this role
+                $permStmt = $conn->prepare("SELECT permID FROM role_permission WHERE roleID = ?");
+                $permStmt->execute([$user['roleID']]);
+                $permissions = $permStmt->fetchAll(PDO::FETCH_ASSOC);
+                error_log("Permissions: " . json_encode($permissions));
+
                 $data['user'] = $user;
-                $data['role'] = $decoded->role ?? null;
-                $data['permissions'] = $decoded->permissions ?? null;
+                $data['role'] = $role['roleID'] ?? null;
+                $data['permissions'] = $permissions;
+
 
                 if ($data) {
                     // Create new access token
@@ -52,11 +71,11 @@ class AuthHelper
                     setcookie('access_token', $newAccessToken, time() + 600, '/', '', false, true);
                     error_log("Permissions: " . json_encode($data['permissions']));
                     // Return user data
-
+                    error_log( "User data: " . json_encode($data));
                     return [
-                        'user' => $decoded->user ?? null,
-                        'role' => $decoded->role ?? null,
-                        'permissions' => $decoded->permissions ?? null
+                        'user' => $user ?? null,
+                        'role' => $role ?? null,
+                        'permissions' => $permissions ?? null
                     ];
                 }
             }
@@ -98,17 +117,34 @@ class AuthHelper
             $decoded = jwt_helper::verifyJWT($refreshToken, $jwtConfig['refresh_secret']);
             if ($decoded) {
                 $user = $decoded->user ?? null;
+                $db = Database::getInstance();
+                $conn = $db->getConnection();
+
+// Get role data
+                $roleStmt = $conn->prepare("SELECT * FROM roles WHERE roleID = ?");
+                $roleStmt->execute([$user->roleID]);
+                $role = $roleStmt->fetch(PDO::FETCH_ASSOC);
+                error_log("Role: " . json_encode($role));
+
+// Get permissions for this role
+                $permStmt = $conn->prepare("SELECT permID FROM role_permission WHERE roleID = ?");
+                $permStmt->execute([$user->roleID]);
+                $permissions = $permStmt->fetchAll(PDO::FETCH_ASSOC);
+                error_log("Permissions: " . json_encode($permissions));
+
                 $data['user'] = $user;
-                $data['role'] = $decoded->role ?? null;
-                $data['permissions'] = $decoded->permissions ?? null;
+                $data['role'] = $role['roleID'] ?? null;
+                $data['permissions'] = $permissions;
+
+
                 if ($user) {
                     // Create new access token
                     $newAccessToken = jwt_helper::createJWT($data, $jwtConfig['access_secret'], 600);
                     setcookie('access_token', $newAccessToken, time() + 600, '/', '', false, true);
                     return [
-                        'user' => $decoded->user ?? null,
-                        'role' => $decoded->role ?? null,
-                        'permissions' => $decoded->permissions ?? null
+                        'user' => $user ?? null,
+                        'role' => $role ?? null,
+                        'permissions' => $permissions ?? null
                     ];
                 }
             }

@@ -44,18 +44,19 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                 <i class="bi bi-grid-1x2 me-2"></i>Menu chính
             </div>
 
-            <ul class="nav-menu px-2 mb-4">                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="dashboard">
-                        <span class="nav-icon"><i class="bi bi-pie-chart"></i></span> 
-                        <span class="nav-text">Thống kê</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/admin/statistics-dashboard" class="nav-link">
-                        <span class="nav-icon"><i class="bi bi-pie-chart"></i></span> 
-                        <span class="nav-text">Thống kê nâng cao</span>
-                    </a>
-                </li>    
+            <ul class="nav-menu px-2 mb-4">
+<!--                <li class="nav-item">-->
+<!--                    <a href="#" class="nav-link" data-section="dashboard">-->
+<!--                        <span class="nav-icon"><i class="bi bi-pie-chart"></i></span> -->
+<!--                        <span class="nav-text">Thống kê</span>-->
+<!--                    </a>-->
+<!--                </li>-->
+<!--                <li class="nav-item">-->
+<!--                    <a href="/admin/statistics-dashboard" class="nav-link">-->
+<!--                        <span class="nav-icon"><i class="bi bi-pie-chart"></i></span> -->
+<!--                        <span class="nav-text">Thống kê nâng cao</span>-->
+<!--                    </a>-->
+<!--                </li>    -->
                 <?php
                     foreach ($permissions ?? [] as $permission) {
                         switch ($permission->permID) {

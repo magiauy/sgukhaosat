@@ -70,17 +70,23 @@ class RoleService implements IBaseService
         
     }
 
-    function delete($id)
+    function delete($data)
     {
-        if(empty($id)){
+        if(empty($data)){
             throw new \Exception('Thiếu dữ liệu', 400);            
         }
+        // var_dump($data);
+        // $data = $data['user'];
+        // $data = json_decode(json_encode($data), true);
+        // var_dump($data);
+        // $data = $data[0];
+        // error_log("Data: " . json_encode($data));
         try {
             $pdo = Database::getInstance()->getConnection();
             $pdo->beginTransaction();
-            $this->rolePermRepository->delete($id, $pdo);
-            $this->user->updateRoleIDForDelete($id); //$id đang là mảng
-            $this->roleRepository->delete($id, $pdo);
+            $this->rolePermRepository->delete($data['roleIds'], $pdo);
+            $this->user->updateRoleIDForDelete($data['roleIds']); //$id đang là mảng
+            $this->roleRepository->delete($data['roleIds'], $pdo);
             $pdo->commit();
         } catch (\Throwable $th) {
             $pdo->rollBack();

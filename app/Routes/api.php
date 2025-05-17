@@ -47,17 +47,53 @@ $mailerController = new MailerController();
 $resultStatisticController = new ResultStatisticController();
 
     // User APIs
-    $router->post('/api/user', fn() => $controller->create($response, $request));
-    $router->put('/api/user', fn() => $controller->update($response, $request));
-    $router->put('/api/user/password', fn() => $controller->resetPassword($response, $request));
-    $router->delete('/api/user', fn() => $controller->delete($response, $request));
-    $router->get('/api/getListUsers', fn() => $controller->getAll($response, $request));
-    $router->get('/api/user', fn() => $controller->getAll($response, $request));
-    $router->get('/api/userWithoutWhitelist/{id}', fn($params) => $controller->getAllWithoutWhitelist($response, $request, $params['id']));
+    // $router->post('/api/user', fn() => $controller->create($response, $request));
+    $router->post('/api/user', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, "ADD_USER",
+            fn($req, $res) => $controller->create($res, $req));
+    });
+    // $router->put('/api/user', fn() => $controller->update($response, $request));
+    $router->put('/api/user', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, "EDIT_USER",
+            fn($req, $res) => $controller->update($res, $req));
+    });
+    // $router->put('/api/user/password', fn() => $controller->resetPassword($response, $request));
+    $router->put('/api/user/password', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, "EDIT_USER",
+            fn($req, $res) => $controller->resetPassword($res, $req));
+    });
+    // $router->delete('/api/user', fn() => $controller->delete($response, $request));
+    $router->delete('/api/user', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, "DELETE_USER",
+            fn($req, $res) => $controller->delete($res, $req));
+    });
+    // $router->get('/api/getListUsers', fn() => $controller->getAll($response, $request));
+    $router->get('/api/getListUsers', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, null,
+            fn($req, $res) => $controller->getAll($res, $req));
+    });
+    // $router->get('/api/user', fn() => $controller->getAll($response, $request));
+    $router->get('/api/user', function() use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, null,
+        fn($req, $res) => $controller->getAll($res, $req));
+    });    
+    // $router->get('/api/userWithoutWhitelist/{id}', fn($params) => $controller->getAllWithoutWhitelist($response, $request, $params['id']));
+    $router->get('api/userWithoutWhitelist/{id}', function($params) use ($request, $response, $controller) {
+        JwtMiddleware::authenticate($request, $response, null,
+            fn($req, $res) => $controller->getAllWithoutWhitelist($res, $req, $params['id']));
+    });
+    // $router->get('/api/user/email', function($params) use ($request, $response, $controller) {
+    //     $controller->getById($response, $request);
+    // });
     $router->get('/api/user/email', function($params) use ($request, $response, $controller) {
-        $controller->getById($response, $request);
+        JwtMiddleware::authenticate($request, $response, null,
+        fn($req, $res) => $controller->getById($res, $req));
     });
     $router->post('/api/login', fn() => $controller->login($response, $request));
+    // $router->post('/api/login', function() use ($request, $response, $controller) {
+    //     JwtMiddleware::authenticate($request, $response, null,
+    //         fn($req, $res) => $controller->login($res, $req));
+    // });
     $router->post('/api/me', fn() =>
         JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req))
     );
@@ -191,23 +227,56 @@ $resultStatisticController = new ResultStatisticController();
     });
 
 
-
-    // Role APIs
-    $router->post('/api/role', fn() => $roleController->create($response, $request));
-    
-    $router->put('/api/role/id', fn() => $roleController->update($response, $request));
-    $router->delete('/api/role/id', fn() => $roleController->delete($response, $request));
+    $router->get('/api/role', function () use ($response, $request, $roleController) {
+         JwtMiddleware::authenticate($request, $response, null,
+            fn($req, $res) => $roleController->getAll($res, $req));
+    });
+    $router->delete('/api/role/id',function () use ($response, $request, $roleController) {
+         JwtMiddleware::authenticate($request, $response, "EDIT_ANOTHER_ROLE",
+            fn($req, $res) => $roleController->delete($res, $req));
+    });
     $router->get('/api/role/{id}', function($params) use ($request, $response, $roleController) {
         $_GET['id'] = $params['id'];
-        $roleController->getById($response, $request);
+        JwtMiddleware::authenticate($request, $response, null,
+            fn($req, $res) => $roleController->getById($res, $req));
     });
-    $router->get('/api/role', fn() => $roleController->getAll($response, $request));
-    $router->post('/api/role/pagination', fn() => $roleController->getOnPagination($response, $request));
+    $router->post('/api/role', function($params) use ($request, $response, $roleController) {
+        JwtMiddleware::authenticate($request, $response, "EDIT_ANOTHER_ROLE",
+            fn($req, $res) => $roleController->create($res, $req));
+    });
+    $router->put('/api/role/id', function($params) use ($request, $response, $roleController) {
+        JwtMiddleware::authenticate($request, $response, "EDIT_ANOTHER_ROLE",
+            fn($req, $res) => $roleController->update($res, $req));
+    });
+    $router->post('/api/role/pagination', function($params) use ($request, $response, $roleController) {
+        JwtMiddleware::authenticate($request, $response, null,
+            fn($req, $res) => $roleController->getOnPagination($res, $req));
+    });
+
+    // Role APIs
+    // $router->post('/api/role', fn() => $roleController->create($response, $request));
+    
+    // $router->put('/api/role/id', fn() => $roleController->update($response, $request));
+    // $router->delete('/api/role/id', fn() => $roleController->delete($response, $request));
+    // $router->get('/api/role/{id}', function($params) use ($request, $response, $roleController) {
+    //     $_GET['id'] = $params['id'];
+    //     $roleController->getById($response, $request);
+    // });
+    // $router->get('/api/role', fn() => $roleController->getAll($response, $request));
+    // $router->post('/api/role/pagination', fn() => $roleController->getOnPagination($response, $request));
  
 
     // Permission APIs
-    $router->get('/api/permission', fn() => $permController->getAll($response, $request));
-    $router->post('/api/permission/id', fn() => $permController->getById($response, $request));
+    $router->get('/api/permission', function () use ($response, $request, $permController) {
+        JwtMiddleware::authenticate($request, $response, null,
+            fn($req, $res) => $permController->getAll($res, $req));
+    });
+    $router->post('/api/permission/id', function($params) use ($request, $response, $roleController) {
+        JwtMiddleware::authenticate($request, $response, 'ACCESS_ROOT', 
+        fn($req, $res) => $roleController->update($res, $req));
+    });
+    // $router->get('/api/permission', fn() => $permController->getAll($response, $request));
+    // $router->post('/api/permission/id', fn() => $permController->getById($response, $request));
 
     // Draft APIs
     $router->post('/api/draft', fn() =>

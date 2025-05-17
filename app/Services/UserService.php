@@ -69,11 +69,13 @@ class UserService implements IAuthService
     //id là mảng
     public function delete($id): bool
     {
+        error_log("Xóa người dùng với ID: " . json_encode($id));
+
         if (empty($id)) {
             throw new \Exception("thiếu id", 400);
         }
         try {
-            $this->userRepository->delete($id);
+            $this->userRepository->delete($id['emails']);
             return true;
         } catch (\Throwable $th) {
             throw $th;

@@ -329,46 +329,48 @@ export async function renderTableRole(roles) {
         if(indexCurrent === index){
             isCheckedCurrent = 'disabled-row';
         }
-        tableBody.innerHTML += `
-            <tr class="role-row ${isCheckedCurrent}">
-                <td class="ps-4">
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input role-checkbox" data-id="${role.roleID}" ${isChecked}>
-                    </div>
-                </td>
-                <td class="text-center">
-                    <span class="badge bg-light text-dark rounded-pill px-2">${index+1}</span>
-                </td>
-                <td>
-                    <div class="fw-medium text-primary">${role.roleID}</div>
-                </td>
-                <td>
-                    <div class="fw-medium">${role.roleName}</div>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-calendar-date text-primary me-2"></i>
-                        <span class="text-secondary">${role.created_at}</span>
-                    </div>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-clock-history text-primary me-2"></i>
-                        <span class="text-secondary">${role.updated_at}</span>
-                    </div>
-                </td>
-                <td class="text-end pe-4">
-                    <div class="d-flex gap-2 justify-content-end">
-                        <button data-code="${role.roleID}" class="btn btn-outline-primary btn-sm rounded-pill px-3 edit-role">
-                            <i class="bi bi-pencil me-1"></i> Sửa
-                        </button>
-                        <button data-code="${role.roleID}" class="btn btn-outline-danger btn-sm rounded-pill px-3 delete-role">
-                            <i class="bi bi-trash me-1"></i> Xóa
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
+        if(role.roleID !== roleIDCurrent){
+            tableBody.innerHTML += `
+                <tr class="role-row ${isCheckedCurrent}">
+                    <td class="ps-4">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input role-checkbox" data-id="${role.roleID}" ${isChecked}>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-light text-dark rounded-pill px-2">${index+1}</span>
+                    </td>
+                    <td>
+                        <div class="fw-medium text-primary">${role.roleID}</div>
+                    </td>
+                    <td>
+                        <div class="fw-medium">${role.roleName}</div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar-date text-primary me-2"></i>
+                            <span class="text-secondary">${role.created_at}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-clock-history text-primary me-2"></i>
+                            <span class="text-secondary">${role.updated_at}</span>
+                        </div>
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button data-code="${role.roleID}" class="btn btn-outline-primary btn-sm rounded-pill px-3 edit-role">
+                                <i class="bi bi-pencil me-1"></i> Sửa
+                            </button>
+                            <button data-code="${role.roleID}" class="btn btn-outline-danger btn-sm rounded-pill px-3 delete-role">
+                                <i class="bi bi-trash me-1"></i> Xóa
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
     });
 
     logicCheckbox();

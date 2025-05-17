@@ -293,9 +293,13 @@ export async function renderTableAccountOnPagination(offset, limit){
    
 }
 
-export function renderListAccount(users) {
+export async function renderListAccount(users) {
     const tableBody = document.querySelector("#table-account tbody");
-    
+    let reponse = await callApi("/me", "POST");
+    let result = reponse.data;
+    result = result.user;
+    // console.log(result);
+    let emailCurrent = result.email;
     if (!tableBody) return;
     
     // Hiển thị thông báo khi không có dữ liệu
@@ -332,51 +336,53 @@ export function renderListAccount(users) {
         // Kiểm tra xem email đã được chọn trước đó chưa
         const isChecked = selectedAccountIDs.has(user.email) ? 'checked' : '';
         
-        bodyTable += `
-            <tr>
-                <td class="ps-4 text-center">
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input user-checkbox" 
-                            data-id="${user.email}" id="user-${index}" ${isChecked}>
-                    </div>
-                </td>
-                <td style="width: 50px;">${index + 1}</td>
-                <td>
-                    <div class="fw-medium">${user.email}</div>
-                    <div class="small text-muted">${user.fullName || 'Chưa cập nhật họ tên'}</div>
-                </td>
-                <td>
-                    <span class="badge ${roleClass} rounded-pill px-3 py-2">${user.roleName || user.roleID}</span>
-                </td>
-                <td>
-                    <span class="badge ${statusClass} rounded-pill px-3 py-2">${statusText}</span>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center text-nowrap">
-                        <i class="bi bi-calendar-date text-primary me-2"></i>
-                        <small>${user.created_at}</small>
-                    </div>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center text-nowrap">
-                        <i class="bi bi-clock-history text-primary me-2"></i>
-                        <small>${user.updated_at}</small>
-                    </div>
-                </td>
-                <td class="text-end pe-4">
-                    <div class="d-flex justify-content-end gap-2">
-                        <button class="btn btn-sm btn-outline-primary rounded-circle action-btn detail-account" 
-                            title="Chỉnh sửa" data-id="${user.email}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger rounded-circle action-btn delete-account-i" 
-                            title="Xóa" data-id="${user.email}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
+        if(user.email !== emailCurrent){
+            bodyTable += `
+                <tr>
+                    <td class="ps-4 text-center">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input user-checkbox" 
+                                data-id="${user.email}" id="user-${index}" ${isChecked}>
+                        </div>
+                    </td>
+                    <td style="width: 50px;">${index + 1}</td>
+                    <td>
+                        <div class="fw-medium">${user.email}</div>
+                        <div class="small text-muted">${user.fullName || 'Chưa cập nhật họ tên'}</div>
+                    </td>
+                    <td>
+                        <span class="badge ${roleClass} rounded-pill px-3 py-2">${user.roleName || user.roleID}</span>
+                    </td>
+                    <td>
+                        <span class="badge ${statusClass} rounded-pill px-3 py-2">${statusText}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center text-nowrap">
+                            <i class="bi bi-calendar-date text-primary me-2"></i>
+                            <small>${user.created_at}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center text-nowrap">
+                            <i class="bi bi-clock-history text-primary me-2"></i>
+                            <small>${user.updated_at}</small>
+                        </div>
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn btn-sm btn-outline-primary rounded-circle action-btn detail-account" 
+                                title="Chỉnh sửa" data-id="${user.email}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-circle action-btn delete-account-i" 
+                                title="Xóa" data-id="${user.email}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
     });
 
     tableBody.innerHTML = bodyTable;
@@ -488,8 +494,11 @@ function activateActionButtons() {
             if(!confirmed) return;
 
             const email = btn.getAttribute('data-id');
+            const data = {
+                emails: [email]
+            }
             try {
-                const response = await callApi("/user", "DELETE", [email]);
+                const response = await callApi("/user", "DELETE", data);
                 console.log(response);
                 renderTableAccountOnPagination(0, 10);
                 showSwalToast("Xóa tài khoản thành công", "success");

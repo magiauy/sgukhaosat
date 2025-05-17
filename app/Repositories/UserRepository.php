@@ -68,6 +68,7 @@ class UserRepository implements IAuthRepository {
     }
     
     public function delete($emails): bool {
+        // error_log("Emails: " . json_encode($emails));
         $placeholders = [];
         $params = [];
     

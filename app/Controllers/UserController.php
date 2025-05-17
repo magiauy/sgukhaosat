@@ -41,7 +41,8 @@ class UserController implements IAuthController
             if ($user) {
                 $response->json([
                     'message' => 'User created successfully',
-                    'data' => $data
+                    'data' => $data,
+                    'success' => true
                 ], 201);
             } else {
                 $response->json(['error' => 'Failed to create user'], 500);

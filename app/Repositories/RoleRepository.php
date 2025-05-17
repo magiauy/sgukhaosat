@@ -30,6 +30,7 @@ class RoleRepository implements IBaseRepositoryTransaction
     }
 
     function update($id, $data, \PDO $pdo){
+        error_log("ID-Role-Update: " . json_encode($id));
         $sql = 'UPDATE roles SET roleName = :roleName, updated_at = :updated_at WHERE roleID = :roleID';
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
@@ -42,6 +43,7 @@ class RoleRepository implements IBaseRepositoryTransaction
 
     function delete($id, \PDO $pdo)
     {
+        error_log("ID-Role-Delete: " . json_encode($id));  
         $placeholders = implode(',', array_fill(0, count($id), '?'));
         $sql = "DELETE FROM roles WHERE roleID IN ($placeholders)";
         $stmt = $pdo->prepare($sql);

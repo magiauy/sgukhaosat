@@ -69,6 +69,7 @@ class UserRepository implements IAuthRepository {
     }
     
     public function delete($emails): bool {
+        // error_log("Emails: " . json_encode($emails));
         $placeholders = [];
         $params = [];
     
@@ -352,8 +353,13 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
 
     public function updateInformation($data){
         $sql = "UPDATE users SET 
+<<<<<<< HEAD
         phone = :phone, fullName = :fullName, updated_at = NOW(), position = :position, 
         isFirstLogin = :isFirstLogin  
+=======
+        phone = :phone, fullName = :fullName, updated_at = NOW(), position = :position 
+        isFirstLogin = CASE WHEN :isFirstLogin = 1 THEN 0 ELSE isFirstLogin END 
+>>>>>>> temp-fix
         WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([

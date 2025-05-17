@@ -11,7 +11,11 @@ $formService = new FormService();
 //var_dump($user->email);
 // $userCurrent = (array)$user;
 
+<<<<<<< HEAD
 var_dump($user);
+=======
+// var_dump($user);
+>>>>>>> temp-fix
 
 
 try {
@@ -59,6 +63,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
         // Import hàm showFormUpdate từ file script.js
         import { showFormUpdate } from '/public/js/script.js';
         import { callApi } from '/public/js/apiService.js';
+<<<<<<< HEAD
         import { showSwalToast } from '/public/js/form/utils/notifications.js';
         import {validatePhoneNumber}    from '/public/js/checkInput.js';
         let account = <?php echo json_encode($user); ?>;
@@ -124,6 +129,70 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                                 </div>
                                             </div>
 
+=======
+        
+        <?php if ($user->isFirstLogin == 1): ?>
+            // Chuyển đổi PHP object thành JavaScript object
+            const account = <?php echo json_encode($user); ?>;
+            
+            const modalHTML = `
+            <div class="modal fade" id="accountDetailModal" tabindex="-1" aria-labelledby="accountDetailModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content">
+                        <!-- Header -->
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="accountDetailModalLabel">
+                                <i class="bi bi-person-badge me-2"></i>
+                                Thông tin tài khoản
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        
+                        <!-- Form content -->
+                        <div class="modal-body p-4">
+                            <div class="row">
+                                <!-- Phần bên trái: Thông tin tài khoản -->
+                                <div class="col-md-6 border-end pe-4">
+                                    <form id="account-detail-form">
+                                        <!-- Row 1: Email and Full Name -->
+                                        <div class="row mb-3">
+                                            <!-- Email field -->
+                                            <div class="col-md-12 mb-3">
+                                                <label for="account-email" class="form-label fw-medium">Email:</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light">
+                                                        <i class="bi bi-envelope"></i>
+                                                    </span>
+                                                    <input type="email" id="account-email" class="form-control" 
+                                                        value="${account.email || ''}" disabled>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- fullName field -->
+                                            <div class="col-md-12 mb-3">
+                                                <label for="account-fullName" class="form-label fw-medium">Họ tên:</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light">
+                                                        <i class="bi bi-person"></i>
+                                                    </span>
+                                                    <input type="text" id="account-fullName" class="form-control" 
+                                                        value="${account.fullName || ''}" disabled>
+                                                </div>
+                                            </div>
+                                        
+                                            <!-- Phone field -->
+                                            <div class="col-md-12 mb-3">
+                                                <label for="account-phone" class="form-label fw-medium">Số điện thoại:</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light">
+                                                        <i class="bi bi-telephone"></i>
+                                                    </span>
+                                                    <input type="text" id="account-phone" class="form-control" 
+                                                        value="${account.phone || ''}" disabled>
+                                                </div>
+                                            </div>
+
+>>>>>>> temp-fix
                                             <!-- Position field -->
                                             <div class="col-md-12">
                                                 <label for="account-position" class="form-label fw-medium">Chức vụ:</label>
@@ -131,7 +200,11 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                                     <span class="input-group-text bg-light">
                                                         <i class="bi bi-briefcase"></i>
                                                     </span>
+<<<<<<< HEAD
                                                     <select id="account-position" class="form-select" >
+=======
+                                                    <select id="account-position" class="form-select" disabled>
+>>>>>>> temp-fix
                                                         <!-- Options will be populated via JavaScript -->
                                                     </select>
                                                 </div>
@@ -182,7 +255,11 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                         <!-- Buttons for personal info section -->
                                     <div class="d-flex justify-content-end mt-4 pt-3 border-top">
                                     
+<<<<<<< HEAD
                                         <button type="button" class="btn btn-primary" id="submit-update-info">
+=======
+                                        <button type="button" class="btn btn-primary" id="detail-edit-information">
+>>>>>>> temp-fix
                                             <i class="bi bi-pencil-square me-2"></i>Sửa thông tin
                                         </button>
                                     </div>
@@ -211,17 +288,24 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
             // Khởi tạo modal Bootstrap
             const modal = new bootstrap.Modal(document.getElementById('accountDetailModal'));
             modal.show();
+<<<<<<< HEAD
 
             let update = false;
+=======
+>>>>>>> temp-fix
             
             // Xử lý đóng modal
             document.getElementById('accountDetailModal').addEventListener('hidden.bs.modal', function () {
                 // Xóa modal khỏi DOM sau khi đóng
                 this.remove();
+<<<<<<< HEAD
                 if(!update) {
                     window.location.href = "/";
                 }
                 
+=======
+                window.location.href = "/";
+>>>>>>> temp-fix
             });
             
             // Xử lý chức năng hiện/ẩn mật khẩu
@@ -243,6 +327,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                 });
             });
 
+<<<<<<< HEAD
             document.querySelector("#submit-update-info").onclick = async (e) => {
                 e.preventDefault();
                 const password = document.querySelector("#new-password").value;
@@ -288,6 +373,8 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
 
             }
 
+=======
+>>>>>>> temp-fix
            
             
                 

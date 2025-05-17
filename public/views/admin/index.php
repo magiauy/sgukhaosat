@@ -6,9 +6,7 @@ use Core\AuthHelper;
 $data = AuthHelper::verifyUserToken();
 $user = $data['user'] ?? null;
 $permissions = $data['permissions'] ?? null;
-error_log('User aaaa: ' . json_encode($permissions));
-// Check if user has ACCESS_ADMIN permission
-error_log('User permissions: ' . json_encode($permissions));
+
 $hasAdminAccess = false;
 foreach ($permissions ?? [] as $permission) {
     if (isset($permission->permID) && $permission->permID === 'ACCESS_ADMIN') {
@@ -27,6 +25,8 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>
 
 <link rel="stylesheet" href="/public/css/adminPage.css">
+    <link rel="stylesheet" href="/public/css/roleAdmin.css">
+    <link rel="stylesheet" href="/public/css/accountAdmin.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
 <!-- Phần div#main với thiết kế cải tiến -->
@@ -44,7 +44,9 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                 <i class="bi bi-grid-1x2 me-2"></i>Menu chính
             </div>
 
-            <ul class="nav-menu px-2 mb-4">                <li class="nav-item">
+          
+            <ul class="nav-menu px-2 mb-4">   
+                <li class="nav-item">
                     <a href="#" class="nav-link" data-section="dashboard">
                         <span class="nav-icon"><i class="bi bi-house-door"></i></span> 
                         <span class="nav-text">Thống kê</span>
@@ -55,68 +57,109 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                         <span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span> 
                         <span class="nav-text">Thống kê nâng cao</span>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="accounts">
-                        <span class="nav-icon"><i class="bi bi-people"></i></span>
-                        <span class="nav-text">Tài khoản</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="surveys">
-                        <span class="nav-icon"><i class="bi bi-bar-chart"></i></span> 
-                        <span class="nav-text">Khảo sát</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="results">
-                        <span class="nav-icon"><i class="bi bi-clipboard-data"></i></span>
-                        <span class="nav-text">Kết quả khảo sát</span>
-                    </a>
-                </li>
+                </li>    
+                <?php
+                    foreach ($permissions ?? [] as $permission) {
+                        switch ($permission->permID) {
+                            case 'MANAGE_USERS':
+                                echo '<li class="nav-item">
+                                <a href="#" class="nav-link" data-section="accounts">
+                                    <span class="nav-icon"><i class="bi bi-people"></i></span>
+                                    <span class="nav-text">Tài khoản</span>
+                                </a>
+                            </li>';
+                            break;
+                            case 'MANAGE_FORMS':
+                                echo '<li class="nav-item">
+                                    <a href="#" class="nav-link" data-section="surveys">
+                                        <span class="nav-icon"><i class="bi bi-bar-chart"></i></span> 
+                                        <span class="nav-text">Khảo sát</span>
+                                    </a>
+                                </li>';
+                            break;
+                            case 'MANAGE_RESULTS':
+                                echo '  <li class="nav-item">
+                                    <a href="#" class="nav-link" data-section="results">
+                                        <span class="nav-icon"><i class="bi bi-clipboard-data"></i></span>
+                                        <span class="nav-text">Kết quả khảo sát</span>
+                                    </a>
+                                </li>';
+                                break;
+                        }
+            
+                    }
+                ?>                       
             </ul>
 
             <div class="sidebar-heading d-flex align-items-center px-3">
                 <i class="bi bi-gear-wide-connected me-2"></i>Quản lý hệ thống
             </div>
+            
 
             <ul class="nav-menu px-2">
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="roles">
-                        <span class="nav-icon"><i class="bi bi-shield-lock"></i></span>
-                        <span class="nav-text">Phân quyền</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="documents">
-                        <span class="nav-icon"><i class="bi bi-file-earmark-text"></i></span>
-                        <span class="nav-text">Quản lý tài liệu</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="majors">
-                        <span class="nav-icon"><i class="bi bi-mortarboard"></i></span>
-                        <span class="nav-text">Quản lý ngành</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="positions">
-                        <span class="nav-icon"><i class="bi bi-person-badge"></i></span>
-                        <span class="nav-text">Quản lý chức vụ</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="periods">
-                        <span class="nav-icon"><i class="bi bi-calendar-week"></i></span>
-                        <span class="nav-text">Chu kỳ</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-section="survey-types">
-                        <span class="nav-icon"><i class="bi bi-collection"></i></span>
-                        <span class="nav-text">Loại khảo sát</span>
-                    </a>
-                </li>
+                 <?php
+                    foreach ($permissions ?? [] as $permission) {
+                        switch ($permission->permID) {
+                            case 'MANAGE_ROLES':
+                                echo ' <li class="nav-item">
+                                    <a href="#" class="nav-link" data-section="roles">
+                                        <span class="nav-icon"><i class="bi bi-shield-lock"></i></span>
+                                        <span class="nav-text">Phân quyền</span>
+                                    </a>
+                                </li>';
+                            break;
+                            case 'MANAGE_POSITION':
+                                echo '<li class="nav-item">
+                                    <a href="#" class="nav-link" data-section="positions">
+                                        <span class="nav-icon"><i class="bi bi-person-badge"></i></span>
+                                        <span class="nav-text">Quản lý chức vụ</span>
+                                    </a>
+                                </li>';
+                            break;
+                            case 'MANAGE_MAJOR':
+                                echo '   <li class="nav-item">
+                                    <a href="#" class="nav-link" data-section="majors">
+                                        <span class="nav-icon"><i class="bi bi-mortarboard"></i></span>
+                                        <span class="nav-text">Quản lý ngành</span>
+                                    </a>
+                                </li>
+                                ';
+                                break;
+                            case 'MANAGE_PERIOD':
+                                echo '<li class="nav-item">
+                                    <a href="#" class="nav-link" data-section="periods">
+                                        <span class="nav-icon"><i class="bi bi-calendar-week"></i></span>
+                                        <span class="nav-text">Chu kỳ</span>
+                                    </a>
+                                </li>';
+                                break;
+                            case 'MANAGE_FORM_TYPE':
+                                echo '<li class="nav-item">
+                                    <a href="#" class="nav-link" data-section="survey-types">
+                                        <span class="nav-icon"><i class="bi bi-collection"></i></span>
+                                        <span class="nav-text">Loại khảo sát</span>
+                                    </a>
+                                </li>';
+                            break;
+                            case 'MANAGE_DOCUMENT':
+                                echo '<li class="nav-item">
+                                    <a href="#" class="nav-link" data-section="documents">
+                                        <span class="nav-icon"><i class="bi bi-file-earmark-text"></i></span>
+                                        <span class="nav-text">Quản lý tài liệu</span>
+                                    </a>
+                                </li>';
+                            break;
+                            default:
+                                break;
+
+                        }
+            
+                    }
+                ?>    
+               
+                
+
+                
                 <li class="nav-item">
                     <a href="#" class="nav-link" data-section="settings">
                         <span class="nav-icon"><i class="bi bi-gear"></i></span>

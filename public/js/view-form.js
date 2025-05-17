@@ -353,7 +353,7 @@ function showError(message) {
     
     container.insertAdjacentElement('beforebegin', errorDiv);
     
-    errorDiv.scrollIntoView({ bhavior: 'smooth' });
+    // errorDiv.scrollIntoView({ bhavior: 'smooth' });
 }
 
 
@@ -407,7 +407,7 @@ function patternQuestionDropdown(question, isRequired) {
 
     return `
         <select class="form-select mt-2" id="question_${question.QID}" name="question_${question.QID}"${isRequired ? ' required' : ''}>
-            <option selected disabled>Chọn câu trả lời</option>
+            <option value = "" selected disabled>Chọn câu trả lời</option>
             ${options}
         </select>
     `;

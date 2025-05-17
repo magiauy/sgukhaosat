@@ -123,7 +123,7 @@ class AnswerRepository implements IAnswerRepository
     function getByResult($resultId): array
     {
         try {
-            $sql = "SELECT a.*, q.QContent, q.QTypeID , q.QParent
+            $sql = "SELECT a.*, q.QContent, q.QTypeID , q.QParent ,QIndex
                     FROM answer a
                     JOIN question q ON a.QID = q.QID
                     WHERE a.RID = :RID";
@@ -192,4 +192,5 @@ class AnswerRepository implements IAnswerRepository
             throw new \RuntimeException($e->getMessage(), $e->getCode());
         }
     }
+
 }

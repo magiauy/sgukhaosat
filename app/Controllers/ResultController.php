@@ -226,4 +226,57 @@ class ResultController implements IBaseController
             ], $e->getCode() ?: 500);
         }
     }
+
+    public function getFormResponse($res, int $formId, int $responseId)
+    {
+        try {
+            $response = $this->resultService->getFormResponse($formId, $responseId);
+            if ($response) {
+                $res->json([
+                    'status' => true,
+                    'data' => $response
+                ]);
+            } else {
+                throw new \Exception("Response not found", 404);
+            }
+        } catch (\Exception $e) {
+            $res->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 500);
+        }
+    }
+
+    public function getUserResponses($res, $req, int $formId)
+    {
+        try {
+            $responses = $this->resultService->getUserResponses($formId);
+
+            $res->json([
+                'status' => true,
+                'data' => $responses
+            ]);
+        } catch (\Exception $e) {
+            $res->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 500);
+        }
+    }
+
+    public function deleteResult(Response $response,Request $request,int $responseId): void
+    {
+        try {
+            $this->resultService->deleteResult($responseId);
+            $response->json( [
+                'status' => true,
+                'message' => 'Result deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            $response->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

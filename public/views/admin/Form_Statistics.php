@@ -73,7 +73,7 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
 ?>
 
 <body>
-    <div class="container mt-4" style="max-width: 900px">
+    <div class="container mt-4 h-100" style="min-height: 100vh;max-width: 900px">
         <h2 class="mb-4">Thống kê khảo sát</h2>
 
         <!-- Tab Navigation -->
@@ -97,16 +97,16 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
             <!-- Summary Tab -->
             <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
                    <div class="row mb-4">
-                       <div class="col-md-4">
-                           <div class="card">
+                       <div class="col-md-3">
+                           <div class="card h-100">
                                <div class="card-body">
-                                   <h5 class="card-title">Tổng số lượt trả lời</h5>
-                                   <h2 class="card-text text-primary" id="total-responses">0</h2>
+                                   <h6 class="card-title">Tổng số lượt trả lời</h6>
+                                   <h1 class="card-text text-primary" id="total-responses">0</h1>
                                </div>
                            </div>
                        </div>
-                       <div class="col-md-8">
-                           <div class="card">
+                       <div class="col-md-9">
+                           <div class="card h-100">
                                <div class="card-body">
                                    <h5 class="card-title">Xuất dữ liệu</h5>
                                    <div class="d-flex flex-wrap gap-2">
@@ -119,8 +119,8 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                        <button class="btn btn-outline-secondary" id="export-report">
                                            <i class="fas fa-chart-bar"></i> Xuất báo cáo
                                        </button>
-                                       <button class="btn btn-outline-info" id="export-csv">
-                                           <i class="fas fa-file-csv"></i> Xuất CSV
+                                       <button class="btn btn-outline-info" id="export-analysis">
+                                            <i class="fas fa-chart-line"></i> Xuất phân tích đánh giá
                                        </button>
                                    </div>
                                </div>
@@ -150,12 +150,13 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
             <!-- Individual Responses Tab -->
             <div class="tab-pane fade" id="individual" role="tabpanel" aria-labelledby="individual-tab">
                 <div class="row mb-4">
-                    <div class="col-md-8">
+                    <div class="col-md-10">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="card-title">Xem câu trả lời của người dùng</h5>
                                 <select class="form-select" id="user-response-select">
                                     <option selected disabled>Chọn người dùng...</option>
+                                    <option>Test</option>
                                     <!-- Options will be loaded dynamically -->
                                 </select>
 
@@ -167,19 +168,13 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="card-title">Thao tác</h5>
                                 <button class="btn btn-danger" id="delete-response" disabled>
-                                    <i class="fas fa-trash"></i> Xóa câu trả lời đã chọn
+                                    <i class="fas fa-trash"></i> Xoá
                                 </button>
-
-                                <div class="mt-4">
-                                    <button class="btn btn-primary" id="export-all">
-                                        <i class="fas fa-file-export"></i> Xuất tất cả dữ liệu
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>

@@ -56,6 +56,7 @@ public function getStatisticByForm($fid): array
         foreach ($allAnswers as $answer) {
             $qid = $answer['QID'];
             $qTypeID = $answer['QTypeID'];
+            $qIndex = $answer['QIndex'];
 
             //Tìm QID , nếu như có parent thì tìm lên parent đến khi null và lấy Type và ID của parent
             if ($answer['QParent'] !== null) {
@@ -63,6 +64,7 @@ public function getStatisticByForm($fid): array
                 if ($parentQuestion) {
                     $qid = $parentQuestion['QID'];
                     $qTypeID = $parentQuestion['QTypeID'];
+                    $qIndex = $parentQuestion['QIndex'];
                 }
             }
 
@@ -71,6 +73,7 @@ public function getStatisticByForm($fid): array
                     'QID' => $qid,
                     'QTypeID' => $qTypeID,
                     'QContent' => $answer['QContent'],
+                    'QIndex' => $qIndex,
                     'responses' => []
                 ];
             }
@@ -88,30 +91,23 @@ public function getStatisticByForm($fid): array
                     break;
                 default:
                     // Handle non-grid questions
-                    $answerValue = $answer;
+                    $this->processDefaultAnswerContent($answer['AContent'], $qid, $groupedAnswers);
 
-                    // Check if this answer already exists
-                    $found = false;
-                    foreach ($groupedAnswers[$qid]['responses'] as &$response) {
-                        if ($response['answer'] === $answerValue) {
-                            $response['count']++;
-                            $found = true;
-                            break;
-                        }
-                    }
-
-                    // Add new answer if not found
-                    if (!$found) {
-                        $groupedAnswers[$qid]['responses'][] = [
-                            'answer' => $answerValue,
-                            'count' => 1
-                        ];
-                    }
                     break;
 
             }
 
 
+        }
+        // Sort questions by QIndex
+        usort($groupedAnswers, function ($a, $b) {
+            return $a['QIndex'] <=> $b['QIndex'];
+        });
+        // Sort responses by count in descending order
+        foreach ($groupedAnswers as &$question) {
+            usort($question['responses'], function ($a, $b) {
+                return $b['count'] <=> $a['count'];
+            });
         }
 
         // Convert associative array to indexed array
@@ -129,6 +125,29 @@ public function getStatisticByForm($fid): array
         ];
     }
 }
+    private function processDefaultAnswerContent(string $answerContent, string $qid, array &$groupedAnswers): void
+    {
+        // For default question types (SHORT_TEXT, LONG_TEXT, MULTIPLE_CHOICE, DROPDOWN)
+        $content = $answerContent;
+
+        // Check if this answer already exists in responses
+        $found = false;
+        foreach ($groupedAnswers[$qid]['responses'] as &$response) {
+            if ($response['answer'] === $content) {
+                $response['count']++;
+                $found = true;
+                break;
+            }
+        }
+
+        // Add new answer if not found
+        if (!$found) {
+            $groupedAnswers[$qid]['responses'][] = [
+                'answer' => $content,
+                'count' => 1
+            ];
+        }
+    }
     private function processGridCheckBoxAnswerContent(string $answerContent, string $qid, array &$groupedAnswers): void
     {
         $answerData = json_decode($answerContent, true);
@@ -217,5 +236,89 @@ public function getStatisticByForm($fid): array
                 ];
             }
         }
+    }
+
+    public function getQuestionsRatings(int $formId, int $questionId)
+    {
+        //Mặc định là Grid checkbox hoặc là Grid MC , xuống database lấy các Answer lên sau đó duyệt qua các row rồi đeếm coloumn tương ứng voới các row
+
+        $questions = $this->questionRepository->getChildren($questionId);
+
+        $ratings = [];
+// First, separate rows and columns from questions
+        $rows = [];
+        $columns = [];
+        $mainQuestion = null;
+
+        foreach ($questions as $question) {
+            if ($question['QTypeID'] === 'GRID_MC_ROW') {
+                $rows[] = [
+                    'id' => $question['QID'],
+                    'content' => $question['QContent'],
+                    'index' => $question['QIndex']
+                ];
+            } elseif ($question['QTypeID'] === 'GRID_MC_COLUMN') {
+                $columns[] = [
+                    'id' => $question['QID'],
+                    'content' => $question['QContent'],
+                    'index' => $question['QIndex']
+                ];
+            } elseif ($question['QTypeID'] === 'DESCRIPTION') {
+                $mainQuestion = $question;
+            }
+        }
+
+// Initialize ratings structure with rows and columns
+        $ratingResults = [
+            'question' => $mainQuestion ? $mainQuestion['QContent'] : '',
+            'rows' => [],
+            'columns' => array_map(function($col) { return $col['content']; }, $columns),
+            'data' => []
+        ];
+
+// Initialize data structure for each row
+        foreach ($rows as $row) {
+            $rowId = $row['id'];
+            $rowContent = $row['content'];
+
+            $ratingResults['rows'][] = $rowContent;
+            $ratingResults['data'][$rowId] = array_fill(0, count($columns), 0);
+
+            // Get all answers for this row question
+            $answers = $this->answerRepository->getByQuestion($rowId);
+
+            if ($answers) {
+                foreach ($answers as $answer) {
+                    $answerData = json_decode($answer['AContent'], true);
+
+                    if (is_array($answerData) && isset($answerData['column'])) {
+                        // For GRID_MULTIPLE_CHOICE
+                        $columnValue = $answerData['column'];
+                        $columnIndex = array_search($columnValue, $ratingResults['columns']);
+
+                        if ($columnIndex !== false) {
+                            $ratingResults['data'][$rowId][$columnIndex]++;
+                        }
+                    } elseif (is_array($answerData) && isset($answerData['columns'])) {
+                        // For GRID_CHECKBOX
+                        foreach ($answerData['columns'] as $columnValue) {
+                            $columnIndex = array_search($columnValue, $ratingResults['columns']);
+
+                            if ($columnIndex !== false) {
+                                $ratingResults['data'][$rowId][$columnIndex]++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+
+        return [
+            'questionId' => $questionId,
+            'ratings' => $ratingResults
+        ];
+        // Sort ratings by QIndex
+
     }
 }

@@ -183,4 +183,16 @@ class ResultRepository implements IResultRepository
         $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    public function deleteResult(int $responseId)
+    {
+        try {
+            $sql = "DELETE FROM result WHERE RID = :RID";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':RID' => $responseId]);
+            return $stmt->rowCount() > 0;
+        } catch (\PDOException $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode());
+        }
+    }
 }

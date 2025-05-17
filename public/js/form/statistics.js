@@ -27,7 +27,7 @@ async function setUpHandlers() {
     document.getElementById('export-pdf')?.addEventListener('click', handleExportPdf);
     document.getElementById('export-excel')?.addEventListener('click', handleExportExcel);
     document.getElementById('export-report')?.addEventListener('click', handleExportReport);
-    document.getElementById('export-csv')?.addEventListener('click', handleExportCsv);
+    document.getElementById('export-analysis')?.addEventListener('click', handleExportCsv);
 
 }
 
@@ -58,7 +58,7 @@ async function loadStatisticsData() {
         renderQuestionStatistics(statisticsData.questions || []);
 
         // Populate user dropdown
-        populateUserDropdown(statisticsData.users || []);
+        populateUserDropdown();
 
     } catch (error) {
         console.error("Error loading statistics data:", error);
@@ -201,12 +201,14 @@ const data = question.responses.map(r => r.count);
               // Replace canvas with a list element
               const listElement = document.createElement('div');
               listElement.className = 'list-group';
-
+              listElement.style.maxHeight = '300px';  // Match the chart height
+              listElement.style.overflowY = 'auto';   // Enable vertical scrolling
+              listElement.style.border = '1px solid #dee2e6';
               // Add each text response as a list item
               question.responses.forEach(r => {
                   const listItem = document.createElement('div');
                   listItem.className = 'list-group-item';
-                  listItem.textContent = r.answer.AContent;
+                  listItem.textContent = r.answer;
                   listElement.appendChild(listItem);
               });
 
@@ -249,79 +251,87 @@ const data = question.responses.map(r => r.count);
               };
           }
           break;
-        case 'GRID_MULTIPLE_CHOICE':
-        case 'GRID_CHECKBOX':
-            // Stacked bar chart for grid questions
-            chartType = 'bar';
+       case 'GRID_MULTIPLE_CHOICE':
+case 'GRID_CHECKBOX':
+    // Stacked bar chart for grid questions
+    chartType = 'bar';
 
-            // Restructure data for grid visualization
-            const gridData = {};
-            question.responses.forEach(r => {
-                const [row, col] = r.answer.split(' - ');
-                if (!gridData[row]) gridData[row] = {};
-                gridData[row][col] = r.count;
-            });
+    // Restructure data for grid visualization
+    const gridData = {};
+    question.responses.forEach(r => {
+        const [row, col] = r.answer.split(' - ');
+        if (!gridData[row]) gridData[row] = {};
+        gridData[row][col] = r.count;
+    });
 
-            const rows = [...new Set(question.responses.map(r => r.answer.split(' - ')[0]))];
-            const cols = [...new Set(question.responses.map(r => r.answer.split(' - ')[1]))];
+    const rows = [...new Set(question.responses.map(r => r.answer.split(' - ')[0]))];
+    const cols = [...new Set(question.responses.map(r => r.answer.split(' - ')[1]))];
 
-            // Generate different colors for each column
-            const columnColors = generateColors(cols.length);
+    // Check if any label exceeds 4 characters
+    const hasLongLabels = rows.some(row => row.length > 4);
 
-            const datasets = cols.map((col, index) => ({
-                label: col,
-                data: rows.map(row => gridData[row]?.[col] || 0),
-                backgroundColor: columnColors[index],
-                borderColor: columnColors[index].replace('0.7', '1'),
-                borderWidth: 1
-            }));
+    // Generate different colors for each column
+    const columnColors = generateColors(cols.length);
 
-            chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 15
-                        }
+    const datasets = cols.map((col, index) => ({
+        label: col,
+        data: rows.map(row => gridData[row]?.[col] || 0),
+        backgroundColor: columnColors[index],
+        borderColor: columnColors[index].replace('0.7', '1'),
+        borderWidth: 1
+    }));
+
+    chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    usePointStyle: true,
+                    padding: 15
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    title: function(context) {
+                        return `Hàng: ${rows[context[0].dataIndex]}`;
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.dataset.label;
-                                const value = context.raw;
-                                return `${label}: ${value}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        stacked: false,  // Changed to false to show columns side by side
-                        title: {
-                            display: true,
-                            text: 'Hàng',
-                            font: {
-                                weight: 'bold'
-                            }
-                        }
-                    },
-                    y: {
-                        stacked: false,  // Changed to false to show columns side by side
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Số lượng',
-                            font: {
-                                weight: 'bold'
-                            }
-                        }
+                    label: function(context) {
+                        const label = context.dataset.label;
+                        const value = context.raw;
+                        return `${label}: ${value}`;
                     }
                 }
-            };
-
+            }
+        },
+        scales: {
+            x: {
+                stacked: false,
+                title: {
+                    display: true,
+                    text: 'Hàng',
+                    font: {
+                        weight: 'bold'
+                    }
+                },
+                ticks: {
+                    display: !hasLongLabels // Hide all labels if any are too long
+                }
+            },
+            y: {
+                stacked: false,
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Số lượng',
+                    font: {
+                        weight: 'bold'
+                    }
+                }
+            }
+        }
+    };
             // Create chart with restructured data
             new Chart(document.getElementById(canvasId), {
                 type: chartType,
@@ -363,7 +373,15 @@ function generateColors(count) {
     return colors;
 }
 
-function populateUserDropdown(users) {
+async function populateUserDropdown(users) {
+
+    const response = await callApi(`/admin/form/${formId}/responses/user`, 'GET');
+    if (!response.status) {
+        showError(response.message || "Không thể tải danh sách người dùng");
+        return;
+    }
+    users = response.data || [];
+
     const dropdown = document.getElementById('user-response-select');
     if (!dropdown) return;
 
@@ -375,70 +393,72 @@ function populateUserDropdown(users) {
         option.disabled = true;
         option.textContent = "Không có người dùng nào";
         dropdown.appendChild(option);
+        //Test option
+
         return;
     }
 
     users.forEach(user => {
         const option = document.createElement('option');
-        option.value = user.id;
-        option.textContent = `${user.name} (${user.email})`;
+        option.value = user.RID;
+        option.textContent = `${user.fullName} (${user.email})`;
         dropdown.appendChild(option);
     });
 }
 
-async function loadUserResponses(userId) {
-    try {
-        const container = document.getElementById('individual-response-container');
-        container.innerHTML = `
-            <div class="text-center my-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Đang tải...</span>
-                </div>
-            </div>
-        `;
-
-        const result = await callApi(`/admin/form/${formId}/responses/${userId}`, 'GET');
-
-        if (!result.status) {
-            container.innerHTML = `<div class="alert alert-danger">${result.message || "Không thể tải câu trả lời"}</div>`;
-            return;
-        }
-
-        const responses = result.data;
-
-        if (!responses || responses.length === 0) {
-            container.innerHTML = '<div class="alert alert-info">Không có câu trả lời nào</div>';
-            return;
-        }
-
-        container.innerHTML = '';
-        const responseList = document.createElement('div');
-        responseList.className = 'list-group';
-
-        responses.forEach(response => {
-            const item = document.createElement('div');
-            item.className = 'list-group-item';
-
-            const question = document.createElement('h6');
-            question.textContent = response.question;
-            item.appendChild(question);
-
-            const answer = document.createElement('p');
-            answer.className = 'mb-1';
-            answer.textContent = response.answer || '[Không có câu trả lời]';
-            item.appendChild(answer);
-
-            responseList.appendChild(item);
-        });
-
-        container.appendChild(responseList);
-
-    } catch (error) {
-        console.error("Error loading user responses:", error);
-        document.getElementById('individual-response-container').innerHTML =
-            `<div class="alert alert-danger">Đã xảy ra lỗi khi tải câu trả lời</div>`;
-    }
-}
+// async function loadUserResponses(userId) {
+//     try {
+//         const container = document.getElementById('individual-response-container');
+//         container.innerHTML = `
+//             <div class="text-center my-5">
+//                 <div class="spinner-border text-primary" role="status">
+//                     <span class="visually-hidden">Đang tải...</span>
+//                 </div>
+//             </div>
+//         `;
+//
+//         const result = await callApi(`/admin/form/${formId}/responses/${userId}`, 'GET');
+//
+//         if (!result.status) {
+//             container.innerHTML = `<div class="alert alert-danger">${result.message || "Không thể tải câu trả lời"}</div>`;
+//             return;
+//         }
+//
+//         const responses = result.data;
+//
+//         if (!responses || responses.length === 0) {
+//             container.innerHTML = '<div class="alert alert-info">Không có câu trả lời nào</div>';
+//             return;
+//         }
+//
+//         container.innerHTML = '';
+//         const responseList = document.createElement('div');
+//         responseList.className = 'list-group';
+//
+//         responses.forEach(response => {
+//             const item = document.createElement('div');
+//             item.className = 'list-group-item';
+//
+//             const question = document.createElement('h6');
+//             question.textContent = response.question;
+//             item.appendChild(question);
+//
+//             const answer = document.createElement('p');
+//             answer.className = 'mb-1';
+//             answer.textContent = response.answer || '[Không có câu trả lời]';
+//             item.appendChild(answer);
+//
+//             responseList.appendChild(item);
+//         });
+//
+//         container.appendChild(responseList);
+//
+//     } catch (error) {
+//         console.error("Error loading user responses:", error);
+//         document.getElementById('individual-response-container').innerHTML =
+//             `<div class="alert alert-danger">Đã xảy ra lỗi khi tải câu trả lời</div>`;
+//     }
+// }
 
 async function deleteUserResponse(userId) {
     try {
@@ -465,7 +485,7 @@ async function deleteUserResponse(userId) {
         if (!apiResult.status) {
             showError(apiResult.message || "Không thể xóa câu trả lời");
             deleteBtn.disabled = false;
-            deleteBtn.innerHTML = originalText;
+            deleteBtn.innerHTML = " Xoá";
             return;
         }
 
@@ -562,10 +582,10 @@ function setupEventListeners() {
     // User selection dropdown handler
     const userSelect = document.getElementById('user-response-select');
     if (userSelect) {
-        userSelect.addEventListener('change', function() {
+        userSelect.addEventListener('change', async function () {
             if (this.value && this.value !== 'disabled') {
                 document.getElementById('delete-response').removeAttribute('disabled');
-                loadUserResponses(this.value);
+                await loadUserResponses(this.value);
             } else {
                 document.getElementById('delete-response').setAttribute('disabled', 'disabled');
                 document.getElementById('individual-response-container').innerHTML =
@@ -595,16 +615,17 @@ function setupEventListeners() {
 }
 function handleExportPdf(event) {
     // Import the ExportPdfModal dynamically
-    import('../modal/ExportPdfModal.js')
-        .then(module => {
-            const ExportPdfModal = module.default;
-            const modal = new ExportPdfModal({});
-            modal.open(formId, null);
-        })
-        .catch(error => {
-            console.error("Error loading ExportPdfModal:", error);
-            showError("Không thể tải modal xuất PDF");
-        });
+    // import('../modal/ExportPdfModal.js')
+    //     .then(async module => {
+    //         const ExportPdfModal = module.default;
+    //         const modal = new ExportPdfModal({});
+    //         await modal.open(formId, null);
+    //     })
+    //     .catch(error => {
+    //         console.error("Error loading ExportPdfModal:", error);
+    //         showError("Không thể tải modal xuất PDF");
+    //     });
+    showError("Chức năng đang được phát triển, vui lòng thử lại sau");
 }
 
 /**
@@ -619,6 +640,8 @@ function handleExportExcel(event) {
     // 4. Handle response and trigger download
     // 5. Show success/error notification
     console.log('Export to Excel clicked');
+    showError("Chức năng đang được phát triển, vui lòng thử lại sau");
+
 }
 
 /**
@@ -633,6 +656,8 @@ function handleExportReport(event) {
     // 4. Handle response and trigger download
     // 5. Show success/error notification
     console.log('Export to Report clicked');
+    showError("Chức năng đang được phát triển, vui lòng thử lại sau");
+
 }
 
 /**
@@ -647,6 +672,8 @@ function handleExportCsv(event) {
     // 4. Handle response and trigger download
     // 5. Show success/error notification
     console.log('Export to CSV clicked');
+    showError("Chức năng đang được phát triển, vui lòng thử lại sau");
+
 }
 
 /**
@@ -675,7 +702,518 @@ function showExportLoading(exportType) {
 function triggerFileDownload(blob, filename) {
     // TODO: Implement file download logic
 }
+async function loadUserResponses(resultId) {
+    try {
+        const container = document.getElementById('individual-response-container');
+        // Show loading spinner
+        container.innerHTML = `
+            <div class="text-center my-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+            </div>
+        `;
 
+        // Fetch user responses with API call
+        const result = await callApi(`/form/${formId}/responses/${resultId}`, 'GET');
+        if (!result.status) {
+            container.innerHTML = `<div class="alert alert-danger">${result.message || "Không thể tải câu trả lời"}</div>`;
+            return;
+        }
+
+        // Process the data
+        const formData = result.data.form;
+        const answers = result.data.answers;
+
+        if (!formData || !answers || answers.length === 0) {
+            container.innerHTML = '<div class="alert alert-info">Không có dữ liệu câu trả lời</div>';
+            return;
+        }
+
+        // Create form container
+        const form = document.createElement('form');
+        form.id = 'user-response-form';
+        form.id = 'user-response-form';
+        form.className = 'needs-validation user-response-preview';
+
+        // Add form header with user info
+        const userName = answers.find(a => a.QContent === "Họ và tên")?.AContent || "Không xác định";
+        const formHeader = document.createElement('div');
+        formHeader.className = 'text-center mb-4';
+        formHeader.innerHTML = `
+            <h2 class="fw-bold text-primary">${formData.FName || 'Khảo sát'}</h2>
+            <p class="text-muted">Người trả lời: ${userName}</p>
+            <hr>
+        `;
+        form.appendChild(formHeader);
+
+        // Group questions by their parent ID to reconstruct grid questions
+        const questionsByParent = {};
+        // Extract grid rows and columns directly from question's children array
+        formData.questions.forEach(q => {
+            if (q.QTypeID === 'GRID_MULTIPLE_CHOICE' || q.QTypeID === 'GRID_CHECKBOX') {
+                // Initialize grid structure
+                questionsByParent[q.QID] = {
+                    id: q.QID,
+                    content: q.QContent,
+                    type: q.QTypeID,
+                    rows: [],
+                    columns: []
+                };
+
+                // Extract rows and columns directly from children
+                if (q.children && Array.isArray(q.children)) {
+                    q.children.forEach(child => {
+                        if (child.QTypeID === 'GRID_MC_ROW' || child.QTypeID === 'GRID_CHECKBOX_ROW') {
+                            questionsByParent[q.QID].rows.push({
+                                id: child.QID,
+                                content: child.QContent
+                            });
+                        } else if (child.QTypeID === 'GRID_MC_COLUMN' || child.QTypeID === 'GRID_CHECKBOX_COLUMN') {
+                            questionsByParent[q.QID].columns.push({
+                                id: child.QID,
+                                content: child.QContent
+                            });
+                        }
+                    });
+                }
+            }
+        });
+
+
+        // Process and render questions
+        let questionIndex = 0;
+        for (const question of formData.questions) {
+            // Skip child questions (grid rows/columns) as they'll be handled within their parent
+            if (question.QParent !== null && 
+               (question.QTypeID === 'GRID_MC_ROW' || 
+                question.QTypeID === 'GRID_MC_COLUMN' ||
+                question.QTypeID === 'GRID_CB_ROW' ||
+                question.QTypeID === 'GRID_CB_COLUMN' ||
+                question.QTypeID === 'DROPDOWN_OPTION' ||
+                question.QTypeID === 'DESCRIPTION')) {
+                continue;
+            }
+            
+            // Skip SUBTITLE and DESCRIPTION types
+            if (question.QTypeID === 'SUBTITLE' || question.QTypeID === 'DESCRIPTION') {
+                // Only render subtitle (not as a question)
+                const subtitleDiv = document.createElement('div');
+                subtitleDiv.className = 'mb-4';
+                const titleElement = document.createElement('h5');
+                titleElement.className = 'text-primary';
+                titleElement.innerHTML = formatContentLineBreaks(question.QContent);
+                subtitleDiv.appendChild(titleElement);
+                form.appendChild(subtitleDiv);
+                continue;
+            }
+            
+            questionIndex++;
+
+            // Create question container
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'mb-4 question-container';
+
+            // Add question title
+            const questionTitle = document.createElement('h5');
+            questionTitle.className = 'mb-3';
+            questionTitle.textContent = `${questionIndex}. ${question.QContent}`;
+            if (question.isDeleted === 1) {
+                const deletedLabel = document.createElement('span');
+                deletedLabel.textContent = ' đã xoá';
+                deletedLabel.className = 'ms-2 badge bg-danger rounded-pill';
+                questionTitle.appendChild(deletedLabel);
+            }
+            questionDiv.appendChild(questionTitle);
+
+            // Find answer for this question
+            const answer = answers.find(a => a.QID === question.QID.toString());
+            
+            // Render different question types with answers
+            switch (question.QTypeID) {
+                case 'SHORT_TEXT':
+                case 'LONG_TEXT':
+                    questionDiv.appendChild(renderUserTextAnswer(question, answer));
+                    break;
+                case 'DROPDOWN':
+                    questionDiv.appendChild(renderUserDropdown(question, answer));
+                    break;
+                case 'MULTIPLE_CHOICE':
+                    questionDiv.appendChild(renderUserMC(question, answer));
+                    break;
+                case 'CHECKBOX':
+                    questionDiv.appendChild(renderUserCheckbox(question, answer));
+                    break;
+                case 'GRID_MULTIPLE_CHOICE':
+                    questionDiv.appendChild(renderUserGridMC(question, answers, questionsByParent[question.QID]));
+                    break;
+                case 'GRID_CHECKBOX':
+                    questionDiv.appendChild(renderUserGridCB(question, answers, questionsByParent[question.QID]));
+                    break;
+                default:
+                    questionDiv.innerHTML += `<div class="alert alert-light">Loại câu hỏi ${question.QTypeID} chưa được hỗ trợ</div>`;
+            }
+
+            form.appendChild(questionDiv);
+        }
+
+        container.innerHTML = '';
+        container.appendChild(form);
+
+        // Enable delete button
+        document.getElementById('delete-response').removeAttribute('disabled');
+
+    } catch (error) {
+        console.error("Error loading user responses:", error);
+        document.getElementById('individual-response-container').innerHTML =
+            `<div class="alert alert-danger">Đã xảy ra lỗi khi tải câu trả lời: ${error.message}</div>`;
+    }
+}
+function formatContentLineBreaks(text) {
+    if (!text) return '';
+
+    // First handle explicit \n characters (from plain text)
+    text = text.replace(/\n/g, '<br>');
+
+    // Also handle consecutive <div> elements that should be displayed with line breaks
+    text = text.replace(/<\/div><div>/g, '</div><br><div>');
+
+    return text;
+}
+function renderUserMC(question, answer) {
+    const container = document.createElement('div');
+
+    // Get the selected option value
+    let userSelection = answer ? answer.AContent : '';
+
+    // Get multiple choice options
+    const options = question.children.filter(option => option.QTypeID !== "ANOTHER_OPTION") || [];
+    const otherOption = question.children.find(option => option.QTypeID === "ANOTHER_OPTION");
+
+    // Check if the answer is a custom "other" answer
+    let isCustomAnswer = false;
+    let customText = '';
+
+    // If the answer exists but doesn't match any predefined options, it's likely a custom answer
+    if (userSelection && options.every(option => option.QContent !== userSelection)) {
+        isCustomAnswer = true;
+        customText = userSelection;
+    }
+
+    // Render the standard options
+    options.forEach((option, index) => {
+        const isSelected = userSelection === option.QContent;
+
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'form-check';
+        optionDiv.innerHTML = `
+            <input class="form-check-input" type="radio" 
+                   id="user_mc_${question.QID}_${index}"
+                   ${isSelected ? 'checked' : ''} disabled>
+            <label class="form-check-label" for="user_mc_${question.QID}_${index}">
+                ${option.QContent}
+            </label>
+        `;
+
+        container.appendChild(optionDiv);
+    });
+
+    // Render the "other" option if it exists
+    if (otherOption) {
+        const otherDiv = document.createElement('div');
+        otherDiv.className = 'form-check d-flex align-items-center mt-2';
+        otherDiv.innerHTML = `
+            <input class="form-check-input" type="radio" 
+                   id="user_mc_${question.QID}_other"
+                   ${isCustomAnswer ? 'checked' : ''} disabled>
+            <label class="form-check-label ms-2" for="user_mc_${question.QID}_other">
+                ${otherOption.QContent}
+            </label>
+            ${isCustomAnswer ? `
+            <input type="text" class="form-control ms-2" 
+                   value="${customText}" 
+                   style="max-width: 300px;" disabled>
+            ` : ''}
+        `;
+
+        container.appendChild(otherDiv);
+    }
+
+    return container;
+}
+// Helper functions for rendering different question types
+function renderUserTextAnswer(question, answer) {
+    const container = document.createElement('div');
+    const value = answer ? answer.AContent : '';
+    
+    if (question.QTypeID === 'LONG_TEXT') {
+        container.innerHTML = `<textarea class="form-control mt-2" rows="3" disabled>${value}</textarea>`;
+    } else {
+        container.innerHTML = `<input type="text" class="form-control mt-2" value="${value}" disabled>`;
+    }
+    return container;
+}
+
+function renderUserDropdown(question, answer) {
+    const container = document.createElement('div');
+    const userSelectedOption = answer ? answer.AContent : '';
+    
+    // Get dropdown options
+    const options = question.children || [];
+    
+    const selectElement = document.createElement('select');
+    selectElement.className = 'form-select mt-2';
+    selectElement.disabled = true;
+    
+    // Add empty option
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = '-- Chọn --';
+    if (!userSelectedOption) emptyOption.selected = true;
+    selectElement.appendChild(emptyOption);
+    
+    // Add all options
+    options.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option.QContent;
+        optionElement.textContent = option.QContent;
+        if (userSelectedOption === option.QContent) {
+            optionElement.selected = true;
+        }
+        selectElement.appendChild(optionElement);
+    });
+    
+    container.appendChild(selectElement);
+    return container;
+}
+
+function renderUserCheckbox(question, answer) {
+    const container = document.createElement('div');
+    let userSelectedOptions = [];
+    let customValues = [];
+
+    if (answer && answer.AContent) {
+        try {
+            // Try to parse as JSON first
+            const parsedContent = JSON.parse(answer.AContent);
+            // Check if it's an array directly or has an array property
+            if (Array.isArray(parsedContent)) {
+                userSelectedOptions = parsedContent;
+            } else if (parsedContent.columns && Array.isArray(parsedContent.columns)) {
+                userSelectedOptions = parsedContent.columns;
+            }
+        } catch (e) {
+            // Fallback to string split if not valid JSON
+            userSelectedOptions = answer.AContent.split(',').map(a => a.trim());
+        }
+    }
+
+    // Get checkbox options
+    const options = question.children.filter(option => option.QTypeID !== "ANOTHER_OPTION") || [];
+    const otherOption = question.children.find(option => option.QTypeID === "ANOTHER_OPTION");
+
+    // Find custom values (values not matching any standard option)
+    if (userSelectedOptions.length > 0) {
+        const standardOptions = options.map(opt => opt.QContent);
+        customValues = userSelectedOptions.filter(val => !standardOptions.includes(val));
+    }
+
+    // Render standard options
+    options.forEach((option, index) => {
+        const isSelected = userSelectedOptions.includes(option.QContent);
+
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'form-check mt-2';
+        optionDiv.innerHTML = `
+            <input class="form-check-input" type="checkbox" id="user_checkbox_${question.QID}_${index}" 
+                   ${isSelected ? 'checked' : ''} disabled>
+            <label class="form-check-label" for="user_checkbox_${question.QID}_${index}">
+                ${option.QContent}
+            </label>
+        `;
+
+        container.appendChild(optionDiv);
+    });
+
+    // Render the "other" option if it exists
+    if (otherOption && customValues.length > 0) {
+        const otherDiv = document.createElement('div');
+        otherDiv.className = 'form-check d-flex align-items-center mt-2';
+        otherDiv.innerHTML = `
+            <input class="form-check-input" type="checkbox"
+                   id="user_checkbox_${question.QID}_other"
+                   checked disabled>
+            <label class="form-check-label ms-2" for="user_checkbox_${question.QID}_other">
+                ${otherOption.QContent}
+            </label>
+            <input type="text" class="form-control ms-2"
+                   value="${customValues.join(', ')}"
+                   style="max-width: 300px;" disabled>
+        `;
+
+        container.appendChild(otherDiv);
+    } else if (otherOption) {
+        const otherDiv = document.createElement('div');
+        otherDiv.className = 'form-check d-flex align-items-center mt-2';
+        otherDiv.innerHTML = `
+            <input class="form-check-input" type="checkbox"
+                   id="user_checkbox_${question.QID}_other"
+                   disabled>
+            <label class="form-check-label ms-2" for="user_checkbox_${question.QID}_other">
+                ${otherOption.QContent}
+            </label>
+        `;
+
+        container.appendChild(otherDiv);
+    }
+
+    return container;
+}
+function renderUserGridCB(question, allAnswers, gridData) {
+    const container = document.createElement('div');
+    console.log('Question:', gridData);
+
+    if (!gridData || !gridData.rows || !gridData.columns) {
+        container.innerHTML = '<div class="alert alert-warning">Dữ liệu câu hỏi lưới không đầy đủ</div>';
+        return container;
+    }
+
+    // Find all answers for this grid's rows
+    const gridAnswers = allAnswers.filter(answer => {
+        return gridData.rows.some(row => row.id.toString() === answer.QID);
+    });
+
+    // Create a map of selected values
+    const userSelections = {};
+    gridAnswers.forEach(answer => {
+        try {
+            // Parse JSON content
+            if (answer.AContent) {
+                const parsedContent = JSON.parse(answer.AContent);
+                userSelections[answer.QID] = {
+                    row: parsedContent.row,
+                    columns: parsedContent.columns || [] // Array of selected columns
+                };
+            }
+        } catch (e) {
+            console.error('Error parsing grid answer:', e);
+        }
+    });
+
+    // Create grid table
+    container.innerHTML = `
+        <div class="table-responsive mt-3">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="bg-light"></th>
+                        ${gridData.columns.map(column =>
+                            `<th scope="col" class="text-center">${column.content}</th>`
+                        ).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${gridData.rows.map(row => {
+                        // Find answer for this row
+                        const rowId = row.id.toString();
+                        const rowAnswer = userSelections[rowId];
+                        const selectedColumns = rowAnswer ? rowAnswer.columns : [];
+
+                        return `
+                            <tr>
+                                <th scope="row" class="align-middle">${row.content}</th>
+                                ${gridData.columns.map(column => {
+                                    const isSelected = selectedColumns.includes(column.content);
+                                    return `
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input"
+                                                ${isSelected ? 'checked' : ''} disabled>
+                                        </td>
+                                    `;
+                                }).join('')}
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    return container;
+}
+function renderUserGridMC(question, allAnswers, gridData) {
+    const container = document.createElement('div');
+    
+    if (!gridData || !gridData.rows || !gridData.columns) {
+        container.innerHTML = '<div class="alert alert-warning">Dữ liệu câu hỏi lưới không đầy đủ</div>';
+        return container;
+    }
+    
+    // Find all answers for this grid's rows
+    const gridAnswers = allAnswers.filter(answer => {
+        return gridData.rows.some(row => row.id.toString() === answer.QID);
+    });
+    
+    // Create a map of selected values
+    const userSelections = {};
+    gridAnswers.forEach(answer => {
+        try {
+            // Parse JSON content
+            if (answer.AContent) {
+                const parsedContent = JSON.parse(answer.AContent);
+                userSelections[answer.QID] = {
+                    row: parsedContent.row,
+                    column: parsedContent.column
+                };
+            }
+        } catch (e) {
+            console.error('Error parsing grid answer:', e);
+        }
+    });
+    
+    // Create grid table
+    container.innerHTML = `
+        <div class="table-responsive mt-3">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="bg-light"></th>
+                        ${gridData.columns.map(column => 
+                            `<th scope="col" class="text-center">${column.content}</th>`
+                        ).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${gridData.rows.map(row => {
+                        // Find answer for this row
+                        const rowId = row.id.toString();
+                        const rowAnswer = userSelections[rowId];
+                        const selectedColumn = rowAnswer ? rowAnswer.column : null;
+                        
+                        return `
+                            <tr>
+                                <th scope="row" class="align-middle">${row.content}</th>
+                                ${gridData.columns.map(column => {
+                                    const isSelected = selectedColumn === column.content;
+                                    const inputType = question.QTypeID === 'GRID_MULTIPLE_CHOICE' ? 'radio' : 'checkbox';
+                                    
+                                    return `
+                                        <td class="text-center">
+                                            <input type="${inputType}" class="form-check-input" 
+                                                ${isSelected ? 'checked' : ''} disabled>
+                                        </td>
+                                    `;
+                                }).join('')}
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    return container;
+}
 
 function showError(message) {
     Swal.fire({

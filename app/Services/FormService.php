@@ -173,6 +173,8 @@ public function update($id, $data)
                 // Chuẩn hóa hai phiên bản (loại bỏ các trường index) để so sánh nội dung cốt lõi
                 $oldNormalized = $this->normalizeForComparison($oldQ);
                 $newNormalized = $this->normalizeForComparison($newQ);
+                error_log("oldNormalized: " . $oldNormalized['QContent']);
+                error_log("newNormalized: " . $newNormalized['QContent']);
 
                 // So sánh các phiên bản chuẩn hóa
                 if ($oldNormalized === $newNormalized) {
@@ -213,12 +215,35 @@ public function update($id, $data)
         // Handle removed questions
         foreach ($tempDeleteList as $delQ) {
             // Example: if hasAnswers -> softDelete, else -> delete
+            error_log("delQ: " . $delQ['QContent'] . " - QID: " . $delQ['QID'] . " - QTypeID: " . $delQ['QTypeID']);
             // Implementation depends on your repository
+        // For grid questions, check if any children have answers too
+        if ($delQ['QTypeID'] === "GRID_MULTIPLE_CHOICE" || $delQ['QTypeID'] === "GRID_CHECKBOX") {
+            $hasAnswers = $this->questionRepository->hasAnswers($delQ['QID']);
+
+            // Check answers in grid children
+            if (!empty($delQ['children']) && !$hasAnswers) {
+                foreach ($delQ['children'] as $child) {
+                    if (isset($child['QID']) && $this->questionRepository->hasAnswers($child['QID'])) {
+                        $hasAnswers = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($hasAnswers) {
+                $this->questionRepository->softDelete($delQ['QID'], $pdo);
+            } else {
+                $this->questionRepository->delete($delQ['QID'], $pdo);
+            }
+        } else {
+            // Original logic for non-grid questions
             if ($this->questionRepository->hasAnswers($delQ['QID'])) {
                 $this->questionRepository->softDelete($delQ['QID'], $pdo);
             } else {
                 $this->questionRepository->delete($delQ['QID'], $pdo);
             }
+        }
         }
         // Commit on success
         $pdo->commit();
@@ -260,7 +285,7 @@ public function update($id, $data)
 function normalizeForComparison($question) {
     $normalized = [
         'QID' => isset($question['QID']) ? (int)$question['QID'] : '',
-        'QContent' => $question['QContent'] ?? '',
+        'QContent' => isset($question['QContent']) ? trim($question['QContent']) : '',
         'QTypeID' => $question['QTypeID'] ?? '',
         'children' => []
     ];
@@ -268,7 +293,7 @@ function normalizeForComparison($question) {
     if (!empty($question['children']) && is_array($question['children'])) {
         foreach ($question['children'] as $child) {
             $normalized['children'][] = [
-                'QContent' => $child['QContent'] ?? '',
+                'QContent' => isset($child['QContent']) ? trim($child['QContent']) : '',
                 'QTypeID' => $child['QTypeID'] ?? '',
                 'QID' => isset($child['QID']) ? (int)$child['QID'] : '',
             ];

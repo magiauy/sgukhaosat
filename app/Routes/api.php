@@ -337,6 +337,39 @@ $resultStatisticController = new ResultStatisticController();
             JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", fn($req, $res) => $answerController->getAnswerStatistics($res, $req))
         , ['formId', 'questionId']);
 
+        $router->get('/api/form/{formId}/responses/{responseId}', function($params) use ($request, $response, $resultController) {
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", function($req, $res) use ($params, $resultController) {
+                $formId = (int) $params['formId'];
+                $responseId = (int) $params['responseId'];
+                $resultController->getFormResponse($res, $formId, $responseId);
+            });
+        });
+        $router->get('/api/admin/form/{formId}/responses/user', function($params) use ($request, $response, $resultController) {
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", function($req, $res) use ($params, $resultController) {
+                $formId = (int) $params['formId'];
+                $resultController->getUserResponses($res, $req, $formId);
+            });
+        });
+        $router->delete('/api/admin/form/{formId}/responses/{responseId}', function($params) use ($request, $response, $resultController) {
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", function($req, $res) use ($params, $resultController) {
+                $formId = (int) $params['formId'];
+                $responseId = (int) $params['responseId'];
+                $resultController->deleteResult($res,$req,$responseId);
+            });
+        });
+        $router->post('/api/statistic/form/{formId}/questions-ratings', function($params) use ($request, $response, $resultStatisticController) {
+            $formId = (int) $params['formId'];
+
+            JwtMiddleware::authenticate($request, $response, "MANAGE_RESULTS", function($req, $res) use ($formId, $resultStatisticController) {
+                // Get the question IDs from the request body
+                $requestData = $req->getBody();
+                $questionIds = $requestData['questionId'] ?? [];
+                error_log("Question IDs: " . json_encode($questionIds));
+                // Call the controller method to get ratings for the questions
+                $resultStatisticController->getQuestionsRatings($res, $formId, $questionIds);
+            });
+        });
+
         // Statistics APIs
         $statisticsController = new \Controllers\StatisticsController();
         // $router->get('/api/statistics/overview', fn() =>

@@ -54,7 +54,7 @@ function convertHTMLQuestionToJsonData(){
         const isRequired = requiredCheckbox ? (requiredCheckbox.checked ? 1 : 0) : 0;
         const question = {
             QID: questionItem.id.replace('q', ''),
-            QContent: questionItem.querySelector('.editable-content').innerText,
+            QContent: questionItem.querySelector('.editable-content').innerHTML.trim().replace(/^[\n\r]+|[\n\r]+$/g, ''),
             QTypeID: type,
             QIndex: questionIndex.toString(),
             QRequired: isRequired,

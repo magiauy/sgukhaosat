@@ -32,4 +32,22 @@ class ResultStatisticController
         }
     }
 
+    public function getQuestionsRatings(Response $res, int $formId, int $questionIds)
+    {
+        try {
+            $ratings = $this->resultStatisticService->getQuestionsRatings($formId, $questionIds);
+            $res->json([
+                'status' => true,
+                'data' => $ratings,
+                'message' => 'Ratings fetched successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            return [
+                'status' => false,
+                'message' => 'Error fetching ratings: ' . $e->getMessage()
+            ];
+        }
+    }
+
 }

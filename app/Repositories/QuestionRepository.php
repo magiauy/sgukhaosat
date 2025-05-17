@@ -259,4 +259,40 @@ class QuestionRepository implements IQuestionRepository
         $stmt->execute([':formId' => $formId]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    public function getByFormIDForStatistic(int $formId)
+    {
+        try {
+            $sql = "SELECT * FROM question WHERE FID = :FID";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':FID' => $formId]);
+            $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);// Tạo danh sách cây câu hỏi
+            foreach ($questions as &$question) {
+                $question['QID'] = (int)$question['QID'];
+                $question['FID'] = (int)$question['FID'];
+                $question['QIndex'] = (int)$question['QIndex'];
+                $question['QParent'] = $question['QParent'] !== null ? (int)$question['QParent'] : null;
+                $question['QRequired'] = (int)$question['QRequired'];
+                $question['isDeleted'] = (int)$question['isDeleted'];
+                // Cast any other integer fields as needed
+            }
+            // error_log("da chay toi dayyyyyyyyyyy");
+            // error_log("questions: " . json_encode($questions));
+            return $this->buildQuestionTree($questions);
+        } catch (Exception $e) {
+            throw new \Exception("Lỗi khi lấy câu hỏi: " . $e->getMessage(), 500);
+        }
+    }
+
+    public function getChildren(int $questionId)
+    {
+        try {
+            $sql = "SELECT * FROM question WHERE QParent = :QParent";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':QParent' => $questionId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), 500);
+        }
+    }
 }

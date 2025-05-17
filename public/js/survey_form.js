@@ -97,7 +97,18 @@ function displayFormDetails(form) {
         statusBadge.textContent = 'Inactive';
     }
 }
+function formatContentLineBreaks(text) {
+    console.log('formatContentLineBreaks', text);
+    if (!text) return '';
 
+    // First handle explicit \n characters (from plain text)
+    text = text.replace(/\n/g, '<br>');
+
+    // Also handle consecutive <div> elements that should be displayed with line breaks
+    text = text.replace(/<\/div><div>/g, '</div><br><div>');
+    console.log('After replacing <div> elements:', text);
+    return text;
+}
 /**
  * Render survey questions based on their type
  */
@@ -129,9 +140,9 @@ function renderQuestions(questions) {
              
             const subtitle = document.createElement('div');
             subtitle.className = 'mb-4 mt-4';
-            subtitle.innerHTML = `
-                <h4 class="border-bottom pb-2">${question.QContent || 'Section'}</h4>
-            `;
+            const titleElement = document.createElement('h4');
+            titleElement.innerHTML = formatContentLineBreaks(question.QContent);
+            subtitle.appendChild(titleElement)
             
              
             const description = question.children.find(child => child.QTypeID === 'DESCRIPTION');

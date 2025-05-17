@@ -326,7 +326,18 @@ function showError(message) {
     
     errorDiv.scrollIntoView({ bhavior: 'smooth' });
 }
+function formatContentLineBreaks(text) {
+    console.log('formatContentLineBreaks', text);
+    if (!text) return '';
 
+    // First handle explicit \n characters (from plain text)
+    text = text.replace(/\n/g, '<br>');
+
+    // Also handle consecutive <div> elements that should be displayed with line breaks
+    text = text.replace(/<\/div><div>/g, '</div><br><div>');
+    console.log('After replacing <div> elements:', text);
+    return text;
+}
 
 function renderQuestion(question) {
     // console.log('Rendering question:', question);
@@ -335,7 +346,7 @@ function renderQuestion(question) {
 
     let html = `
         <div class="card shadow-sm p-3 rounded question-item questionContainer" id="q${question.QID}" data-question-id="${question.QID}" data-question-type="${question.QTypeID}" >
-            <p class="fw-semibold">${question.QIndex}. ${question.QContent}${isRequired ? ' <span class="text-danger">*</span>' : ''}</p>
+            <p class="fw-semibold">${formatContentLineBreaks(question.QContent)}${isRequired ? ' <span class="text-danger">*</span>' : ''}</p>
     `;
     if (descriptionItem) {
         html += `

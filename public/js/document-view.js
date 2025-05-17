@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     } else {
         return; 
     }
-    
+        
     const tableHeader = document.querySelector('#documentTable thead tr');
     if (tableHeader) {
         if (tableHeader.querySelectorAll('th').length > 2) {
@@ -83,8 +83,8 @@ function renderDocuments(documents, offset) {
     }
     
     if (!documents || documents.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="2" class="text-center">Không tìm thấy tài liệu nào</td></tr>`;
-        return;
+        tableBody.innerHTML = `<tr><td colspan="4" class="text-center">Không tìm thấy tài liệu nào</td></tr>`;
+        return; 
     }
     
     let html = '';

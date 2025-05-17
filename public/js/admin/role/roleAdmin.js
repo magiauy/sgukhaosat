@@ -326,9 +326,8 @@ export async function renderTableRole(roles) {
         // Kiểm tra xem role này có trong danh sách đã chọn hay không
         const isChecked = selectedRoleIDs.has(role.roleID) ? 'checked' : '';
         let isCheckedCurrent = '';
-        if(indexCurrent === index){
-            isCheckedCurrent = 'disabled-row';
-        }
+        if(role.roleID !== roleIDCurrent){
+            
         tableBody.innerHTML += `
             <tr class="role-row ${isCheckedCurrent}">
                 <td class="ps-4">
@@ -369,6 +368,7 @@ export async function renderTableRole(roles) {
                 </td>
             </tr>
         `;
+        }
     });
 
     logicCheckbox();

@@ -60,8 +60,15 @@ class RoleService implements IBaseService
         try {
             $data['updated_at'] = date('Y-m-d H:i:s');
             $this->roleRepository->update($id, $data, $pdo);
+            error_log("Updapte role thành công ");
             $this->rolePermRepository->delete([$id], $pdo);
-            $this->rolePermRepository->create($data, $pdo); 
+            $arrPermID = array_values($data['permissionsCurrent']);
+            if(!empty($arrPermID)){
+                 $this->rolePermRepository->create($data, $pdo);
+                error_log("Tạo permission cho role thành công "); 
+            }
+            // error_log("Xóa permission của role thành công ");
+           
             $pdo->commit();
         } catch (\Throwable $th) {
             $pdo->rollBack();

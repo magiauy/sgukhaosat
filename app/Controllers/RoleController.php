@@ -64,12 +64,23 @@ class RoleController implements IBaseController{
         try {
             $id = $request->getParam('id');
             $role = $this->roleService->getById($id);
-            $response->json([
-                'message' => 'Successfully',
-                'data' => $role
-            ]);
+            if($role['role']){
+                $response->json([
+                    'message' => 'Successfully',
+                    'data' => $role,
+                    'status' => true
+                ]);
+            }
+            else{
+                $response->json([
+                    'message' => 'Không tồn tại vai trò',
+                    'status' => false
+                ], 200);
+            }
         }catch (\Throwable $th){
-            $response->json(['Error' => $th->getMessage()], $th->getCode());
+            $response->json(['Error' => $th->getMessage(),
+                'status' => false
+            ], $th->getCode());
         }
     }
 

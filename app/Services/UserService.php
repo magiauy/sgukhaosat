@@ -69,13 +69,11 @@ class UserService implements IAuthService
     //id là mảng
     public function delete($id): bool
     {
-        error_log("Xóa người dùng với ID: " . json_encode($id));
-
         if (empty($id)) {
             throw new \Exception("thiếu id", 400);
         }
         try {
-            $this->userRepository->delete($id['emails']);
+            $this->userRepository->delete($id);
             return true;
         } catch (\Throwable $th) {
             throw $th;
@@ -149,7 +147,6 @@ class UserService implements IAuthService
                 error_log(json_encode($user['refreshToken']));
                 unset($user['user']['password']);
 
-                // error_log("Login successful, returning user data" . json_encode($user));
                 return $user;
             }
 
@@ -456,9 +453,8 @@ class UserService implements IAuthService
             $accounts = $this->userRepository->getOnPagination($data);
             $roles = $this->roleRepo->getAll();
             foreach ($accounts as &$account) {
-                $account['status'] = (int)  $account['status'];
+                $account['status'] = (int) $account['status'];
                 foreach ($roles as $role) {
-                    
                     if ($account['roleID'] == $role['roleID']) {
                         $account['roleName'] = $role['roleName'];
                         break;

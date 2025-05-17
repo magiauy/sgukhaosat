@@ -39,7 +39,7 @@ class RoleController implements IBaseController{
     public function update(Response $response, Request $request){
         try {
            $data = $request->getBody();
-           error_log("Data: " . json_encode($data['roleID']));
+           error_log("Data: " . json_encode($data));
            $this->roleService->update($data['roleID'], $data); 
            $response->json(['message' => "Updated successfully"], 200);
         }catch (\Throwable $e){
@@ -53,12 +53,9 @@ class RoleController implements IBaseController{
             $data = $request->getBody();
             // var_dump($data);
             $this->roleService->delete($data);
-            $response->json([
-                'message: ' => 'Deleted successfully',
-                'status' => true,
-            ]);
+            $response->json(['message: ' => 'Deleted successfully']);
         }catch (\Throwable $e){
-            $response->json(['Lỗi ở controller' => $e->getMessage(), 500]);
+            $response->json(['error' => $e->getMessage()]);
         }
     }
 

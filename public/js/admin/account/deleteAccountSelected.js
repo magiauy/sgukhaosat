@@ -18,12 +18,9 @@ export function deleteAccountSelected(){
 
             if(confirmed) {
                 const emailsToDelete = Array.from(selectedAccountIDs);
-                const data = {
-                    emails: emailsToDelete
-                }
                 
                 try {
-                    const response = await callApi("/user", "DELETE", data);
+                    const response = await callApi("/user", "DELETE", emailsToDelete);
                     console.log(response);
                     selectedAccountIDs.clear(); // Xóa danh sách ID đã chọn
                     renderTableAccountOnPagination(0, 10);

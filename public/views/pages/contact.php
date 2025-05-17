@@ -20,7 +20,7 @@ require_once __DIR__ .'/../layouts/nav-bar.php'
 <!-- Main Content -->
 <div class="container contact-container" id="contact-form">
     <div class="row mb-5">
-        <div class="col-lg-8 mx-auto text-center p-5">
+        <div class="col-lg-8 mx-auto text-center">
             <h2 class="section-title">Gửi Thông Tin Liên Hệ</h2>
             <p class="lead">
                 Chúng tôi luôn sẵn sàng lắng nghe ý kiến đóng góp, giải đáp thắc mắc hoặc hỗ trợ bạn với mọi vấn đề liên quan đến hệ thống khảo sát của Đại học Sài Gòn.

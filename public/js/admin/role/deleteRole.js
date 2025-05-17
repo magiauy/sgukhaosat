@@ -9,11 +9,8 @@ export async function handleDeleteRole(){
         btn.onclick = async function(){
             let roleID = btn.getAttribute('data-code');
             // console.log(roleID);
-            const data = {
-                roleIds: [roleID]
-            }
             try {
-                let response = await callApi(`/role/id`, 'DELETE', data);
+                let response = await callApi(`/role/id`, 'DELETE', [roleID]);
                 console.log(response);
                 await renderTableOnPagination(0, 10);
                 selectedRoleIDs.delete(roleID);
@@ -33,12 +30,9 @@ export function handleDeleteSelectedRoles() {
         e.preventDefault();
         const selectedRoleIds = Array.from(document.querySelectorAll('.role-checkbox:checked'))
             .map(cb => cb.getAttribute('data-id'));
-        const data = {
-            roleIds: selectedRoleIds
-        }
         try {
             // console.log(selectedRoleIds);
-            let response = await callApi(`/role/id`, 'DELETE', data);
+            let response = await callApi(`/role/id`, 'DELETE', selectedRoleIds);
             console.log(response);
             await renderTableOnPagination(0, 10);
             showSwalToast("Xóa vai trò thành công!", "success");

@@ -15,12 +15,10 @@ class Role_PermRepository implements IBaseRepositoryTransaction
     
     function create($data, \PDO $pdo)
     {
-        // error_log("Create permission for role" . json_encode($data['roleID']) . json_encode($data['permissions']));
+        error_log(json_encode($data));
         $roleID = $data['roleID'];
-        $arrPermID = array_values($data['permissions']);
-        // error_log("array perm for role: " . $arrPermID);
-        foreach($arrPermID as $permID){
-            $arrValue[] = "('{$roleID}', '{$permID->permID}')";
+        foreach($data['permissions'] as $permID){
+            $arrValue[] = "('{$roleID}', '{$permID}')";
         }
         
         $valuesString = implode(", ", $arrValue);
@@ -37,7 +35,6 @@ class Role_PermRepository implements IBaseRepositoryTransaction
     //roleID là mảng
     function delete($id, \PDO $pdo)
     {
-        error_log("ID-Role-Perm-Delete: " . json_encode($id));
         $placeholders = implode(',', array_fill(0, count($id), '?'));
         $sql = "DELETE FROM role_permission WHERE roleID IN ($placeholders)";
         $stmt = $pdo->prepare($sql);

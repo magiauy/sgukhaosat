@@ -121,7 +121,7 @@ export default class ImportExcelAccount {
                                                             <tr>
                                                                 <th>Email</th>
                                                                 <th>Tên</th>
-                                                                <th>Chức vụ</th>
+                                                                <th>Vai trò</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="existingEmailsList">
@@ -249,11 +249,11 @@ export default class ImportExcelAccount {
         });
 
         // Click on drop zone should open file dialog
-        dropZone.onclick = (e) => {
+        dropZone.addEventListener('click', (e) => {
             if (e.target !== fileInput) {
                 fileInput.click();
             }
-        };
+        });
 
         // Remove selected file
         removeFileBtn.addEventListener('click', () => {
@@ -412,12 +412,12 @@ export default class ImportExcelAccount {
 
     translateRole(role) {
         const roles = {
-            '4': 'Sinh viên sắp ra trường',
-            '1': 'Cựu sinh viên',
-            '3': 'Giảng viên',
-     
-            '2': 'Doanh nghiệp'
-      
+            'student': 'Sinh viên',
+            'alumni': 'Cựu sinh viên',
+            'faculty': 'Giảng viên',
+            'staff': 'Nhân viên',
+            'business': 'Doanh nghiệp',
+            'guest': 'Khách mời'
         };
         return roles[role] || role;
     }

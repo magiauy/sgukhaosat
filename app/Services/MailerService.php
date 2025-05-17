@@ -62,8 +62,25 @@ class MailerService
             if ($user) {
                 $token = AuthHelper::generateLoginToken($user['email']);
                 // Lấy tên miền từ cấu hình
-                $domainService = require __DIR__ . '/../../Config/GetDomain.php';
-                $loginLink = $domainService['protocol']. $domainService['domain'] . "/form/".$id['id']."?auth={$token}";
+                // Option 1: Use absolute path with project root constant
+                $domainService = require_once __DIR__ . '/../../config/GetDomain.php'; // Note lowercase 'config'
+                $loginLink = $domainService['protocol'] . $domainService['domain'] . "/form/" . $id['id'] . "?auth={$token}";
+
+                // Option 2: Alternative approach with error handling
+                try {
+                    $configPath = __DIR__ . '/../../config/GetDomain.php';
+                    if (!file_exists($configPath)) {
+                        // Fallback to Config with capital C
+                        $configPath = __DIR__ . '/../../Config/GetDomain.php';
+                    }
+                    $domainService = require $configPath;
+                    $loginLink = $domainService['protocol'] . $domainService['domain'] . "/form/" . $id['id'] . "?auth={$token}";
+                } catch (\Exception $e) {
+                    // Fallback values if config can't be loaded
+                    $domainService = ['protocol' => 'https://', 'domain' => 'blueskydev.meowsmp.net'];
+                    $loginLink = $domainService['protocol'] . $domainService['domain'] . "/form/" . $id['id'] . "?auth={$token}";
+                    error_log("Failed to load domain config: " . $e->getMessage());
+                }
                 error_log(json_encode($loginLink));
 
                 // Xây dựng nội dung email

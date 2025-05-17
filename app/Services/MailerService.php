@@ -6,7 +6,7 @@ use Core\AuthHelper;
 use Repositories\FormRepository;
 use Repositories\MailerRepository;
 use Repositories\UserRepository;
-use Config\GetDomain;
+//use Config\GetDomain;
 use Repositories\WhitelistForm;
 
 class MailerService

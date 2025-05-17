@@ -77,7 +77,7 @@ class ResultService implements IResultService
             $questions = $this->questionRepository->getByFormID($formId);
             
             $requiredQuestions = [];
-            foreach ($questions as $question) {
+            foreach ($questions as $question) { 
                 if ($question['QRequired'] == 1) {
                     $requiredQuestions[$question['QID']] = $question;
                 }
@@ -137,7 +137,7 @@ class ResultService implements IResultService
             foreach ($answers as $answer) {
                 $processedAnswers[] = [
                     'QID' => $answer['QID'],
-                    'AContent' => is_array($answer['AContent']) ? json_encode($answer['AContent']) : $answer['AContent']
+                    'AContent' => is_array($answer['AContent']) ? json_encode($answer['AContent'], JSON_UNESCAPED_UNICODE) : $answer['AContent']
                 ];
             }
 

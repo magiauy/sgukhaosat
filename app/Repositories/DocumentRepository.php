@@ -108,13 +108,15 @@ class DocumentRepository {
             $totalCount = $countStmt->fetchColumn();
 
             // Get documents with pagination
-            $stmt = $this->pdo->prepare("SELECT * FROM document WHERE type = :type AND isDelete = FALSE ORDER BY createAt DESC LIMIT :limit OFFSET :offset");
+            $stmt = $this->pdo->prepare("SELECT * FROM document
+                                            WHERE type = :type AND isDelete = FALSE 
+                                            ORDER BY createAt DESC LIMIT :limit OFFSET :offset");
             $stmt->bindParam(':type', $type, PDO::PARAM_STR);
             $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
             $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();
             $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+            // error_log(json_encode($documents));
             return [
                 'documents' => $documents,
                 'totalCount' => $totalCount
@@ -138,7 +140,10 @@ class DocumentRepository {
     public function getFilesByDocumentId(int $documentId): array
     {
         try {
-            $stmt = $this->pdo->prepare("SELECT * FROM file WHERE id_Doc = :documentId AND isDelete = FALSE");
+            $stmt = $this->pdo->prepare("SELECT * FROM file
+
+                                        JOIN major ON file.id_major = major.MajorID
+                                        WHERE id_Doc = :documentId AND isDelete = FALSE");
             $stmt->bindParam(':documentId', $documentId, PDO::PARAM_INT);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);

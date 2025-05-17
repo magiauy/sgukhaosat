@@ -213,12 +213,17 @@ class ResultController implements IBaseController
             }
             
             $result = $this->resultService->submitSurvey($data['formId'], $data['userId'], $data['answers']);
-            
-            $response->json([
-                'status' => true,
-                'message' => 'Survey submitted successfully',
-                'data' => $result
-            ]);
+            if ($result['success'] === false) {
+                error_log("ResultController::submitSurvey - Error: " . json_encode($result));
+                throw new \Exception($result['message'], 400);
+            }
+            else {
+                $response->json([
+                    'status' => true,
+                    'message' => 'Survey submitted successfully',
+                    'data' => $result
+                ]);
+            }
         } catch (\Exception $e) {
             $response->json([
                 'status' => false,

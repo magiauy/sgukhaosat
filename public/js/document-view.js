@@ -15,6 +15,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     } else {
         return; 
     }
+    
+    const tableHeader = document.querySelector('#documentTable thead tr');
+    if (tableHeader) {
+        if (tableHeader.querySelectorAll('th').length > 2) {
+            tableHeader.innerHTML = `
+                <th>Tên tài liệu</th>
+                <th>Ngày tạo</th>
+            `;
+        }
+    }
+    
     // Phân trang
     const urlParams = new URLSearchParams(window.location.search);
     const currentPage = parseInt(urlParams.get('page')) || 1;
@@ -36,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async function() {
  */
 async function loadDocuments(type, page, limit) {
     try {
+
         const offset = (page - 1) * limit;
         const response = await fetch(`/api/document/type/${type}?page=${page}&limit=${limit}`);
         
@@ -64,33 +76,53 @@ async function loadDocuments(type, page, limit) {
  */
 function renderDocuments(documents, offset) {
     const tableBody = document.querySelector('#documentTableBody');
-    
+    console.log(documents);
     if (!tableBody) {
         console.error('Table body element not found');
         return;
     }
     
     if (!documents || documents.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="4" class="text-center">Không tìm thấy tài liệu nào</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="2" class="text-center">Không tìm thấy tài liệu nào</td></tr>`;
         return;
     }
     
     let html = '';
-    
     documents.forEach((doc, index) => {
+        const docId = `doc-${index}`; 
         html += `
             <tr>
-                <td>${offset + index + 1}</td>
-                <td>${escapeHtml(doc.title)}</td>
-                <td>${formatDate(doc.createAt)}</td>
                 <td>
-                    ${renderFileLinks(doc.files)}
+                    <a href="javascript:void(0)" class="document-title" data-doc-id="${docId}">
+                        ${escapeHtml(doc.title || `Tài liệu ${offset + index + 1}`)}
+                    </a>
+                    <div id="${docId}" class="document-content mt-2" style="display: none;">
+                        <!-- Content will be loaded here when title is clicked -->
+                    </div>
                 </td>
+                <td>${formatDate(doc.createAt)}</td>
             </tr>
         `;
     });
     
     tableBody.innerHTML = html;
+    const documentTitles = document.querySelectorAll('.document-title');
+    documentTitles.forEach((title, index) => {
+        title.addEventListener('click', () => {
+            const docId = title.getAttribute('data-doc-id');
+            const contentDiv = document.getElementById(docId);
+            
+            document.querySelectorAll('.document-content').forEach(div => {
+                if (div.id !== docId && div.style.display !== 'none') {
+                    div.style.display = 'none';
+                }
+            });
+            
+             renderDocumentContent(documents[index]);
+                
+               
+        });
+    });
 }
 
 /**
@@ -118,6 +150,42 @@ function renderFileLinks(files) {
     return html;
 }
 
+
+function renderDocumentContent(document) {
+    if (!document || !document.files || document.files.length === 0) {
+        return '<div class="alert alert-info">Không có thông tin tệp tin</div>';
+    }
+    const tableHeader = window.document.querySelector('#documentTable thead tr');
+    if (tableHeader) {
+        tableHeader.innerHTML = `
+            <th>Mã ngành</th>
+            <th>Tên ngành</th>
+            <th>Tệp đính kèm</th>
+            <th>Ngày tạo</th>
+        `;
+    }
+    let html = window.document.querySelector('#documentTableBody');
+    document.files.forEach(file => {
+        const majorId = file.MajorID || '';
+        const majorName = file.MajorName || '';
+        const filePath = file.path_folder_url || '#';
+        const fileName = file.name || 'File đính kèm';
+        const fileCreateAt = file.createAt || '';
+        html.innerHTML = `
+            <tr>
+                <td>${escapeHtml(majorId)}</td>
+                <td>${escapeHtml(majorName)}</td>
+                <td>
+                    <a href="${filePath}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="far fa-file-alt me-1"></i> ${escapeHtml(fileName)}
+                    </a>
+                </td>
+                <td>${formatDate(fileCreateAt)}</td>
+            </tr>
+        `;
+    });
+}
+
 /**
  * Render pagination controls
  * @param {number} totalCount - Total number of documents
@@ -137,6 +205,14 @@ function renderPagination(totalCount, currentPage, limit) {
     if (totalPages <= 1) {
         paginationContainer.innerHTML = '';
         return;
+    }
+    
+    // Add CSS link for document view styling if it doesn't exist
+    if (!document.querySelector('link[href*="document-view.css"]')) {
+        const cssLink = document.createElement('link');
+        cssLink.rel = 'stylesheet';
+        cssLink.href = '/css/document-view.css';
+        document.head.appendChild(cssLink);
     }
     
     let html = '';

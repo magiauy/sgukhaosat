@@ -42,15 +42,18 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table id="documentTable" class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>STT</th>
-                                    <th>Tiêu đề</th>
-                                    <th>Ngày tạo</th>
+                                    <th> Mã ngành</th>
+                                    <th> Tên ngành </th>
+                                    <!-- <th>Tiêu đề</th> -->
                                     <th>Tệp đính kèm</th>
+                                    <th>Ngày tạo</th>
                                 </tr>
-                            </thead>                            <tbody id="documentTableBody">
+                            </thead>                           
+                             <tbody id="documentTableBody">
                                 <tr>
                                     <td colspan="4" class="text-center">
                                         <div class="d-flex justify-content-center">

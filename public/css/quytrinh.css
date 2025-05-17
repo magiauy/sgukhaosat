@@ -1,6 +1,6 @@
 /* Quy Trinh Page Styling */
 .hero-quytrinh {
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/public/images/sgu-background.jpg') no-repeat center center;
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/public/images/university-bg.jpg') no-repeat center center;
     background-size: cover;
     padding: 100px 0;
     color: white;

@@ -47,19 +47,56 @@ $mailerController = new MailerController();
 $resultStatisticController = new ResultStatisticController();
 
     // User APIs
-    $router->post('/api/user', fn() => $controller->create($response, $request));
-    $router->put('/api/user', fn() => $controller->update($response, $request));
-    $router->put('/api/user/password', fn() => $controller->resetPassword($response, $request));
-    $router->delete('/api/user', fn() => $controller->delete($response, $request));
-    $router->get('/api/getListUsers', fn() => $controller->getAll($response, $request));
-    $router->get('/api/user', fn() => $controller->getAll($response, $request));
-    $router->get('/api/userWithoutWhitelist/{id}', fn($params) => $controller->getAllWithoutWhitelist($response, $request, $params['id']));
-    $router->get('/api/user/email', function($params) use ($request, $response, $controller) {
-        $controller->getById($response, $request);
-    });
+$router->post('/api/user', fn() =>
+    JwtMiddleware::authenticateNoAddUser($request, $response, "MANAGE_USERS", fn($req, $res) =>
+        $controller->create($res, $req)
+    )
+);
+
+$router->put('/api/user', fn() =>
+    JwtMiddleware::authenticateNoAddUser($request, $response, "MANAGE_USERS", fn($req, $res) =>
+        $controller->update($res, $req)
+    )
+);
+
+$router->put('/api/user/password', fn() =>
+    JwtMiddleware::authenticateNoAddUser($request, $response, "MANAGE_USERS", fn($req, $res) =>
+        $controller->resetPassword($res, $req)
+    )
+);
+
+$router->delete('/api/user', fn() =>
+    JwtMiddleware::authenticateNoAddUser($request, $response, "MANAGE_USERS", fn($req, $res) =>
+        $controller->delete($res, $req)
+    )
+);
+
+$router->get('/api/getListUsers', fn() =>
+    JwtMiddleware::authenticateNoAddUser($request, $response, null, fn($req, $res) =>
+        $controller->getAll($res, $req)
+    )
+);
+
+$router->get('/api/user', fn() =>
+    JwtMiddleware::authenticateNoAddUser($request, $response, null, fn($req, $res) =>
+        $controller->getAll($res, $req)
+    )
+);
+
+$router->get('/api/userWithoutWhitelist/{id}', fn($params) =>
+    JwtMiddleware::authenticateNoAddUser($request, $response, null, fn($req, $res) =>
+        $controller->getAllWithoutWhitelist($res, $req, $params['id'])
+    )
+);
+
+$router->get('/api/user/email', function($params) use ($request, $response, $controller) {
+    JwtMiddleware::authenticateNoAddUser($request, $response, null, fn($req, $res) =>
+        $controller->getById($res, $req)
+    );
+});
     $router->post('/api/login', fn() => $controller->login($response, $request));
     $router->post('/api/me', fn() =>
-        JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req))
+        JwtMiddleware::authenticateNoAddUser($request, $response, null, fn($req, $res) => $controller->me($res, $req))
     );
     $router->post('/api/user/pagination', fn() => $controller->getOnPagination($response, $request));
     $router->post('/api/user/id', fn() => $controller->getByEmail($response, $request));

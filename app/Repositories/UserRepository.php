@@ -70,6 +70,7 @@ class UserRepository implements IAuthRepository {
     public function delete($emails): bool {
         $placeholders = [];
         $params = [];
+        error_log("Emails: " . json_encode($emails));
     
         foreach ($emails as $index => $email) {
             $key = ":email$index";
@@ -285,10 +286,10 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'fromDateCreate' => $data['fromDateCreate'] ?? null,
-            'toDateCreate' => $data['toDateCreate'] ?? null,
-            'fromDateUpdate' => $data['fromDateUpdate'] ?? null,
-            'toDateUpdate' => $data['toDateUpdate'] ?? null,
+            'fromDateCreate' => (!empty($data['fromDateCreate'])) ? $data['fromDateCreate'] : null,
+            'toDateCreate' => (!empty($data['toDateCreate'])) ? $data['toDateCreate'] : null,
+            'fromDateUpdate' => (!empty($data['fromDateUpdate'])) ? $data['fromDateUpdate'] : null,
+            'toDateUpdate' => (!empty($data['toDateUpdate'])) ? $data['toDateUpdate'] : null,
             'isCreate' => $data['isCreate'] ?? 0,
             'isUpdate' => $data['isUpdate'] ?? 0,
             'isFilter' => $data['isFilter'],
@@ -325,10 +326,10 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
         
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'fromDateCreate' => $data['fromDateCreate'] ?? 0,
-            'toDateCreate' => $data['toDateCreate'] ?? 0,
-            'fromDateUpdate' => $data['fromDateUpdate'] ?? 0,
-            'toDateUpdate' => $data['toDateUpdate'] ?? 0,
+            'fromDateCreate' => (!empty($data['fromDateCreate'])) ? $data['fromDateCreate'] : null,
+            'toDateCreate' => (!empty($data['toDateCreate'])) ? $data['toDateCreate'] : null,
+            'fromDateUpdate' => (!empty($data['fromDateUpdate'])) ? $data['fromDateUpdate'] : null,
+            'toDateUpdate' => (!empty($data['toDateUpdate'])) ? $data['toDateUpdate'] : null,
             'isCreate' => $data['isCreate'] ?? 0,
             'isUpdate' => $data['isUpdate'] ?? 0,
             'isFilter' => $data['isFilter'],

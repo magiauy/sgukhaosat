@@ -43,20 +43,25 @@ async function setupHandlers() {
 async function renderDocument(mode, documentData = null) {
     let modalElement = document.getElementById('documentModal');
     if (!modalElement) {
-        const modalHTML = `
-            <div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel">
-                <div class="modal-dialog modal-xl modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalDocumentTitle">Thêm tài liệu</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row g-3">
-                                <!-- Left: Document Info -->
-                                <div class="col-md-4">
-                                    <div class="card h-100">
-                                        <div class="card-body">
+    const modalHTML = `
+        <div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalDocumentTitle">Thêm tài liệu</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <!-- Left: Document Info -->
+                            <div class="col-md-4">
+                                <!-- First Card: Document Details -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        Thông tin tài liệu
+                                    </div>
+                                    <div class="card-body">
+                                        <div>
                                             <div class="mb-3">
                                                 <label for="documentTitle" class="form-label">Tên tài liệu</label>
                                                 <input type="text" class="form-control" id="documentTitle" placeholder="Nhập tên tài liệu">
@@ -68,6 +73,17 @@ async function renderDocument(mode, documentData = null) {
                                                     <option value="danh_sach_quy_trinh_cac_chu_ky">Danh sách các quy trình ở các chu kỳ</option>
                                                 </select>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Second Card: File Addition -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        Thêm liên kết tài liệu
+                                    </div>
+                                    <div class="card-body">
+                                        <div>
                                             <div class="mb-3">
                                                 <label for="fileUrlInput" class="form-label">Đường dẫn Google Drive</label>
                                                 <input type="text" class="form-control" id="fileUrlInput" placeholder="Dán link Google Drive tại đây">
@@ -86,40 +102,41 @@ async function renderDocument(mode, documentData = null) {
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Right: File Table -->
-                                <div class="col-md-8">
-                                    <div class="card h-100">
-                                        <div class="card-header">
-                                            Danh sách liên kết tài liệu đã thêm
-                                        </div>
-                                        <div class="card-body table-responsive p-0">
-                                            <table class="table table-striped mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Link Google Drive</th>
-                                                        <th>Ngành</th>
-                                                        <th>Hành động</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="fileListTableBody">
-                                                    <tr><td colspan="4" class="text-muted text-center">Chưa có liên kết nào</td></tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                            </div>
+    
+                            <!-- Right: File Table -->
+                            <div class="col-md-8">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        Danh sách liên kết tài liệu đã thêm
+                                    </div>
+                                    <div class="card-body table-responsive p-0">
+                                        <table class="table table-striped mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Link Google Drive</th>
+                                                    <th>Ngành</th>
+                                                    <th>Hành động</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="fileListTableBody">
+                                                <tr><td colspan="4" class="text-muted text-center">Chưa có liên kết nào</td></tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                            <button type="button" class="btn btn-primary" id="documentActionBtn">Lưu tài liệu</button>
-                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn btn-primary" id="documentActionBtn">Lưu tài liệu</button>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         modalElement = document.getElementById('documentModal');

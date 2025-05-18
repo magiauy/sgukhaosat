@@ -21,10 +21,15 @@ export function deleteAccountSelected(){
                 
                 try {
                     const response = await callApi("/user", "DELETE", emailsToDelete);
-                    console.log(response);
+                    console.log(response.status);
                     selectedAccountIDs.clear(); // Xóa danh sách ID đã chọn
-                    renderTableAccountOnPagination(0, 10);
-                    showSwalToast("Xóa tài khoản thành công", "success");
+                    if(response.status){
+                        showSwalToast("Xóa tài khoản thành công", "success");
+                    }else {
+                        showSwalToast(response.message, "error");
+                    }
+                    await renderTableAccountOnPagination(0, 10);
+
                 } catch (error) {
                     showSwalToast("Có lỗi xảy ra khi xóa tài khoản", "error");
                     console.log(error);

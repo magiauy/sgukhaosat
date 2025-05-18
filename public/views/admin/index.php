@@ -6,16 +6,18 @@ use Core\AuthHelper;
 $data = AuthHelper::verifyUserToken();
 $user = $data['user'] ?? null;
 $permissions = $data['permissions'] ?? null;
-error_log('User aaaa: ' . json_encode($permissions));
 // Check if user has ACCESS_ADMIN permission
-error_log('User permissions: ' . json_encode($permissions));
+error_log('User permissions: ' . print_r($permissions, true));
 $hasAdminAccess = false;
+//Check array permissions
+error_log("HasAdminBF". $hasAdminAccess);
 foreach ($permissions ?? [] as $permission) {
     if (isset($permission->permID) && $permission->permID === 'ACCESS_ADMIN') {
         $hasAdminAccess = true;
         break;
     }
 }
+error_log("HasAdmin". $hasAdminAccess);
 // If user doesn't have admin access, redirect to 403 page
 if (!$hasAdminAccess) {
     header('Location: /403');

@@ -7,8 +7,8 @@ use Core\Response;
 use Core\Request;
 use Core\jwt_helper;
 use Controllers\FormController;
-use http\Cookie;
-use http\Message\Body;
+use PDO;
+use Repositories\Database;
 
 class JwtMiddleware
 {
@@ -17,7 +17,8 @@ class JwtMiddleware
     public function __construct()
     {
         self::$formController = new FormController();
-    }    public static function authenticate(Request $request, Response $response, $permission , $next): void
+    }
+    public static function authenticate(Request $request, Response $response, $permission , $next): void
     {
         try {
             $token = $_COOKIE['access_token'] ?? null;            
@@ -65,6 +66,55 @@ class JwtMiddleware
         }
     }
 
+    public static function authenticateNoAddUser(Request $request, Response $response, $permission , $next): void
+    {
+        try {
+            $token = $_COOKIE['access_token'] ?? null;
+            if ($token) {
+                $token = str_replace('Bearer ', '', $token);
+            }
+            if (!$token) {
+                $response->json([
+                    'status' => false,
+                    'message' => 'Authorization token not provided'
+                ], 401);
+            }// Assuming you have a method to verify the token
+            $jwtHelper = new jwt_helper();
+            $secret = require __DIR__ . '/../../config/JwtConfig.php';
+            $decoded = $jwtHelper->verifyJWT($token,$secret['access_secret']);
+            if (!$decoded) {
+                $response->json([
+                    'error' => 'Invalid or expired token'
+                ], 401);
+            }//Don't have
+            if ($permission) {
+                $permissions = $decoded->permissions;
+                $hasPermission = false;
+
+                foreach ($permissions as $perm) {
+                    if ($perm->permID === $permission) {
+                        $hasPermission = true;
+                        break;
+                    }
+                }
+                if (!$hasPermission) {
+                    $response->json([
+                        'error' => 'Permission denied'
+                    ], 403);
+                }
+
+            }// Store user data in request for later use
+            error_log("Checking successfully");
+            $next($request, $response);
+        } catch (\Exception $e) {
+            $response ->json([
+                'error' => 'An error occurred while authenticating: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
     public static function authenticateFormPage(string $token, string $permission, string $formId): int
     {
         try {
@@ -102,6 +152,47 @@ class JwtMiddleware
 
         } catch (\Throwable $e) {
             return 500;
+        }
+    }
+    /**
+     * Gets the current user session data from the JWT token
+     *
+     * @param string|null $token The JWT token to extract user data from
+     * @return array|null User session data or null if token is invalid
+     */
+    public static function getUserSession(?string $token = null): ?array
+    {
+        try {
+            // If no token provided, try to get it from cookies
+            if (!$token) {
+                $token = $_COOKIE['access_token'] ?? null;
+            }
+
+            if (!$token) {
+                return null;
+            }
+
+            $token = str_replace('Bearer ', '', $token);
+            $jwtHelper = new jwt_helper();
+            $secret = require __DIR__ . '/../../config/JwtConfig.php';
+            $decoded = $jwtHelper->verifyJWT($token, $secret['access_secret']);
+
+            if (!$decoded) {
+                return null;
+            }
+
+            // Extract and return user information
+            $userData = [
+                'user' => $decoded->user ?? null,
+                'role' => $decoded->role ?? null,
+                'permissions' => $decoded->permissions ?? [],
+                'email' => $decoded->user->email ?? null
+            ];
+
+            return $userData;
+        } catch (\Exception $e) {
+            error_log("Error getting user session: " . $e->getMessage());
+            return null;
         }
     }
 
@@ -174,10 +265,30 @@ class JwtMiddleware
                 ], 401);
                 return;
             }
+            $user = $decoded->user ?? null;
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
 
+// Get role data
+            $roleStmt = $conn->prepare("SELECT * FROM roles WHERE roleID = ?");
+            $roleStmt->execute([$user->roleID]);
+            $role = $roleStmt->fetch(PDO::FETCH_ASSOC);
+            error_log("Role: " . json_encode($role));
+
+// Get permissions for this role
+            $permStmt = $conn->prepare("SELECT permID FROM role_permission WHERE roleID = ?");
+            $permStmt->execute([$user->roleID]);
+            $permissions = $permStmt->fetchAll(PDO::FETCH_ASSOC);
+            $stdClassPermissions = [];
+            foreach ($permissions as $permission) {
+                $stdClassPermissions[] = (object) $permission;
+            }
+            $data['user'] = $user;
+            $data['role'] = $role['roleID'] ?? null;
+            $data['permissions'] = $stdClassPermissions;
             // Generate a new access token using data from refresh token
-            $userData = (array)$decoded;
-            $accessToken = jwt_helper::createJWT($userData, $secret['access_secret'], 600); // 10 minutes expiry
+
+            $accessToken = jwt_helper::createJWT($data, $secret['access_secret'], 600); // 10 minutes expiry
 
             // Return the new access token in the response
             setcookie('access_token', $accessToken, time() + 600, '/', '', false, true);

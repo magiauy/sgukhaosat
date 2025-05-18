@@ -12,7 +12,7 @@ export function showAddAccount() {
         <div id="popup-add-account" style="display: flex; position: fixed; top: 0; left: 0; 
             width: 100vw; height: 100vh; background: rgba(0,0,0,0.6);
             align-items: center; justify-content: center; z-index: 9999;
-            animation: fadeIn 0.3s ease-in-out;">
+            animation: fadeIn 0.3s ease-in-out;" xmlns="http://www.w3.org/1999/html">
             
             <div style="background: white; border-radius: 8px; min-width: 400px; max-width: 90%;
                 box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden;
@@ -72,7 +72,6 @@ export function showAddAccount() {
                                     style="width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #ddd;
                                     border-radius: 6px; font-size: 15px; box-sizing: border-box; 
                                     appearance: none; background-color: white;
-                                    background-image: url('data:image/svg+xml;utf8,<svg fill=\"%236b7280\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24px\" height=\"24px\"><path d=\"M7 10l5 5 5-5z\"/></svg>');
                                     background-repeat: no-repeat; background-position: right 10px center;
                                     transition: border-color 0.2s; outline: none;"
                                     onFocus="this.style.borderColor='#4361ee'" 
@@ -81,6 +80,24 @@ export function showAddAccount() {
                                 </select>
                             </div>
                         </div>
+                        <!-- Position selection -->
+                        
+                       <div>
+                       <label for="account-position" style="display: block; margin-bottom: 6px;">Chức vụ</label>
+                          <div style="position: relative;">
+                          <select id="account-position"
+                                    style="width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #ddd;
+                                    border-radius: 6px; font-size: 15px; box-sizing: border-box; 
+                                    appearance: none; background-color: white;
+                                    background-repeat: no-repeat; background-position: right 10px center;
+                                    transition: border-color 0.2s; outline: none;"
+                                    onFocus="this.style.borderColor='#4361ee'" 
+                                    onBlur="this.style.borderColor='#ddd'">
+                            </select>                                
+                        </div>                        
+                        
+                        
+                        
                     </form>
                 </div>
                 
@@ -119,6 +136,17 @@ export function showAddAccount() {
             console.log(error);
             return;
         }
+        try {
+            let response = await callApi("/position");
+            let positions = response.data;
+            // console.log(roles);
+            positions.forEach(position => {
+                document.querySelector("#account-position").innerHTML += `<option value="${position.PositionID}">${position.PositionName}</option>`;
+            });
+        } catch (error) {
+            console.log(error);
+            return;
+        }
 
         addAccount();
         closePopup();
@@ -131,6 +159,7 @@ function addAccount(){
         const email = document.querySelector("#account-email").value;
         const password = document.querySelector("#account-password").value;
         const role = document.querySelector("#account-role").value;
+        const position = document.querySelector("#account-position").value;
 
         if(!email || !password || !role) {
             showSwalToast("Vui lòng điền đầy đủ thông tin", "warning");
@@ -145,7 +174,8 @@ function addAccount(){
         const data = {
             email: email,
             password: password,
-            roleID: role
+            roleID: role,
+            positionID: position
         };
 
         try {
@@ -153,8 +183,8 @@ function addAccount(){
             console.log(response);
             document.querySelector("#popup-add-account").remove();
             await renderTableAccountOnPagination(0, 10);
-            if(!response.success){
-                showSwalToast("Tài khoản đã tồn tại", "error");
+            if(!response.status){
+                showSwalToast(response.message || "Có lỗi xảy ra", "error");
                 return;
             }
             showSwalToast("Thêm tài khoản thành công", "success");

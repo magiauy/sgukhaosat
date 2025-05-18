@@ -45,22 +45,25 @@ class AuthHelper
                 $user = $decoded->user ?? null;
                 $db = Database::getInstance();
                 $conn = $db->getConnection();
+                $roleID = is_object($user) ? $user->roleID : $user['roleID'];
+
 
 // Get role data
                 $roleStmt = $conn->prepare("SELECT * FROM roles WHERE roleID = ?");
-                $roleStmt->execute([$user['roleID']]);
+                $roleStmt->execute([$roleID]);
                 $role = $roleStmt->fetch(PDO::FETCH_ASSOC);
-                error_log("Role: " . json_encode($role));
 
 // Get permissions for this role
                 $permStmt = $conn->prepare("SELECT permID FROM role_permission WHERE roleID = ?");
-                $permStmt->execute([$user['roleID']]);
+                $permStmt->execute([$roleID]);
                 $permissions = $permStmt->fetchAll(PDO::FETCH_ASSOC);
-                error_log("Permissions: " . json_encode($permissions));
-
+                $stdClassPermissions = [];
+                foreach ($permissions as $permission) {
+                    $stdClassPermissions[] = (object) $permission;
+                }
                 $data['user'] = $user;
                 $data['role'] = $role['roleID'] ?? null;
-                $data['permissions'] = $permissions;
+                $data['permissions'] = $stdClassPermissions;
 
 
                 if ($data) {
@@ -69,13 +72,12 @@ class AuthHelper
 
                     // Set new access token in cookie
                     setcookie('access_token', $newAccessToken, time() + 600, '/', '', false, true);
-                    error_log("Permissions: " . json_encode($data['permissions']));
                     // Return user data
                     error_log( "User data: " . json_encode($data));
                     return [
-                        'user' => $user ?? null,
-                        'role' => $role ?? null,
-                        'permissions' => $permissions ?? null
+                        'user' => $data['user'] ?? null,
+                        'role' => $data['role'] ?? null,
+                        'permissions' => $data['permissions'] ?? null
                     ];
                 }
             }
@@ -130,11 +132,13 @@ class AuthHelper
                 $permStmt = $conn->prepare("SELECT permID FROM role_permission WHERE roleID = ?");
                 $permStmt->execute([$user->roleID]);
                 $permissions = $permStmt->fetchAll(PDO::FETCH_ASSOC);
-                error_log("Permissions: " . json_encode($permissions));
-
+                $stdClassPermissions = [];
+                foreach ($permissions as $permission) {
+                    $stdClassPermissions[] = (object) $permission;
+                }
                 $data['user'] = $user;
                 $data['role'] = $role['roleID'] ?? null;
-                $data['permissions'] = $permissions;
+                $data['permissions'] = $stdClassPermissions;
 
 
                 if ($user) {
@@ -142,9 +146,9 @@ class AuthHelper
                     $newAccessToken = jwt_helper::createJWT($data, $jwtConfig['access_secret'], 600);
                     setcookie('access_token', $newAccessToken, time() + 600, '/', '', false, true);
                     return [
-                        'user' => $user ?? null,
-                        'role' => $role ?? null,
-                        'permissions' => $permissions ?? null
+                        'user' => $data['user'] ?? null,
+                        'role' => $data['role'] ?? null,
+                        'permissions' => $data['permissions'] ?? null
                     ];
                 }
             }
@@ -201,7 +205,6 @@ class AuthHelper
             $stmt = $conn->prepare("SELECT permID FROM role_permission WHERE roleID = ?");
             $stmt->execute([$userData['roleID']]);
             $permissionRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            error_log("Permission Pass ");
 
             // Create session data with all user fields except password
             $data = [

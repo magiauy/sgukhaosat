@@ -8,6 +8,7 @@ use Core\Response;
 use Core\jwt_helper;
 // use Middlewares\JwtMiddleware;
 use http\Params;
+use Middlewares\JwtMiddleware;
 use Services\Interface\IAuthService;
 use Services\Interface\IBaseService;
 use Services\RoleService;
@@ -40,7 +41,8 @@ class UserController implements IAuthController
 
             if ($user) {
                 $response->json([
-                    'message' => 'User created successfully',
+                    'message' => 'Tạo tài khoảng thành công',
+                    'status' => true,
                     'data' => $data
                 ], 201);
             } else {
@@ -64,9 +66,12 @@ class UserController implements IAuthController
 
             $result = $this->userService->update($email, $data);
             if ($result) {
-                $response->json(['message' => 'User updated successfully']);
+                $response->json([
+                    'message' => 'User updated successfully',
+                    'status' => true
+                    ]);
             } else {
-                $response->json(['error' => 'Failed to update user'], 500);
+                $response->json(['error' => 'Failed to update user','status' => false], 500);
             }
         } catch (\Exception $e) {
             $response->json(['error' => $e->getMessage()], $e->getCode());
@@ -77,8 +82,21 @@ class UserController implements IAuthController
     {
         try {
             $emails = $request->getBody();
+
+            $sessionEmails = JwtMiddleware::getUserSession();
+
+            // Duyệt qua $email nếu có thông tin của mail session thì trả về lỗi không thể tự xoá
+            foreach ($emails as $email) {
+                if (in_array($email, $sessionEmails)) {
+                    $response->json(['message' => 'Không thể tự xoá chỉnh mình ' , 'status'=>false]);
+                    return;
+                }
+            }
+
             $this->userService->delete($emails);
-            $response->json(['message' => 'User deleted successfully']);
+            $response->json(['message' => 'User deleted successfully',
+                'status' => true
+                ]);
         } catch (\Exception $e) {
             $response->json(['error' => $e->getMessage()], $e->getCode());
         }

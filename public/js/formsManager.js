@@ -62,7 +62,9 @@ async function loadSurveyTable(data) {
             const firstTd = row?.querySelector('td');
             if (firstTd) {
                 const checkbox = firstTd.querySelector('.form-check-input');
-                const fid = checkbox ? checkbox.value : null;
+                // const fid = checkbox ? checkbox.value : null;
+                const fid = this.dataset.id || null;
+
                 if (this.classList.contains('btn-edit-form')) {
                     window.location.href = `${config.Url}/admin/form/${fid}/edit`;
                 } else if (this.classList.contains('btn-setting-form')) {

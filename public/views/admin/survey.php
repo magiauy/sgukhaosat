@@ -88,12 +88,12 @@
                                     <table class="table table-hover align-middle mb-0">
                                         <thead class="bg-light">
                                             <tr>
-                                                 <th class="ps-4" style="width: 40px;">
-                                                     <div class="form-check">
-                                                         <input type="checkbox" class="form-check-input" id="select-all-surveys">
-                                                     </div>
-                                                 </th>
-                                                 <th style="width: 50px;">#</th>
+<!--                                                 <th class="ps-4" style="width: 40px;">-->
+<!--                                                     <div class="form-check">-->
+<!--                                                         <input type="checkbox" class="form-check-input" id="select-all-surveys">-->
+<!--                                                     </div>-->
+<!--                                                 </th>-->
+                                                 <th class="ps-4" style="width: 50px;">#</th>
                                                  <th class="text-center" style="width: 5%;">Mã</th>
                                                  <th class="text-center" style="width: 20%;">Tên khảo sát</th>
                                                  <th class="text-center" style="width: 14%;">Loại hình khảo sát</th>

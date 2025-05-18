@@ -26,12 +26,8 @@ async function loadSurveyTable(data) {
         const row = document.createElement('tr');
         row.dataset.tooltip = item.FName;
         row.innerHTML = `
-            <td class="ps-4">
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input majorCheckbox" value="${item.FID}">
-                    </div>
-            </td>
-            <td>${++i}</td>
+
+            <td class="ps-4">${++i}</td>
             <td class="text-center" >${item.FID}</td>
             <td class="text-left tooltip-trigger" data-tooltip="${item.FName}">
                 ${limitLineBreaks(item.FName, 2,41)}

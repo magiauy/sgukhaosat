@@ -485,17 +485,12 @@ class UserService implements IAuthService
     public function updateInformation($data)
     {
         try {
+            error_log("Update user information: " . json_encode($data));
+
             $check = $this->userRepository->updateInformation($data);
-            $tokenString = $_COOKIE['access_token'];
-            $tokenData = JwtMiddleware::getDecodedToken($tokenString);
 
-            if (!$tokenData || !isset($tokenData->user)) {
-                // Token không hợp lệ hoặc không có thông tin user
-                throw new \Exception('Token không hợp lệ hoặc không có thông tin user', 401);
-            }
+            $userData = $data['user'];
 
-            $user = $tokenData->user;
-            $user = json_decode(json_encode($user), true);
 
             // Lấy thông tin user mới từ database sau khi cập nhật
             $updatedUser = $this->userRepository->getById($data['email']);

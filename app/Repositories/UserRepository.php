@@ -361,6 +361,7 @@ $query = "SELECT u.*, p.PositionName AS positionName FROM users u
             'email' => $data['email'],
             'fullName' => $data['fullName'],
             'position' => $data['position'],
+            'isFirstLogin' => $data['isFirstLogin'] ?? 0,
         ]);
         return $stmt->rowCount() === 1;
     }

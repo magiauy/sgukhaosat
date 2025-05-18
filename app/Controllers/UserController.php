@@ -3,6 +3,7 @@
 namespace Controllers;
 
 use Controllers\Interface\IAuthController;
+use Core\AuthHelper;
 use Core\Request;
 use Core\Response;
 use Core\jwt_helper;
@@ -289,12 +290,14 @@ public function bulkCreate(Response $response, Request $request)
     {
         try {
             $data = $request->getBody();
+            $data['user'] = JwtMiddleware::getUserSession();
             $this->userService->updateInformation($data);
             $response->json([
-                'message' => 'Update user information successfully'
+                'message' => 'Update user information successfully',
+                'status' => true
             ]);
         } catch (\Exception $e) {
-            $response->json(['error' => $e->getMessage()]);
+            $response->json(['error' => $e->getMessage(), 'status' => false]);
         }
     }
 }

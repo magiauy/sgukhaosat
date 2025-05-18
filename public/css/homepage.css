@@ -1,6 +1,7 @@
 .hero {
     height: 500px;
-    background: linear-gradient(rgba(60, 75, 110, 0.5), rgba(65, 80, 115, 0.7)), url('/public/images/university-bg.jpg') 50% center / cover no-repeat;
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/public/images/university-bg.jpg') no-repeat center center;
+
     position: relative;
     overflow: hidden;
     margin-bottom: 4rem;

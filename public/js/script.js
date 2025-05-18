@@ -274,6 +274,10 @@ function handleClickEditInformation(){
             try {
                 let response = await callApi('/user/information', "POST", data);
                 // console.log(response.status);
+                if(!response.status){
+                    showSwalToast("Cập nhật thông tin thất bại", "error");
+                    return;
+                }
                 showSwalToast("Cập nhật thông tin thành công", "success");
                 document.querySelector("#username").innerText = data.fullName;
                // Tắt modal

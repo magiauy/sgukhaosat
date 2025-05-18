@@ -26,7 +26,7 @@ import {callApi} from "./apiService.js";
         console.log('Form ID:', formId);
         const formData = await callApi(`/form?id=${formId}`);
         // console.log('Form data:', formData);
-        renderSurvey(formData['data']);
+        await renderSurvey(formData['data']);
         } catch (error) {
         console.error('Error loading form:', error);
         } finally {

@@ -6,8 +6,8 @@ use Core\AuthHelper;
 use Repositories\FormRepository;
 use Repositories\MailerRepository;
 use Repositories\UserRepository;
-//use Config\GetDomain;
 use Repositories\WhitelistForm;
+use Utils\PasswordUtils;
 
 class MailerService
 {
@@ -91,11 +91,13 @@ class MailerService
                     'major_name' => $formData['MajorName'],
                     'period_name' => $formData['PeriodName'],
                     'login_link' => $loginLink,
-                    'is_first_login' => true,
+                    'is_first_login' => $user['isFirstLogin'] == 1,
                     'email' => $user['email'],
-                    'password' => $user['password'],
+                    'password' => PasswordUtils::generateDefaultPassword($user['email']),
                     'position' => $user['PositionName'],
+
                 ];
+                error_log(json_encode($user['isFirstLogin']));
 
 
                 // Gửi email

@@ -344,8 +344,11 @@ function normalizeForComparison($question) {
                 $form['StatusText'] = 'Chưa công bố';
                 $questions = $this->draftRepository->getByFormID($form['FID']);
                 $questions = json_decode($questions[0]['DraftContent'], true);
+            } else if ($form['Status'] == 1) {
+                $form['StatusText'] = 'Đã xuất bản';
+                $questions = $this->questionRepository->getByFormId($form['FID']);
             } else{
-                $form['StatusText'] = 'Đã công bố';
+                $form['StatusText'] = 'Đã đóng';
                 $questions = $this->questionRepository->getByFormId($form['FID']);
             }
             if (!$questions) {
@@ -463,8 +466,12 @@ function normalizeForComparison($question) {
                 if ($form['Status'] == 0) {
                     $form['StatusText'] = 'Chưa công bố';
                     $form['uri'] = 'admin/form/' . $form['FID'] . '/edit?status=draft';
-                } else{
-                    $form['StatusText'] = 'Đã công bố';
+                } else  {
+                    if ($form['Status'] == 1){
+                        $form['StatusText'] = 'Đã xuất bản';
+                    }else{
+                        $form['StatusText'] = 'Đã đóng';
+                    }
                     $form['uri'] = 'admin/form/' . $form['FID'] . '/edit';
                 }
 
@@ -658,7 +665,7 @@ function duplicate($id, $userId)
                     $form['StatusText'] = 'Chưa công bố';
                     $form['uri'] = 'admin/form/' . $form['FID'] . '/edit?status=draft';
                 } else{
-                    $form['StatusText'] = 'Đã công bố';
+                    $form['StatusText'] = 'Đã xuất bản';
                     $form['uri'] = 'admin/form/' . $form['FID'] . '/edit';
                 }
 

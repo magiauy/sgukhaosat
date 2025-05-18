@@ -67,7 +67,10 @@ function create($id, $data)
     function getByFormID($id)
     {
         $pdo = $this->db->getConnection();
-        $sql = "SELECT * FROM whitelist_form WHERE FID = :fid";
+        $sql = "SELECT wf.*, u.fullName 
+        FROM whitelist_form wf
+        INNER JOIN users u ON wf.UID = u.email
+        WHERE wf.FID = :fid";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['fid' => $id]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -122,8 +125,10 @@ function create($id, $data)
     function checkWhitelist($fid, $uid)
     {
         $pdo = $this->db->getConnection();
-        $sql = "SELECT * FROM whitelist_form WHERE FID = :fid AND UID = :uid";
-        $stmt = $pdo->prepare($sql);
+        $sql = "SELECT wf.* 
+            FROM whitelist_form wf
+            INNER JOIN forms f ON wf.FID = f.FID
+            WHERE wf.FID = :fid AND wf.UID = :uid AND f.Status = 1";        $stmt = $pdo->prepare($sql);
         $stmt->execute(['fid' => $fid, 'uid' => $uid]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }

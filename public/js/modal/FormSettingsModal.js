@@ -2,6 +2,7 @@ import {callApi} from "../apiService.js";
 import ImportExcelModal from "./ImportExcelModal.js";
 import {cleanupModalBackdrops} from "../formsManager.js";
 import EmailSendModal from "./EmailSendModal.js";
+// import {setFormPrivacy, setFormStatus} from "../form/main.js";
 
 // Updated FormSettingsModal Class
 export default class FormSettingsModal {
@@ -16,6 +17,7 @@ export default class FormSettingsModal {
     }
 
     async open(formId, form,page) {
+        console.log(form);
         this.formId = formId;
         this.form = form;
         this.page = page;
@@ -51,11 +53,18 @@ export default class FormSettingsModal {
         const option0 = statusSelect.querySelector('option[value="0"]');
         if (option0) option0.disabled = false;
 
+        const btnEmail = document.getElementById('sendMailBtn');
+
         // Apply status restrictions
         if (form.Status == '0') {
             statusSelect.disabled = true;
-        } else if (form.Status == '1') {
+            btnEmail.disabled = true;
+
+        } else{
             if (option0) option0.disabled = true;
+            if (form.Status == '2') {
+                btnEmail.disabled = true;
+            }
         }
 
         const privacySelect = document.getElementById('formPrivacySelect');
@@ -246,7 +255,7 @@ export default class FormSettingsModal {
                                                                     <tr>
                                                                         <th style="width: 40px"></th>
                                                                         <th>Email</th>
-                                                                        <th>Thời gian thêm</th>
+                                                                        <th>Tên</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody id="whitelistedUsersList">
@@ -295,6 +304,30 @@ export default class FormSettingsModal {
             const modal = bootstrap.Modal.getInstance(document.getElementById('formSettingsModal'));
             modal.hide();
 
+            if (this.page === 'formManager') {
+                const formsManagerModule = await import('../formsManager.js');
+                await formsManagerModule.loadSurveyFromAPI(0, 10); // Reload first page with default limit
+            }else {
+               const statusElement = document.getElementById('status');
+                if (statusElement) {
+                    import('./../form/main.js').then(({ setFormStatus, setFormPrivacy }) => {
+                        statusElement.textContent = status == 0 ? 'Chưa công bố' : status == 1 ? 'Đã xuất bản' : 'Đã đóng';
+                        if (status != 1) {
+                            statusElement.classList.remove("text-success");
+                            statusElement.classList.add("text-danger");
+                        } else {
+                            statusElement.classList.remove("text-danger");
+                            statusElement.classList.add("text-success");
+                        }
+                        setFormStatus(status);
+                        setFormPrivacy(privacy);
+                    }).catch(error => {
+                        console.error('Error importing main.js:', error);
+                    });
+                }
+            }
+
+
             // Reload the page or update the UI as needed
             // window.location.reload();
         } catch (error) {
@@ -327,7 +360,7 @@ export default class FormSettingsModal {
                                 data-email="${user.email}" data-name="${user.name}">
                         </td>
                         <td>${user.email}</td>
-                        <td>${user.name}</td>
+                        <td>${user.fullName}</td>
                     `;
                     availableUsersList.appendChild(row);
                 });
@@ -367,7 +400,7 @@ export default class FormSettingsModal {
                             data-email="${item.UID}">
                         </td>
                         <td>${item.UID}</td>
-                        <td>${item.addedAt}</td>
+                        <td>${item.fullName}</td>
                     `;
                     whitelistedUsersList.appendChild(row);
                 });
@@ -817,7 +850,13 @@ export default class FormSettingsModal {
             } else {
                 // Reload the table to show the new form in the list
 
-                this.showToast('success', 'Đã cập nhật danh sách biểu mẫu');
+                if (this.page === 'formManager') {
+                    const formsManagerModule = await import('../formsManager.js');
+                    await formsManagerModule.loadSurveyFromAPI(0, 10); // Reload first page with default limit
+                    this.showToast('success', 'Đã cập nhật danh sách biểu mẫu');
+
+                }
+
             }
             // Reload the page or update the UI as needed
 

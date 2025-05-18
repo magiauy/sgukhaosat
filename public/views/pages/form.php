@@ -27,7 +27,6 @@ if (empty($user)) {
     exit();
 }
 $formService = new FormService();
-$formService = new FormService();
 try {
     $dataF = $formService->checkWhitelist($formId,$user->email ?? $user['email'] ?? '');
     if (!$dataF) {

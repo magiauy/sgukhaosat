@@ -51,6 +51,21 @@ async function initApp() {
               startAutoSave();
             }, 1000);
           }
+          else {
+            // Show toast for non-draft status
+            showToast("Biểu mẫu đã được tải thành công!", "success");
+            const status = document.getElementById("status");
+            if (status) {
+              status.innerHTML = formStatus === "1" ? "Đã xuất bản" : "Đã đóng";
+              //Xoá class text-success nếu formStatus khác 1
+                if (formStatus !== "1") {
+                    status.classList.remove("text-success");
+                    status.classList.add("text-danger");
+                }
+            }
+            //Set style
+
+          }
         } else {
           showToast("Không thể tải biểu mẫu", "error");
           localStorage.setItem('triggerAction', 'clickButton');
@@ -99,6 +114,11 @@ function getFormStatus() {
 
 function setFormStatus(status) {
   formStatus = status;
+  form['Status'] = status;
+}
+
+function setFormPrivacy(privacy) {
+    form['isPublic'] = privacy;
 }
 
 function getAutoSaveInterval() {
@@ -142,5 +162,6 @@ export {
   getAutoSaveInterval, setAutoSaveInterval,
   getDraggedElement, setDraggedElement,
   getIsDragging, setIsDragging,
-    getForm, setForm
+    getForm, setForm,
+    setFormPrivacy
 };

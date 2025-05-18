@@ -103,7 +103,7 @@ include __DIR__ . '/../../views/layouts/header.php';
             <?php if ($formStatus === 'draft'): ?>
               <button class="btn-submit btn btn-primary fw-bold">Xuất bản</button>
             <?php else: ?>
-                <span class="text-success fw-bold">Đã xuất bản</span>
+                <span class="text-success fw-bold" id="status">Đã xuất bản</span>
             <?php endif; ?>
             <div class="more-action-menu justify-content-center align-items-center">
                 <img src="/public/icons/three-dots-vertical.svg"  style="cursor: pointer; width: 28px; height: 28px;" alt="About action">

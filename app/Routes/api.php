@@ -234,7 +234,7 @@ $router->post('/api/file', fn() =>
 );
 
 $router->delete('/api/file/{id}', fn($params) =>
-    JwtMiddleware::authenticate($request, $response, "MANAGE_DOCUMENTS", fn($req, $res) =>
+    JwtMiddleware::authenticate($request, $response, "MANAGE_DOCUMENT", fn($req, $res) =>
         $fileController->delete($res, $req, $params['id'])
     )
 );

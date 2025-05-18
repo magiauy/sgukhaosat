@@ -70,14 +70,14 @@ function renderQuestionStatistics(questions) {
     const container = document.getElementById('question-stats-container');
     container.innerHTML = ''; // Clear loading indicator
 
-    if (questions.length === 0) {
+    if (questions.length == 0) {
         container.innerHTML = '<div class="alert alert-info">Không có dữ liệu thống kê</div>';
         return;
     }
 
     questions.forEach(question => {
         // Skip if no responses
-        if (!question.responses || question.responses.length === 0) return;
+        if (!question.responses || question.responses.length == 0) return;
 
         // Create container for this question
         const questionCard = document.createElement('div');
@@ -128,13 +128,13 @@ function getQuestionTypeLabel(typeId) {
 }
 
 function renderChartByType(question, canvasId) {
-const labels = question.responses.map(r => typeof r.answer === 'object' ? r.answer.AContent : r.answer);
+const labels = question.responses.map(r => typeof r.answer == 'object' ? r.answer.AContent : r.answer);
 const data = question.responses.map(r => r.count);
     const colors = generateColors(data.length);
 
     // Check if SHORT_TEXT with single character answers
-    const isAllSingleChar = question.QTypeID === 'SHORT_TEXT' &&
-        question.responses.every(r => r.answer.length === 1);
+    const isAllSingleChar = question.QTypeID == 'SHORT_TEXT' &&
+        question.responses.every(r => r.answer.length == 1);
 
     let chartType, chartOptions = {};
 
@@ -191,7 +191,7 @@ const data = question.responses.map(r => r.count);
       case 'SHORT_TEXT':
       case 'LONG_TEXT':
           // Check if all responses have count = 1 (unique answers)
-          const allUnique = question.responses.every(r => r.count === 1);
+          const allUnique = question.responses.every(r => r.count == 1);
 
           if (allUnique) {
               // Don't create a chart, create a list view instead
@@ -388,7 +388,7 @@ async function populateUserDropdown(users) {
     // Clear existing options except the first default one
     dropdown.innerHTML = '<option selected disabled>Chọn người dùng...</option>';
 
-    if (users.length === 0) {
+    if (users.length == 0) {
         const option = document.createElement('option');
         option.disabled = true;
         option.textContent = "Không có người dùng nào";
@@ -426,7 +426,7 @@ async function populateUserDropdown(users) {
 //
 //         const responses = result.data;
 //
-//         if (!responses || responses.length === 0) {
+//         if (!responses || responses.length == 0) {
 //             container.innerHTML = '<div class="alert alert-info">Không có câu trả lời nào</div>';
 //             return;
 //         }
@@ -725,7 +725,7 @@ async function loadUserResponses(resultId) {
         const formData = result.data.form;
         const answers = result.data.answers;
 
-        if (!formData || !answers || answers.length === 0) {
+        if (!formData || !answers || answers.length == 0) {
             container.innerHTML = '<div class="alert alert-info">Không có dữ liệu câu trả lời</div>';
             return;
         }
@@ -737,7 +737,7 @@ async function loadUserResponses(resultId) {
         form.className = 'needs-validation user-response-preview';
 
         // Add form header with user info
-        const userName = answers.find(a => a.QContent === "Họ và tên")?.AContent || "Không xác định";
+        const userName = answers.find(a => a.QContent == "Họ và tên")?.AContent || "Không xác định";
         const formHeader = document.createElement('div');
         formHeader.className = 'text-center mb-4';
         formHeader.innerHTML = `
@@ -751,7 +751,7 @@ async function loadUserResponses(resultId) {
         const questionsByParent = {};
         // Extract grid rows and columns directly from question's children array
         formData.questions.forEach(q => {
-            if (q.QTypeID === 'GRID_MULTIPLE_CHOICE' || q.QTypeID === 'GRID_CHECKBOX') {
+            if (q.QTypeID == 'GRID_MULTIPLE_CHOICE' || q.QTypeID == 'GRID_CHECKBOX') {
                 // Initialize grid structure
                 questionsByParent[q.QID] = {
                     id: q.QID,
@@ -764,12 +764,12 @@ async function loadUserResponses(resultId) {
                 // Extract rows and columns directly from children
                 if (q.children && Array.isArray(q.children)) {
                     q.children.forEach(child => {
-                        if (child.QTypeID === 'GRID_MC_ROW' || child.QTypeID === 'GRID_CHECKBOX_ROW') {
+                        if (child.QTypeID == 'GRID_MC_ROW' || child.QTypeID == 'GRID_CHECKBOX_ROW') {
                             questionsByParent[q.QID].rows.push({
                                 id: child.QID,
                                 content: child.QContent
                             });
-                        } else if (child.QTypeID === 'GRID_MC_COLUMN' || child.QTypeID === 'GRID_CHECKBOX_COLUMN') {
+                        } else if (child.QTypeID == 'GRID_MC_COLUMN' || child.QTypeID == 'GRID_CHECKBOX_COLUMN') {
                             questionsByParent[q.QID].columns.push({
                                 id: child.QID,
                                 content: child.QContent
@@ -786,17 +786,17 @@ async function loadUserResponses(resultId) {
         for (const question of formData.questions) {
             // Skip child questions (grid rows/columns) as they'll be handled within their parent
             if (question.QParent !== null && 
-               (question.QTypeID === 'GRID_MC_ROW' || 
-                question.QTypeID === 'GRID_MC_COLUMN' ||
-                question.QTypeID === 'GRID_CB_ROW' ||
-                question.QTypeID === 'GRID_CB_COLUMN' ||
-                question.QTypeID === 'DROPDOWN_OPTION' ||
-                question.QTypeID === 'DESCRIPTION')) {
+               (question.QTypeID == 'GRID_MC_ROW' || 
+                question.QTypeID == 'GRID_MC_COLUMN' ||
+                question.QTypeID == 'GRID_CB_ROW' ||
+                question.QTypeID == 'GRID_CB_COLUMN' ||
+                question.QTypeID == 'DROPDOWN_OPTION' ||
+                question.QTypeID == 'DESCRIPTION')) {
                 continue;
             }
             
             // Skip SUBTITLE and DESCRIPTION types
-            if (question.QTypeID === 'SUBTITLE' || question.QTypeID === 'DESCRIPTION') {
+            if (question.QTypeID == 'SUBTITLE' || question.QTypeID == 'DESCRIPTION') {
                 // Only render subtitle (not as a question)
                 const subtitleDiv = document.createElement('div');
                 subtitleDiv.className = 'mb-4';
@@ -818,7 +818,7 @@ async function loadUserResponses(resultId) {
             const questionTitle = document.createElement('h5');
             questionTitle.className = 'mb-3';
             questionTitle.textContent = `${questionIndex}. ${question.QContent}`;
-            if (question.isDeleted === 1) {
+            if (question.isDeleted == 1) {
                 const deletedLabel = document.createElement('span');
                 deletedLabel.textContent = ' đã xoá';
                 deletedLabel.className = 'ms-2 badge bg-danger rounded-pill';
@@ -827,7 +827,7 @@ async function loadUserResponses(resultId) {
             questionDiv.appendChild(questionTitle);
 
             // Find answer for this question
-            const answer = answers.find(a => a.QID === question.QID.toString());
+            const answer = answers.find(a => a.QID == question.QID.toString());
             
             // Render different question types with answers
             switch (question.QTypeID) {
@@ -888,7 +888,7 @@ function renderUserMC(question, answer) {
 
     // Get multiple choice options
     const options = question.children.filter(option => option.QTypeID !== "ANOTHER_OPTION") || [];
-    const otherOption = question.children.find(option => option.QTypeID === "ANOTHER_OPTION");
+    const otherOption = question.children.find(option => option.QTypeID == "ANOTHER_OPTION");
 
     // Check if the answer is a custom "other" answer
     let isCustomAnswer = false;
@@ -902,7 +902,7 @@ function renderUserMC(question, answer) {
 
     // Render the standard options
     options.forEach((option, index) => {
-        const isSelected = userSelection === option.QContent;
+        const isSelected = userSelection == option.QContent;
 
         const optionDiv = document.createElement('div');
         optionDiv.className = 'form-check';
@@ -946,7 +946,7 @@ function renderUserTextAnswer(question, answer) {
     const container = document.createElement('div');
     const value = answer ? answer.AContent : '';
     
-    if (question.QTypeID === 'LONG_TEXT') {
+    if (question.QTypeID == 'LONG_TEXT') {
         container.innerHTML = `<textarea class="form-control mt-2" rows="3" disabled>${value}</textarea>`;
     } else {
         container.innerHTML = `<input type="text" class="form-control mt-2" value="${value}" disabled>`;
@@ -977,7 +977,7 @@ function renderUserDropdown(question, answer) {
         const optionElement = document.createElement('option');
         optionElement.value = option.QContent;
         optionElement.textContent = option.QContent;
-        if (userSelectedOption === option.QContent) {
+        if (userSelectedOption == option.QContent) {
             optionElement.selected = true;
         }
         selectElement.appendChild(optionElement);
@@ -1010,7 +1010,7 @@ function renderUserCheckbox(question, answer) {
 
     // Get checkbox options
     const options = question.children.filter(option => option.QTypeID !== "ANOTHER_OPTION") || [];
-    const otherOption = question.children.find(option => option.QTypeID === "ANOTHER_OPTION");
+    const otherOption = question.children.find(option => option.QTypeID == "ANOTHER_OPTION");
 
     // Find custom values (values not matching any standard option)
     if (userSelectedOptions.length > 0) {
@@ -1080,7 +1080,7 @@ function renderUserGridCB(question, allAnswers, gridData) {
 
     // Find all answers for this grid's rows
     const gridAnswers = allAnswers.filter(answer => {
-        return gridData.rows.some(row => row.id.toString() === answer.QID);
+        return gridData.rows.some(row => row.id.toString() == answer.QID);
     });
 
     // Create a map of selected values
@@ -1151,7 +1151,7 @@ function renderUserGridMC(question, allAnswers, gridData) {
     
     // Find all answers for this grid's rows
     const gridAnswers = allAnswers.filter(answer => {
-        return gridData.rows.some(row => row.id.toString() === answer.QID);
+        return gridData.rows.some(row => row.id.toString() == answer.QID);
     });
     
     // Create a map of selected values
@@ -1194,8 +1194,8 @@ function renderUserGridMC(question, allAnswers, gridData) {
                             <tr>
                                 <th scope="row" class="align-middle">${row.content}</th>
                                 ${gridData.columns.map(column => {
-                                    const isSelected = selectedColumn === column.content;
-                                    const inputType = question.QTypeID === 'GRID_MULTIPLE_CHOICE' ? 'radio' : 'checkbox';
+                                    const isSelected = selectedColumn == column.content;
+                                    const inputType = question.QTypeID == 'GRID_MULTIPLE_CHOICE' ? 'radio' : 'checkbox';
                                     
                                     return `
                                         <td class="text-center">

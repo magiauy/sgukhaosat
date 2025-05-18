@@ -28,22 +28,28 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                 <div class="card bg-light shadow-lg rounded p-4">
                     <h1 class="text-center mb-4">Danh sách khảo sát</h1>
                     <div class="row g-4">
-                        <?php foreach ($forms as $form): ?>
-                            <div class="col-md-6 col-lg-6">
-                                <a href="/form/<?= $form['FID'] ?>" class="text-decoration-none text-dark">
-                                    <div class="card shadow-sm h-100 hover-card">
-                                        <div class="card-body">
-                                            <h5 class="card-title text-truncate"><?= htmlspecialchars($form['FName']) ?></h5>
-                                            <p class="card-text">
-                                                <strong>Loại:</strong> <?= htmlspecialchars($form['TypeName']) ?><br>
-                                                <strong>Ngành:</strong> <?= htmlspecialchars($form['MajorName']) ?><br>
-                                                <strong>Chu kỳ:</strong> <?= htmlspecialchars($form['PeriodName']) ?>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </a>
+                        <?php if (empty($forms)): ?>
+                            <div class="col-12">
+                                <p class="text-center text-muted">Hiện không có khảo sát mới.</p>
                             </div>
-                        <?php endforeach; ?>
+                        <?php else: ?>
+                            <?php foreach ($forms as $form): ?>
+                                <div class="col-md-6 col-lg-6">
+                                    <a href="/form/<?= $form['FID'] ?>" class="text-decoration-none text-dark">
+                                        <div class="card shadow-sm h-100 hover-card">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-truncate"><?= htmlspecialchars($form['FName']) ?></h5>
+                                                <p class="card-text">
+                                                    <strong>Loại:</strong> <?= htmlspecialchars($form['TypeName']) ?><br>
+                                                    <strong>Ngành:</strong> <?= htmlspecialchars($form['MajorName']) ?><br>
+                                                    <strong>Chu kỳ:</strong> <?= htmlspecialchars($form['PeriodName']) ?>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
 
                 </div>

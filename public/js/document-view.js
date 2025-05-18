@@ -151,11 +151,13 @@ function renderFileLinks(files) {
 }
 
 
-function renderDocumentContent(document) {
-    if (!document || !document.files || document.files.length === 0) {
+function renderDocumentContent(docData) {
+    if (!docData || !docData.files || docData.files.length === 0) {
         return '<div class="alert alert-info">Không có thông tin tệp tin</div>';
     }
-    const tableHeader = window.document.querySelector('#documentTable thead tr');
+    console.log(docData.files);
+
+    const tableHeader = document.querySelector('#documentTable thead tr');
     if (tableHeader) {
         tableHeader.innerHTML = `
             <th>Mã ngành</th>
@@ -164,27 +166,31 @@ function renderDocumentContent(document) {
             <th>Ngày tạo</th>
         `;
     }
-    let html = window.document.querySelector('#documentTableBody');
-    document.files.forEach(file => {
+
+    const tableBody = document.querySelector('#documentTableBody');
+    tableBody.innerHTML = ''; // Clear previous content
+    docData.files.forEach(file => {
         const majorId = file.MajorID || '';
         const majorName = file.MajorName || '';
         const filePath = file.path_folder_url || '#';
         const fileName = file.name || 'File đính kèm';
         const fileCreateAt = file.createAt || '';
-        html.innerHTML = `
-            <tr>
-                <td>${escapeHtml(majorId)}</td>
-                <td>${escapeHtml(majorName)}</td>
-                <td>
-                    <a href="${filePath}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="far fa-file-alt me-1"></i> ${escapeHtml(fileName)}
-                    </a>
-                </td>
-                <td>${formatDate(fileCreateAt)}</td>
-            </tr>
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(majorId)}</td>
+            <td>${escapeHtml(majorName)}</td>
+            <td>
+                <a href="${filePath}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="far fa-file-alt me-1"></i> ${escapeHtml(fileName)}
+                </a>
+            </td>
+            <td>${formatDate(fileCreateAt)}</td>
         `;
+        tableBody.appendChild(row);
     });
 }
+
 
 /**
  * Render pagination controls

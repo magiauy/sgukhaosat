@@ -201,20 +201,20 @@ $router->get('/api/document/{id}/files', fn($params) =>
 );
 
 $router->post('/api/document', fn() =>
-    JwtMiddleware::authenticate($request, $response, "ADD_DOCUMENT", fn($req, $res) =>
+    JwtMiddleware::authenticate($request, $response, "MANAGE_DOCUMENT", fn($req, $res) =>
         $documentController->create($res, $req)
     )
 );
 
 $router->put('/api/document/{id}', function($params) use ($request, $response, $documentController) {
-    JwtMiddleware::authenticate($request, $response, "EDIT_DOCUMENT", function($req, $res) use ($params, $documentController) {
+    JwtMiddleware::authenticate($request, $response, "MANAGE_DOCUMENT", function($req, $res) use ($params, $documentController) {
         $_GET['id'] = $params['id'];
         $documentController->update($res, $req);
     });
 });
 
 $router->delete('/api/document/{id}', function($params) use ($request, $response, $documentController) {
-    JwtMiddleware::authenticate($request, $response, "DELETE_DOCUMENT", function($req, $res) use ($params, $documentController) {
+    JwtMiddleware::authenticate($request, $response, "MANAGE_DOCUMENT", function($req, $res) use ($params, $documentController) {
         $_GET['id'] = $params['id'];
         $documentController->delete($res, $req);
     });
@@ -228,7 +228,7 @@ $router->get('/api/file', fn() =>
 );
 
 $router->post('/api/file', fn() =>
-    JwtMiddleware::authenticate($request, $response, "MANAGE_DOCUMENTS", fn($req, $res) =>
+    JwtMiddleware::authenticate($request, $response, "MANAGE_DOCUMENT", fn($req, $res) =>
         $fileController->createMultiple($res, $req)
     )
 );

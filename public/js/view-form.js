@@ -43,7 +43,7 @@ import {callApi} from "./apiService.js";
     async function renderSurvey(data) {
         let surveyHtml = `
         <form id="survey-form" onsubmit="return false;">
-            <div id="survey-body" class="survey-body container py-4 px-3" style="max-width: 720px">
+            <div id="survey-body" class="survey-body container py-4 px-3" style="max-width: 720px; min-width: 600px">
                 <div class="text-center mb-4">
                     <h2 class="fw-bold text-primary">${data.form.FName}</h2>
                     <hr>
@@ -456,7 +456,7 @@ function patternQuestionCheckBox(question) {
         <input type="text" 
                class="form-control ms-2" 
                id="other_text_${question.QID}"
-               placeholder="Enter custom answer">
+               placeholder="Nhập câu trả lời khác">
     </div>
   ` : '';
 

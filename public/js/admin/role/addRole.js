@@ -77,7 +77,11 @@ export async function showFormRole(roleID){
     
 
     // Thêm vào phương thức showPopupAddRole() sau dòng addRoleModal.show()
-    const addRoleModal = new bootstrap.Modal(document.getElementById('addRoleModal'));
+    const addRoleModal = new bootstrap.Modal(document.getElementById('addRoleModal'),{
+        backdrop: 'static',
+        keyboard: false,
+        focus: true,
+    });
     addRoleModal.show();
 
     // Tổ chức cấu trúc quyền
@@ -475,10 +479,10 @@ function createRole() {
         let roleID = document.querySelector('#roleID').value;
         let permissions = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.getAttribute('data-id'));
         
-        if(permissions.length === 0){
-            showSwalToast("Vui lòng chọn ít nhất một quyền!", "warning");
-            return;
-        }
+        // if(permissions.length === 0){
+        //     showSwalToast("Vui lòng chọn ít nhất một quyền!", "warning");
+        //     return;
+        // }
 
         if(roleName.trim() === ""){
             showSwalToast("Tên vai trò không được để trống!", "warning");
@@ -488,7 +492,7 @@ function createRole() {
         if(!isUppercaseAlphaOnly(roleID)){
             showSwalToast("ID vai trò không hợp lệ!", "warning");
             return;
-        };
+        }
 
         let data = {
             roleName: roleName,

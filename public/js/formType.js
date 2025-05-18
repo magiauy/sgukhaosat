@@ -151,6 +151,19 @@ async function addFType() {
     const fTypeID = document.getElementById('fTypeID').value;
     const fTypeName = document.getElementById('fTypeName').value;
 
+    //Kiểm tra fTypeID , phải là in hoa và khôgn có ký tự đặc biệt
+    const regex = /^[A-Z0-9]+$/;
+    if (!regex.test(fTypeID)) {
+        const toastMessage = document.getElementById('toastMessage');
+        const toastElement = new bootstrap.Toast(document.getElementById('fTypeToast'));
+        toastMessage.innerText = 'Mã loại khảo sát không hợp lệ. Chỉ cho phép chữ in hoa và số.';
+        document.getElementById('fTypeToast').classList.remove('text-bg-success');
+        document.getElementById('fTypeToast').classList.add('text-bg-danger');
+        toastElement.show();
+        return;
+    }
+
+
     const toastMessage = document.getElementById('toastMessage');
     const toastElement = new bootstrap.Toast(document.getElementById('fTypeToast'));
 
@@ -321,7 +334,9 @@ function renderFTypeTable(fTypes) {
                 </td>                
                 <td>${++i}</td>
                 <td class="idfType">${fType.FTypeID}</td>
-                <td>${fType.FTypeName}</td>
+<!--                <td>${fType.FTypeName}</td>-->
+                    <td>${fType.FTypeName ? fType.FTypeName.replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''}</td>
+
                 <td class="text-end pe-4">
                     <button class="btn btn-outline-primary" id="editFTypeBtn">
                         <i class="bi bi-gear-fill"></i> Sửa

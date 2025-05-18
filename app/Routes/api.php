@@ -96,7 +96,7 @@ $router->get('/api/user/email', function($params) use ($request, $response, $con
 });
     $router->post('/api/login', fn() => $controller->login($response, $request));
     $router->post('/api/me', fn() =>
-        JwtMiddleware::authenticateNoAddUser($request, $response, null, fn($req, $res) => $controller->me($res, $req))
+        JwtMiddleware::authenticate($request, $response, null, fn($req, $res) => $controller->me($res, $req))
     );
     $router->post('/api/user/pagination', fn() => $controller->getOnPagination($response, $request));
     $router->post('/api/user/id', fn() => $controller->getByEmail($response, $request));

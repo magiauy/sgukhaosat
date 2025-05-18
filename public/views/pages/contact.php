@@ -270,7 +270,10 @@ require_once __DIR__ .'/../layouts/nav-bar.php'
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
+                form.classList.add('was-validated');
+
             } else {
+                form.classList.add('was-validated');
                 // If form is valid, prevent default and show success modal
                 event.preventDefault();
                 
@@ -281,9 +284,10 @@ require_once __DIR__ .'/../layouts/nav-bar.php'
                 
                 // Reset form after successful submission
                 form.reset();
+                form.classList.remove('was-validated');
+
             }
             
-            form.classList.add('was-validated');
         }, false);
     });
 })();

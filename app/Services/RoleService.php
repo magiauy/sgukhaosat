@@ -28,8 +28,7 @@ class RoleService implements IBaseService
         try {
             $pdo = Database::getInstance()->getConnection();
             $pdo->beginTransaction();
-
-            if(empty($data['roleName']) || empty($data['permissions'])){
+            if(empty($data['roleName'])){
                 throw new \Exception('Thiếu dữ liệu', 400);
             }
             $data['acceptDelete'] = 1;
@@ -38,8 +37,10 @@ class RoleService implements IBaseService
 
             
             $this->roleRepository->create($data, $pdo);
-            $this->rolePermRepository->create($data, $pdo);
-            
+            if(!empty($data['permissions'])){
+                $this->rolePermRepository->create($data, $pdo);
+            }
+
             $pdo->commit();
         } catch (\Throwable $th) {
             $pdo->rollBack();
@@ -53,6 +54,7 @@ class RoleService implements IBaseService
     {
         $pdo = Database::getInstance()->getConnection();
         $pdo->beginTransaction();
+        error_log("Data truyền vào là: " . json_encode($data));
         if(empty($id) || empty($data['permissions'])){
             throw new \Exception("Thiếu dữ liệu", 400);
         }
@@ -62,7 +64,7 @@ class RoleService implements IBaseService
             $this->roleRepository->update($id, $data, $pdo);
             error_log("Updapte role thành công ");
             $this->rolePermRepository->delete([$id], $pdo);
-            $arrPermID = array_values($data['permissionsCurrent']);
+            $arrPermID = array_values($data['permissions']);
             if(!empty($arrPermID)){
                  $this->rolePermRepository->create($data, $pdo);
                 error_log("Tạo permission cho role thành công "); 

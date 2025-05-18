@@ -25,7 +25,7 @@ export async function updateRole(roleID) {
         const data = {
             roleName: roleName,
             roleID: roleID,
-            permissionsCurrent: selectedPermissions
+            permissions: selectedPermissions
         };
         // console.log(data);
         try {

@@ -19,7 +19,7 @@ class Role_PermRepository implements IBaseRepositoryTransaction
         
         $roleID = $data['roleID'];
         error_log("RoleID đang chỉnh sửa" . json_encode($roleID));
-        $arrPermID = array_values($data['permissionsCurrent']);
+        $arrPermID = array_values($data['permissions']);
 
         error_log("array perm for role: " . json_encode($arrPermID));
         foreach($arrPermID as $permID){

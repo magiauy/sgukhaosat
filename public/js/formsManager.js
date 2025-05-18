@@ -224,11 +224,11 @@ export async function loadSurveyFromAPI(offset, limit) {
         }
 
         await loadSurveyTable(data['data']);
+        setupFilterInputs();
 
-        if (isFirstLoad) {
-            setupFilterInputs();
-            isFirstLoad = false;
-        }
+        // if (isFirstLoad) {
+        //     isFirstLoad = false;
+        // }
 
         pagination.render({
             currentPage: data['data']['currentPage'],

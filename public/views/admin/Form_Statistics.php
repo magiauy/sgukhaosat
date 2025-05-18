@@ -156,7 +156,6 @@ include __DIR__ . '/../../views/layouts/nav-bar.php';
                                 <h5 class="card-title">Xem câu trả lời của người dùng</h5>
                                 <select class="form-select" id="user-response-select">
                                     <option selected disabled>Chọn người dùng...</option>
-                                    <option>Test</option>
                                     <!-- Options will be loaded dynamically -->
                                 </select>
 
